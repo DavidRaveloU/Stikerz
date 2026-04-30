@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/services/instagram_service.dart';
 import 'package:whaticker/core/services/tiktok_service.dart';
 
 class AddStickerSheet extends StatefulWidget {
   final VoidCallback onLocal;
   final Function(String videoUrl) onTikTokUrl;
+  final Function(String videoUrl) onInstagramUrl;
 
   const AddStickerSheet({
     super.key,
     required this.onLocal,
     required this.onTikTokUrl,
+    required this.onInstagramUrl,
   });
 
   @override
   State<AddStickerSheet> createState() => _AddStickerSheetState();
 }
 
+enum _ImportMode { none, tiktok, instagram }
+
 class _AddStickerSheetState extends State<AddStickerSheet> {
-  bool _showTikTokInput = false;
+  _ImportMode _mode = _ImportMode.none;
   bool _loading = false;
   String? _errorMessage;
   final _urlCtrl = TextEditingController();
@@ -41,35 +46,79 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
     }
   }
 
-  Future<void> _submitTikTokUrl() async {
+  Future<void> _submitUrl() async {
     final raw = _urlCtrl.text.trim();
     if (raw.isEmpty) return;
 
-    final extractedUrl = TikTokService.extractFirstTikTokUrl(raw);
-    if (extractedUrl == null) {
-      setState(() => _errorMessage = 'Pega un enlace válido de TikTok');
-      return;
-    }
+    if (_mode == _ImportMode.tiktok) {
+      final extractedUrl = TikTokService.extractFirstTikTokUrl(raw);
+      if (extractedUrl == null) {
+        setState(() => _errorMessage = 'Pega un enlace válido de TikTok');
+        return;
+      }
 
-    setState(() {
-      _loading = true;
-      _errorMessage = null;
-    });
-
-    final result = await TikTokService.getVideoUrl(extractedUrl);
-    if (!mounted) return;
-
-    if (!result.success) {
       setState(() {
-        _loading = false;
-        _errorMessage = result.error;
+        _loading = true;
+        _errorMessage = null;
       });
-      return;
-    }
 
-    if (!mounted) return;
-    Navigator.pop(context);
-    widget.onTikTokUrl(result.videoUrl!);
+      final result = await TikTokService.getVideoUrl(extractedUrl);
+      if (!mounted) return;
+
+      if (!result.success) {
+        setState(() {
+          _loading = false;
+          _errorMessage = result.error;
+        });
+        return;
+      }
+
+      Navigator.pop(context);
+      widget.onTikTokUrl(result.videoUrl!);
+    } else if (_mode == _ImportMode.instagram) {
+      final extractedUrl = InstagramService.cleanInstagramUrl(raw);
+
+      if (extractedUrl == null) {
+        setState(() => _errorMessage = 'Pega un enlace válido de Instagram');
+        return;
+      }
+
+      setState(() {
+        _loading = true;
+        _errorMessage = null;
+      });
+
+      final result = await InstagramService.getVideoUrl(extractedUrl);
+
+      if (!mounted) return;
+
+      if (!result.success) {
+        setState(() {
+          _loading = false;
+          _errorMessage = result.error;
+        });
+        return;
+      }
+
+      Navigator.pop(context);
+      widget.onInstagramUrl(result.videoUrl!);
+    }
+  }
+
+  String get _sheetTitle {
+    return switch (_mode) {
+      _ImportMode.tiktok => 'Importar de TikTok',
+      _ImportMode.instagram => 'Importar de Instagram',
+      _ImportMode.none => 'Nuevo sticker',
+    };
+  }
+
+  String get _hintText {
+    return switch (_mode) {
+      _ImportMode.tiktok => 'https://tiktok.com/...',
+      _ImportMode.instagram => 'https://instagram.com/reel/...',
+      _ImportMode.none => '',
+    };
   }
 
   @override
@@ -104,7 +153,7 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  _showTikTokInput ? 'Importar de TikTok' : 'Nuevo sticker',
+                  _sheetTitle,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 18,
@@ -115,9 +164,15 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
             ),
             const SizedBox(height: 14),
 
-            if (!_showTikTokInput) ...[
+            if (_mode == _ImportMode.none) ...[
               _ImportOption(
-                onTap: () => setState(() => _showTikTokInput = true),
+                onTap: () {
+                  setState(() {
+                    _mode = _ImportMode.tiktok;
+                    _errorMessage = null;
+                    _urlCtrl.clear();
+                  });
+                },
                 icon: const Icon(
                   Icons.music_video_rounded,
                   color: AppColors.accent,
@@ -127,6 +182,25 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                 iconBorder: AppColors.accent.withOpacity(0.2),
                 title: 'Importar de TikTok',
                 subtitle: 'Pega un enlace del video',
+              ),
+              const SizedBox(height: 8),
+              _ImportOption(
+                onTap: () {
+                  setState(() {
+                    _mode = _ImportMode.instagram;
+                    _errorMessage = null;
+                    _urlCtrl.clear();
+                  });
+                },
+                icon: const Icon(
+                  Icons.camera_alt_rounded,
+                  color: Color(0xFFE1306C),
+                  size: 20,
+                ),
+                iconBg: const Color(0xFFE1306C).withOpacity(0.08),
+                iconBorder: const Color(0xFFE1306C).withOpacity(0.2),
+                title: 'Importar de Instagram',
+                subtitle: 'Pega un enlace del Reel',
               ),
               const SizedBox(height: 8),
               _ImportOption(
@@ -171,7 +245,7 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                               fontSize: 13,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'https://tiktok.com/...',
+                              hintText: _hintText,
                               hintStyle: const TextStyle(
                                 color: AppColors.textMuted,
                                 fontSize: 12,
@@ -182,7 +256,6 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                                 horizontal: 12,
                                 vertical: 12,
                               ),
-                              // ── Botón de pegar integrado como sufijo ──
                               suffixIcon: _loading
                                   ? null
                                   : GestureDetector(
@@ -197,33 +270,31 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AppColors.accent.withOpacity(
-                                            0.12,
-                                          ),
+                                          color: _accentColor.withOpacity(0.12),
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
                                           border: Border.all(
-                                            color: AppColors.accent.withOpacity(
+                                            color: _accentColor.withOpacity(
                                               0.25,
                                             ),
                                           ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
-                                          children: const [
+                                          children: [
                                             Icon(
                                               Icons.content_paste_rounded,
                                               size: 13,
-                                              color: AppColors.accent,
+                                              color: _accentColor,
                                             ),
-                                            SizedBox(width: 4),
+                                            const SizedBox(width: 4),
                                             Text(
                                               'Pegar',
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
-                                                color: AppColors.accent,
+                                                color: _accentColor,
                                               ),
                                             ),
                                           ],
@@ -251,7 +322,7 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                                 borderSide: BorderSide(
                                   color: _errorMessage != null
                                       ? Colors.redAccent
-                                      : AppColors.accent.withOpacity(0.6),
+                                      : _accentColor.withOpacity(0.6),
                                 ),
                               ),
                             ),
@@ -259,14 +330,14 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                         ),
                         const SizedBox(width: 8),
                         GestureDetector(
-                          onTap: _loading ? null : _submitTikTokUrl,
+                          onTap: _loading ? null : _submitUrl,
                           child: Container(
                             height: 46,
                             width: 56,
                             decoration: BoxDecoration(
                               color: _loading
-                                  ? AppColors.accent.withOpacity(0.5)
-                                  : AppColors.accent,
+                                  ? _accentColor.withOpacity(0.5)
+                                  : _accentColor,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             alignment: Alignment.center,
@@ -312,9 +383,14 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
       ),
     );
   }
+
+  // Color de acento según el modo activo
+  Color get _accentColor => _mode == _ImportMode.instagram
+      ? const Color(0xFFE1306C)
+      : AppColors.accent;
 }
 
-// Componente reutilizable
+// Componente reutilizable (sin cambios)
 class _ImportOption extends StatelessWidget {
   final VoidCallback onTap;
   final Widget icon;

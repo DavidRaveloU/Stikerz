@@ -191,6 +191,19 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
             ),
           );
         },
+        onInstagramUrl: (videoUrl) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StickerEditorPage(
+                packId: widget.packId,
+                slotIndex: index,
+                sourceType: 'instagram',
+                videoPath: videoUrl,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
