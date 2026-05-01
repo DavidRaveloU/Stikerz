@@ -8,6 +8,7 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/providers/share_provider.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
 import 'package:whaticker/data/models/sticker_model.dart';
 import 'package:whaticker/data/models/sticker_pack_model.dart';
@@ -243,6 +244,7 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
   @override
   Widget build(BuildContext context) {
     final packAsync = ref.watch(packDetailProvider(widget.packId));
+    final pendingShare = ref.watch(pendingShareProvider);
 
     return packAsync.when(
       data: (pack) {
@@ -253,7 +255,57 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
           return const Scaffold(backgroundColor: AppColors.background);
         }
 
-        return _buildScreen(pack);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final currentPending = ref.read(pendingShareProvider);
+          if (currentPending == null) return;
+
+          if (currentPending.error != null) {
+            ref.read(pendingShareProvider.notifier).state = null;
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(currentPending.error!)));
+            return;
+          }
+
+          if (!currentPending.hasResolvedVideo || currentPending.isResolving) {
+            return;
+          }
+
+          int? empty;
+          for (var i = 0; i < 30; i++) {
+            if (pack.stickerAt(i) == null) {
+              empty = i;
+              break;
+            }
+          }
+
+          if (empty == null) {
+            ref.read(pendingShareProvider.notifier).state = null;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('No hay espacio disponible en este paquete.'),
+              ),
+            );
+            return;
+          }
+
+          final videoUrl = currentPending.resolvedVideoUrl!;
+          final int slotIndex = empty;
+          ref.read(pendingShareProvider.notifier).state = null;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StickerEditorPage(
+                packId: widget.packId,
+                slotIndex: slotIndex,
+                sourceType: currentPending.source,
+                videoPath: videoUrl,
+              ),
+            ),
+          );
+        });
+
+        return _buildScreen(pack, pendingShare: pendingShare);
       },
       loading: () => const Scaffold(
         backgroundColor: AppColors.background,
@@ -266,7 +318,7 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
     );
   }
 
-  Widget _buildScreen(StickerPackModel pack) {
+  Widget _buildScreen(StickerPackModel pack, {PendingShare? pendingShare}) {
     final selectedTab = ref.watch(packDetailTabProvider);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -302,6 +354,28 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
               right: 0,
               child: Center(child: WhatsAppButton(pack: pack)),
             ),
+            if (pendingShare != null && pendingShare.isResolving)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.72),
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: AppColors.accent),
+                        SizedBox(height: 16),
+                        Text(
+                          'Resolviendo video compartido...',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

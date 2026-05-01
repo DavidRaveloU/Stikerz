@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/providers/share_provider.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
 import 'package:whaticker/data/models/sticker_pack_model.dart';
 import 'package:whaticker/ui/components/create_pack_modal.dart';
@@ -71,6 +72,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final pending = ref.watch(pendingShareProvider);
     final filteredPacks = ref.watch(filteredPacksProvider);
     final totalCount = ref.watch(totalPacksCountProvider);
     final isLoading = ref.watch(packsStreamProvider).isLoading;
@@ -84,6 +86,66 @@ class _HomePageState extends ConsumerState<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const HomeHeader(),
+              if (pending != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Material(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        // Tocar banner solo despliega mensaje; user will select pack normally
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Enlace pendiente detectado (${pending.source}). Selecciona un paquete para usarlo.',
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.link, color: AppColors.accent),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                pending.displayText,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (pending.isResolving)
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            else
+                              TextButton(
+                                onPressed: () {
+                                  ref
+                                          .read(pendingShareProvider.notifier)
+                                          .state =
+                                      null;
+                                },
+                                child: const Text('Descartar'),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               HomeSearchBar(
                 controller: _searchController,
                 onChanged: (value) {
