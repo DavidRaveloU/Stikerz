@@ -1,5 +1,6 @@
+import 'dart:io';
+
 import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../data/models/sticker_model.dart';
 import '../../data/models/sticker_pack_model.dart';
@@ -28,13 +29,24 @@ class PackRepository {
   static Future<void> init() async {
     if (_isar != null && _isar!.isOpen) return;
 
-    final dir = await getApplicationDocumentsDirectory();
+    try {
+      print("ISAR: INIT START");
 
-    _isar = await Isar.open(
-      [StickerPackModelSchema],
-      directory: dir.path,
-      name: 'whaticker_db',
-    );
+      final dir = Directory('/data/user/0/com.davidravelo.whaticker/files');
+      print("ISAR: DIR = ${dir.path}");
+
+      _isar = await Isar.open(
+        [StickerPackModelSchema],
+        directory: dir.path,
+        name: 'whaticker_db',
+      );
+
+      print("ISAR: INIT OK");
+    } catch (e, stack) {
+      print("ISAR ERROR: $e");
+      print(stack);
+      rethrow;
+    }
   }
 
   Isar get _db {

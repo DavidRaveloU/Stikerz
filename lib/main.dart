@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -12,21 +11,26 @@ import 'package:whaticker/core/repositories/pack_repository.dart';
 import 'package:whaticker/routes/app_router.dart';
 
 Future<void> main(List<String> args) async {
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
-  // Configuración de orientación
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+      MediaKit.ensureInitialized();
 
-  // Inicializar MediaKit (NO es async, por eso sin await)
-  MediaKit.ensureInitialized();
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
 
-  // Inicializar Isar a través del Repository
-  await PackRepository.init();
+      await PackRepository.init();
 
-  runApp(ProviderScope(child: ShareIntentHandler()));
+      runApp(const ProviderScope(child: ShareIntentHandler()));
+    },
+    (error, stack) {
+      debugPrint("ZONED ERROR: $error");
+      debugPrintStack(stackTrace: stack);
+    },
+  );
 }
 
 class ShareIntentHandler extends ConsumerStatefulWidget {
@@ -43,6 +47,7 @@ class _ShareIntentHandlerState extends ConsumerState<ShareIntentHandler> {
     if (items.isEmpty) return;
 
     final first = items.first;
+
     final rawText = first.mimeType != null && first.mimeType!.startsWith('text')
         ? first.path
         : (first.path.isNotEmpty ? first.path : first.message ?? '');
@@ -55,10 +60,13 @@ class _ShareIntentHandlerState extends ConsumerState<ShareIntentHandler> {
       source: detectShareSource(text),
       isResolving: true,
     );
+
     ref.read(pendingShareProvider.notifier).state = pending;
 
     final resolved = await resolvePendingShare(pending);
+
     if (!mounted) return;
+
     ref.read(pendingShareProvider.notifier).state = resolved;
   }
 
@@ -66,17 +74,23 @@ class _ShareIntentHandlerState extends ConsumerState<ShareIntentHandler> {
   void initState() {
     super.initState();
 
-    // Obtener texto o media inicial (cold start)
-    ReceiveSharingIntent.instance
-        .getInitialMedia()
-        .then(_handleSharedItems)
-        .catchError((_) {});
+    try {
+      ReceiveSharingIntent.instance
+          .getInitialMedia()
+          .then(_handleSharedItems)
+          .catchError((e) {
+            debugPrint("ERROR getInitialMedia: $e");
+          });
 
-    // Escuchar cuando la app ya está en foreground (media stream)
-    _textSub = ReceiveSharingIntent.instance.getMediaStream().listen(
-      _handleSharedItems,
-      onError: (_) {},
-    );
+      _textSub = ReceiveSharingIntent.instance.getMediaStream().listen(
+        _handleSharedItems,
+        onError: (e) {
+          debugPrint("ERROR mediaStream: $e");
+        },
+      );
+    } catch (e) {
+      debugPrint("ERROR INIT INTENT: $e");
+    }
   }
 
   @override
@@ -100,7 +114,6 @@ class App extends ConsumerWidget {
       title: 'Whaticker',
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
-
       theme: ThemeData(
         brightness: Brightness.dark,
         useMaterial3: true,

@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.davidravelo.whaticker"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     androidResources {
@@ -24,14 +24,19 @@ android {
 
     defaultConfig {
         applicationId = "com.davidravelo.whaticker"
-        minSdk = flutter.minSdkVersion                          // ← único cambio
-        targetSdk = flutter.targetSdkVersion
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
     buildTypes {
         release {
+            // evitar que rompa plugins
+            isMinifyEnabled = false
+            isShrinkResources = false
+
+            // (lo dejamos como lo tienes)
             signingConfig = signingConfigs.getByName("debug")
         }
     }
