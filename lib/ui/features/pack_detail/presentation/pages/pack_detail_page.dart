@@ -40,6 +40,7 @@ class PackDetailPage extends ConsumerStatefulWidget {
 
 class _PackDetailPageState extends ConsumerState<PackDetailPage> {
   final ImagePicker _imagePicker = ImagePicker();
+  String? _lastFullPackWarningKey;
 
   // ── Acciones ─────────────────────────────────────────────────────────────
 
@@ -280,12 +281,17 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
           }
 
           if (empty == null) {
-            ref.read(pendingShareProvider.notifier).state = null;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('No hay espacio disponible en este paquete.'),
-              ),
-            );
+            final warningKey = '${widget.packId}:${currentPending.rawText}';
+            if (_lastFullPackWarningKey != warningKey) {
+              _lastFullPackWarningKey = warningKey;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Este paquete ya está lleno. Elige otro paquete o crea uno nuevo.',
+                  ),
+                ),
+              );
+            }
             return;
           }
 

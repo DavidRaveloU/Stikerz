@@ -98,11 +98,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
                       onTap: () {
-                        // Tocar banner solo despliega mensaje; user will select pack normally
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              'Enlace pendiente detectado (${pending.source}). Selecciona un paquete para usarlo.',
+                              _shareBannerHint(pending, totalCount),
                             ),
                           ),
                         );
@@ -111,14 +110,37 @@ class _HomePageState extends ConsumerState<HomePage> {
                         padding: const EdgeInsets.all(12),
                         child: Row(
                           children: [
-                            const Icon(Icons.link, color: AppColors.accent),
+                            Icon(
+                              pending.isResolving
+                                  ? Icons.hourglass_top_rounded
+                                  : Icons.add_to_photos_rounded,
+                              color: AppColors.accent,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: Text(
-                                pending.displayText,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Colors.white),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _shareBannerTitle(pending, totalCount),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _shareBannerSubtitle(pending, totalCount),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -214,6 +236,42 @@ class _HomePageState extends ConsumerState<HomePage> {
         ],
       ),
     );
+  }
+
+  String _shareBannerTitle(PendingShare pending, int totalCount) {
+    if (pending.isResolving) {
+      return 'Preparando tu video';
+    }
+
+    if (totalCount == 0) {
+      return 'Crea primero un paquete';
+    }
+
+    return 'Selecciona el paquete';
+  }
+
+  String _shareBannerSubtitle(PendingShare pending, int totalCount) {
+    if (pending.isResolving) {
+      return 'Estamos convirtiendo el enlace para que puedas agregarlo sin pasos extra.';
+    }
+
+    if (totalCount == 0) {
+      return 'Después de crear tu primer paquete, podrás agregar este video compartido.';
+    }
+
+    return 'El enlace ya está listo. Elige el paquete donde quieres agregarlo.';
+  }
+
+  String _shareBannerHint(PendingShare pending, int totalCount) {
+    if (pending.isResolving) {
+      return 'Estamos preparando el video compartido. Espera un momento.';
+    }
+
+    if (totalCount == 0) {
+      return 'Crea primero un paquete para agregar este video.';
+    }
+
+    return 'Selecciona el paquete donde quieres agregar este video.';
   }
 
   Widget _buildFAB() {
