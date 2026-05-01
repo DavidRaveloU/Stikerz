@@ -87,33 +87,34 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
     _initVideo();
   }
 
-  Future<void> _initVideo() async {
+    Future<void> _initVideo() async {
     final path = widget.videoPath;
     if (path == null) return;
 
-    // Configuración especial para TikTok (streams HTTP)
+    // Configuración especial para TikTok e Instagram (streams HTTP)
     if (path.startsWith('http')) {
       final nativePlayer = _player.platform as NativePlayer;
       await nativePlayer.setProperty('hwdec', 'mediacodec');
       await nativePlayer.setProperty('hwdec-codecs', 'all');
       await nativePlayer.setProperty('cache', 'yes');
-      await nativePlayer.setProperty('cache-secs', '10');
+      await nativePlayer.setProperty('cache-secs', '15'); // aumentado para Instagram
     }
 
     await _player.open(Media(path), play: false);
 
-    // Duración real del video
+    // Esperamos duración + primer frame visible
+    bool videoInitialized = false;
+
+    // Duración
     _player.stream.duration.first.then((dur) {
-      if (!mounted) return;
+      if (!mounted || videoInitialized) return;
       setState(() {
-        _videoDurationSecs = dur.inMilliseconds > 0
-            ? dur.inMilliseconds / 1000.0
-            : 1.0;
+        _videoDurationSecs = dur.inMilliseconds > 0 ? dur.inMilliseconds / 1000.0 : 1.0;
         _syncDurationToWindow();
       });
     });
 
-    // Aspect Ratio
+    // Video params (aspect ratio)
     _player.stream.videoParams.listen((params) {
       if (!mounted) return;
       final resolved = _resolveAspectFromParams(params);
@@ -122,12 +123,27 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
       }
     });
 
-    // Loop dentro del rango seleccionado
+    // Loop
     _player.stream.completed.listen((_) {
       if (_isPlaying && mounted) {
         _restartLoopPreviewFromStart();
       }
     });
+
+    // Espera inteligente: máximo 8 segundos para marcar como listo
+    try {
+      await Future.any([
+        // Esperamos primer frame visible
+        _player.stream.videoParams.firstWhere((p) => 
+          (p.w ?? p.dw) != null && (p.h ?? p.dh) != null
+        ),
+        // O al menos duración
+        _player.stream.duration.firstWhere((d) => d.inMilliseconds > 500),
+      ]).timeout(const Duration(seconds: 8));
+    } catch (_) {
+      // Timeout: seguimos adelante para no bloquear al usuario indefinidamente
+      debugPrint('Timeout esperando inicialización del video (Instagram)');
+    }
 
     if (!mounted) return;
     setState(() => _videoReady = true);

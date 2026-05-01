@@ -42,6 +42,7 @@ class EditorVideoArea extends StatelessWidget {
           color: Colors.black,
           child: Stack(
             children: [
+              // Video Player
               if (videoReady)
                 Positioned.fill(
                   child: Video(
@@ -51,10 +52,45 @@ class EditorVideoArea extends StatelessWidget {
                   ),
                 )
               else
-                const Center(
-                  child: CircularProgressIndicator(color: AppColors.accent),
+                // Loading mejorado para Instagram
+                Container(
+                  color: Colors.black,
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: CircularProgressIndicator(
+                            color: AppColors.accent,
+                            strokeWidth: 3.5,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          'Cargando video...',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'Esto puede tardar unos segundos con Instagram',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
 
+              // Overlay de crop
               CropOverlay(
                 cropOffset: cropOffset,
                 cropSize: _getCropSize(cropWidth, aspectRatio, videoAspect),
@@ -62,6 +98,7 @@ class EditorVideoArea extends StatelessWidget {
                 videoRect: videoRect,
               ),
 
+              // Crop Box interactivo
               CropBox(
                 offset: cropOffset,
                 cropWidth: cropWidth,
@@ -71,7 +108,7 @@ class EditorVideoArea extends StatelessWidget {
                 onChanged: onCropChanged,
               ),
 
-              // BOTÓN PLAY/PAUSE
+              // Botón Play/Pause
               Positioned(
                 top: 16,
                 right: 16,

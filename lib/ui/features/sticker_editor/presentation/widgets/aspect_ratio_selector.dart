@@ -8,6 +8,7 @@ enum AspectRatioOption {
 
   final String label;
   final double ratio;
+
   const AspectRatioOption(this.label, this.ratio);
 }
 
