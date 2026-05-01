@@ -6,6 +6,9 @@ import 'package:whaticker/ui/features/pack_detail/presentation/pages/pack_detail
 import 'package:whaticker/ui/features/sticker_editor/presentation/pages/sticker_editor_page.dart';
 import 'package:whaticker/ui/features/video_picker/presentation/pages/video_picker_page.dart';
 
+/// GlobalRouteObserver para detectar cambios de rutas de navegación
+final routeObserver = RouteObserver<PageRoute>();
+
 final GoRouter appRouter = GoRouter(
   initialLocation: RoutePaths.home,
   debugLogDiagnostics: true,

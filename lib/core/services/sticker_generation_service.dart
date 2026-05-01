@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -68,7 +67,6 @@ class StickerGenerationRequest {
 class StickerGenerationService {
   static const int _maxBytes = 500 * 1024;
   static bool _checkedWebpRuntime = false;
-  static const String _logName = 'StickerGeneration';
 
   static Future<StickerGenerationResult> generate(
     StickerGenerationRequest req, {
@@ -112,11 +110,6 @@ class StickerGenerationService {
       onStatus?.call('Iniciando conversión...', 0.12);
       String? lastFailure;
 
-      developer.log(
-        'Duracion=${req.durationSec.toStringAsFixed(2)}s | strategy=$strategyMode',
-        name: _logName,
-      );
-
       for (var i = 0; i < profiles.length; i++) {
         final progress = 0.15 + (0.75 * (i / profiles.length));
 
@@ -158,11 +151,6 @@ class StickerGenerationService {
             '-q:v ${profile.quality} '
             '${_q(attemptPath)}';
 
-        developer.log(
-          'Intento ${i + 1}/${profiles.length} | q=${profile.quality} | fps=${profile.fps} | strategy=$strategyMode',
-          name: _logName,
-        );
-
         final session = await FFmpegKit.execute(command);
         final returnCode = await session.getReturnCode();
 
@@ -187,19 +175,6 @@ class StickerGenerationService {
         }
 
         final bytes = await attemptFile.length();
-        final kb = (bytes / 1024).toStringAsFixed(2);
-
-        developer.log(
-          'Intento ${i + 1}: ${kb}KB ($bytes bytes)',
-          name: _logName,
-        );
-
-        final diff = bytes - _maxBytes;
-
-        developer.log(
-          'Intento ${i + 1}: exceso ${(diff / 1024).toStringAsFixed(2)}KB',
-          name: _logName,
-        );
 
         if (bytes <= _maxBytes) {
           onStatus?.call('Guardando sticker...', 0.95);

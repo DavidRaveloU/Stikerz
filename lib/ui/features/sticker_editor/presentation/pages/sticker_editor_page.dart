@@ -87,7 +87,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
     _initVideo();
   }
 
-  Future<void> _initVideo() async {
+  Future<void> _initVideo({bool useHwdec = true}) async {
     final path = widget.videoPath;
     try {
       if (path == null || path.trim().isEmpty) {
@@ -95,12 +95,16 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
       }
 
       // Configuración especial para TikTok e Instagram (streams HTTP)
-      if (path.startsWith('http')) {
-        final nativePlayer = _player.platform as NativePlayer;
-        await nativePlayer.setProperty('hwdec', 'mediacodec');
-        await nativePlayer.setProperty('hwdec-codecs', 'all');
-        await nativePlayer.setProperty('cache', 'yes');
-        await nativePlayer.setProperty('cache-secs', '15');
+      if (path.startsWith('http') && useHwdec) {
+        try {
+          final nativePlayer = _player.platform as NativePlayer;
+          await nativePlayer.setProperty('hwdec', 'mediacodec');
+          await nativePlayer.setProperty('hwdec-codecs', 'all');
+          await nativePlayer.setProperty('cache', 'yes');
+          await nativePlayer.setProperty('cache-secs', '15');
+        } catch (e) {
+          debugPrint('Failed to set native properties: $e');
+        }
       }
 
       await _player.open(Media(path), play: false);
@@ -154,6 +158,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
       if (!mounted) return;
       setState(() => _isPlaying = true);
       _playheadCtrl.forward(from: 0);
+      // Small diagnostic delay to observe if player renders a frame
     } catch (e) {
       debugPrint('Error inicializando editor de video: $e');
       if (!mounted) return;

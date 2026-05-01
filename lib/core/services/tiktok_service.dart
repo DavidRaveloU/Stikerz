@@ -76,7 +76,7 @@ class TikTokService {
           .post(
             Uri.parse(_apiUrl),
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: {'url': tiktokUrl.trim(), 'hd': '1'},
+            body: {'url': tiktokUrl.trim(), 'hd': '0'},
           )
           .timeout(const Duration(seconds: 15));
 
@@ -84,16 +84,39 @@ class TikTokService {
         return const TikTokResult(error: 'Error al conectar con el servidor');
       }
 
-      final json = jsonDecode(response.body);
-
-      if (json['code'] != 0) {
-        return const TikTokResult(error: 'No se pudo obtener el video. Verifica que sea público.');
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        return const TikTokResult(error: 'Respuesta inválida del servidor');
       }
 
-      final videoUrl = json['data']['play'] as String?;
+      final json = decoded;
+
+      if (json['code'] != 0) {
+        return const TikTokResult(
+          error: 'No se pudo obtener el video. Verifica que sea público.',
+        );
+      }
+
+      final data = json['data'];
+      if (data is! Map<String, dynamic>) {
+        return const TikTokResult(error: 'Respuesta inválida del servidor');
+      }
+
+      final imageList = data['images'];
+      if (imageList is List && imageList.isNotEmpty) {
+        return const TikTokResult(
+          error:
+              'Este enlace de TikTok no es un video. Elige un video y no una publicación de fotos.',
+        );
+      }
+
+      final videoUrl = _extractPlayableVideoUrl(data);
 
       if (videoUrl == null || videoUrl.isEmpty) {
-        return const TikTokResult(error: 'No se encontró el video');
+        return const TikTokResult(
+          error:
+              'Este enlace de TikTok no es un video. Elige un video y no una publicación de fotos.',
+        );
       }
 
       return TikTokResult(videoUrl: videoUrl);
@@ -104,6 +127,35 @@ class TikTokService {
       return TikTokResult(error: 'Error inesperado: ${e.toString()}');
     }
   }
-  
-  
+
+  static String? _extractPlayableVideoUrl(Map<String, dynamic> data) {
+    final candidates = <String?>[
+      data['play'] as String?,
+      data['wmplay'] as String?,
+      data['hdplay'] as String?,
+    ];
+
+    for (final candidate in candidates) {
+      if (_isVideoDownloadUrl(candidate)) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  static bool _isVideoDownloadUrl(String? url) {
+    if (url == null || url.isEmpty) return false;
+
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+
+    final mimeType = uri.queryParameters['mime_type']?.toLowerCase();
+    if (mimeType != null && mimeType.contains('video')) {
+      return true;
+    }
+
+    final path = uri.path.toLowerCase();
+    return path.contains('/video/') || path.endsWith('.mp4');
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
 import 'package:whaticker/core/services/video_picker_service.dart';
+import 'package:whaticker/routes/app_router.dart' show routeObserver;
 import 'package:whaticker/ui/features/video_picker/presentation/widgets/confirm_bar.dart';
 import 'package:whaticker/ui/features/video_picker/presentation/widgets/video_picker_top_bar.dart';
 import 'package:whaticker/ui/features/video_picker/presentation/widgets/video_tile.dart';
@@ -15,12 +16,13 @@ class VideoPickerPage extends StatefulWidget {
 }
 
 class _VideoPickerPageState extends State<VideoPickerPage>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   List<AssetEntity> _videos = [];
   bool _loading = true;
   bool _permissionDenied = false;
   bool _isLimitedAccess = false;
   AssetEntity? _selected;
+  bool _requestingPermission = false;
 
   @override
   void initState() {
@@ -30,9 +32,36 @@ class _VideoPickerPageState extends State<VideoPickerPage>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void deactivate() {
+    routeObserver.unsubscribe(this);
+    super.deactivate();
+  }
+
+  /// Se ejecuta cuando se regresa a esta página desde otra ruta
+  @override
+  void didPopNext() {
+    _load();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _load();
   }
 
   @override
@@ -46,7 +75,14 @@ class _VideoPickerPageState extends State<VideoPickerPage>
     if (!mounted) return;
     setState(() => _loading = true);
 
-    final perm = await VideoPickerService.requestPermission();
+    final perm = await PhotoManager.getPermissionState(
+      requestOption: const PermissionRequestOption(
+        androidPermission: AndroidPermission(
+          type: RequestType.video,
+          mediaLocation: false,
+        ),
+      ),
+    );
 
     if (!mounted) return;
 
@@ -65,7 +101,9 @@ class _VideoPickerPageState extends State<VideoPickerPage>
 
     if (!mounted) return;
 
-    // Detectar acceso limitado
+    // Detectar acceso limitado de forma robusta:
+    // hasAccess=true pero isAuth=false  →  limitado en Android
+    // PermissionState.limited           →  limitado en iOS
     final isLimited =
         (!perm.isAuth && perm.hasAccess) || perm == PermissionState.limited;
 
@@ -78,13 +116,21 @@ class _VideoPickerPageState extends State<VideoPickerPage>
   }
 
   Future<void> _onLimitedTap() async {
+    if (_requestingPermission) return;
+    _requestingPermission = true;
     try {
-      await PhotoManager.presentLimited(type: RequestType.video);
-    } catch (_) {
+      final perm = await VideoPickerService.requestPermission();
+
+      if (perm.hasAccess || perm.isAuth || perm == PermissionState.limited) {
+        if (mounted) await _load();
+        return;
+      }
+
       await PhotoManager.openSetting();
+      if (mounted) await _load();
+    } finally {
+      _requestingPermission = false;
     }
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (mounted) _load();
   }
 
   Future<void> _confirm() async {
@@ -190,6 +236,97 @@ class _VideoPickerPageState extends State<VideoPickerPage>
       );
     }
 
+    // Mostrar banner de acceso limitado incluso si no hay videos
+    if (_isLimitedAccess) {
+      return Column(
+        children: [
+          GestureDetector(
+            onTap: _onLimitedTap,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: AppColors.accent.withOpacity(0.12),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    color: AppColors.accent,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Acceso limitado a galería',
+                          style: TextStyle(
+                            color: AppColors.accent,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Toca para agregar más videos',
+                          style: TextStyle(
+                            color: AppColors.accent,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: AppColors.accent,
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_videos.isEmpty)
+            const Expanded(
+              child: Center(
+                child: Text(
+                  'No se encontraron videos',
+                  style: TextStyle(color: AppColors.textMuted),
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = _gridColumnsForWidth(constraints.maxWidth);
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(2),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      crossAxisSpacing: 2,
+                      mainAxisSpacing: 2,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: _videos.length,
+                    itemBuilder: (_, i) => VideoTile(
+                      asset: _videos[i],
+                      isSelected: _selected == _videos[i],
+                      formatDuration: _formatDuration,
+                      onTap: () => setState(() {
+                        _selected = _selected == _videos[i] ? null : _videos[i];
+                      }),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      );
+    }
+
+    // Sin acceso limitado: mostrar grid normalmente
     if (_videos.isEmpty) {
       return const Center(
         child: Text(
@@ -199,65 +336,28 @@ class _VideoPickerPageState extends State<VideoPickerPage>
       );
     }
 
-    return Column(
-      children: [
-        if (_isLimitedAccess)
-          GestureDetector(
-            onTap: _onLimitedTap,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: AppColors.accent.withOpacity(0.08),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    color: AppColors.accent,
-                    size: 16,
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Acceso limitado · Toca para agregar más videos',
-                      style: TextStyle(
-                        color: AppColors.accent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Icon(Icons.add_rounded, color: AppColors.accent, size: 16),
-                ],
-              ),
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = _gridColumnsForWidth(constraints.maxWidth);
+        return GridView.builder(
+          padding: const EdgeInsets.all(2),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            crossAxisSpacing: 2,
+            mainAxisSpacing: 2,
+            childAspectRatio: 1,
           ),
-
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = _gridColumnsForWidth(constraints.maxWidth);
-              return GridView.builder(
-                padding: const EdgeInsets.all(2),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  crossAxisSpacing: 2,
-                  mainAxisSpacing: 2,
-                  childAspectRatio: 1,
-                ),
-                itemCount: _videos.length,
-                itemBuilder: (_, i) => VideoTile(
-                  asset: _videos[i],
-                  isSelected: _selected == _videos[i],
-                  formatDuration: _formatDuration,
-                  onTap: () => setState(() {
-                    _selected = _selected == _videos[i] ? null : _videos[i];
-                  }),
-                ),
-              );
-            },
+          itemCount: _videos.length,
+          itemBuilder: (_, i) => VideoTile(
+            asset: _videos[i],
+            isSelected: _selected == _videos[i],
+            formatDuration: _formatDuration,
+            onTap: () => setState(() {
+              _selected = _selected == _videos[i] ? null : _videos[i];
+            }),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
