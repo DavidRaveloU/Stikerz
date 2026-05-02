@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/data/models/sticker_pack_model.dart';
 import 'package:whaticker/ui/features/pack_detail/presentation/providers/pack_detail_provider.dart';
 
@@ -39,7 +40,7 @@ class PackDetailHero extends ConsumerWidget {
             _buildTopBar(context),
             _buildCoverRow(context),
             _buildProgressRow(),
-            _buildTabs(ref),
+            _buildTabs(context, ref),
           ],
         ),
       ),
@@ -111,18 +112,18 @@ class PackDetailHero extends ConsumerWidget {
                               ),
                             ),
                           )
-                        : const Column(
+                        : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.add_photo_alternate_rounded,
                                 color: AppColors.accent,
                                 size: 22,
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
-                                'Portada',
-                                style: TextStyle(
+                                context.l10n.packInfoCover,
+                                style: const TextStyle(
                                   fontSize: 9,
                                   color: AppColors.accent,
                                 ),
@@ -174,7 +175,7 @@ class PackDetailHero extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'por ${pack.author}',
+                  context.l10n.packCountByAuthor(pack.author),
                   style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,
@@ -183,10 +184,13 @@ class PackDetailHero extends ConsumerWidget {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    _StatChip(label: 'stickers', value: '${pack.filledCount}'),
+                    _StatChip(
+                      label: context.l10n.myStickers,
+                      value: '${pack.filledCount}',
+                    ),
                     const SizedBox(width: 8),
                     _StatChip(
-                      label: 'libres',
+                      label: context.l10n.freeSlots,
                       value: '${30 - pack.filledCount}',
                     ),
                   ],
@@ -240,8 +244,8 @@ class PackDetailHero extends ConsumerWidget {
     );
   }
 
-  Widget _buildTabs(WidgetRef ref) {
-    const tabs = ['Stickers', 'Info del pack'];
+  Widget _buildTabs(BuildContext context, WidgetRef ref) {
+    final tabs = [context.l10n.stickersTab, context.l10n.packInfoTab];
     final selectedTab = ref.watch(packDetailTabProvider);
 
     return Padding(

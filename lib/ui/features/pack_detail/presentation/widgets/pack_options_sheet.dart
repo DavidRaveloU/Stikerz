@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 class PackOptionsSheet extends StatelessWidget {
   final VoidCallback onRename;
@@ -35,12 +36,12 @@ class PackOptionsSheet extends StatelessWidget {
           const SizedBox(height: 8),
           _SheetOption(
             icon: Icons.drive_file_rename_outline_rounded,
-            label: 'Renombrar paquete',
+            label: context.l10n.renamePack,
             onTap: onRename,
           ),
           _SheetOption(
             icon: Icons.delete_outline_rounded,
-            label: 'Eliminar paquete',
+            label: context.l10n.deletePack,
             color: Colors.redAccent,
             onTap: onDelete,
           ),

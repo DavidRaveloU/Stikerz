@@ -8,6 +8,7 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/core/providers/share_provider.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
 import 'package:whaticker/data/models/sticker_model.dart';
@@ -58,9 +59,9 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
 
     if (processedPath == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo procesar la portada.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.processCoverError)));
       return;
     }
 
@@ -285,11 +286,7 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
             if (_lastFullPackWarningKey != warningKey) {
               _lastFullPackWarningKey = warningKey;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Este paquete ya está lleno. Elige otro paquete o crea uno nuevo.',
-                  ),
-                ),
+                SnackBar(content: Text(context.l10n.fullPackWarning)),
               );
             }
             return;
@@ -319,7 +316,7 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
       ),
       error: (error, stack) => Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(child: Text('Error: $error')),
+        body: Center(child: Text('${context.l10n.error}: $error')),
       ),
     );
   }
@@ -364,15 +361,17 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
               Positioned.fill(
                 child: Container(
                   color: Colors.black.withOpacity(0.72),
-                  child: const Center(
+                  child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        CircularProgressIndicator(color: AppColors.accent),
-                        SizedBox(height: 16),
+                        const CircularProgressIndicator(
+                          color: AppColors.accent,
+                        ),
+                        const SizedBox(height: 16),
                         Text(
-                          'Resolviendo video compartido...',
-                          style: TextStyle(
+                          context.l10n.resolvingSharedVideo,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
                           ),

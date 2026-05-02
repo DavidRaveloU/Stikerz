@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/data/models/sticker_pack_model.dart';
 import 'package:whaticker/ui/components/pack_card.dart';
 
@@ -31,8 +32,8 @@ class PackList extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
           child: Text(
             isFiltering
-                ? '${packs.length} resultado${packs.length == 1 ? '' : 's'} de $totalCount'
-                : '${packs.length} paquete${packs.length == 1 ? '' : 's'}',
+                ? context.l10n.packsFound(packs.length, totalCount)
+                : context.l10n.packsCount(packs.length),
             style: const TextStyle(
               fontSize: 11,
               letterSpacing: 1.5,

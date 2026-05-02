@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
 import 'package:whaticker/core/services/sticker_generation_service.dart';
 import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
@@ -164,7 +165,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('No se pudo abrir el video: $e')));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.videoOpenError(e))));
       Navigator.pop(context);
     }
   }
@@ -283,7 +284,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
 
     setState(() {
       _isGenerating = true;
-      _generationStatus = 'Preparando...';
+      _generationStatus = context.l10n.preparingVideo;
       _generationProgress = 0.0;
     });
 

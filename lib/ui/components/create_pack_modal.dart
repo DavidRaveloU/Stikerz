@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
 
 class CreatePackModal extends StatefulWidget {
@@ -93,9 +94,9 @@ class _CreatePackModalState extends State<CreatePackModal> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        const Text(
-                          'Nuevo paquete',
-                          style: TextStyle(
+                        Text(
+                          context.l10n.newPack,
+                          style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
@@ -104,10 +105,11 @@ class _CreatePackModalState extends State<CreatePackModal> {
                         const SizedBox(height: 20),
 
                         // Campo: nombre del paquete
-                        _buildLabel('NOMBRE DEL PAQUETE'),
+                        _buildLabel(context.l10n.packNameLabel),
                         _buildField(
+                          context: context,
                           controller: _nameCtrl,
-                          hint: 'Ej: Mis mejores momentos',
+                          hint: context.l10n.packNameExample,
                           onChanged: (_) {
                             if (_nameInlineError != null) {
                               setState(() => _nameInlineError = null);
@@ -115,7 +117,7 @@ class _CreatePackModalState extends State<CreatePackModal> {
                           },
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Escribe un nombre';
+                              return context.l10n.emptyFieldError;
                             }
                             return _nameInlineError;
                           },
@@ -123,12 +125,13 @@ class _CreatePackModalState extends State<CreatePackModal> {
                         const SizedBox(height: 14),
 
                         // Campo: autor
-                        _buildLabel('NOMBRE DEL AUTOR'),
+                        _buildLabel(context.l10n.authorNameLabel),
                         _buildField(
+                          context: context,
                           controller: _authorCtrl,
-                          hint: 'Ej: Carlos R.',
+                          hint: context.l10n.authorNameExample,
                           validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Escribe el autor'
+                              ? context.l10n.emptyFieldError
                               : null,
                         ),
                         const SizedBox(height: 22),
@@ -157,9 +160,9 @@ class _CreatePackModalState extends State<CreatePackModal> {
                                         strokeWidth: 2,
                                       ),
                                     )
-                                  : const Text(
-                                      'Crear paquete →',
-                                      style: TextStyle(
+                                  : Text(
+                                      context.l10n.createPackButton,
+                                      style: const TextStyle(
                                         color: AppColors.background,
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
@@ -194,6 +197,7 @@ class _CreatePackModalState extends State<CreatePackModal> {
   );
 
   Widget _buildField({
+    required BuildContext context,
     required TextEditingController controller,
     required String hint,
     required String? Function(String?) validator,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
@@ -12,7 +13,7 @@ class HomeHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'MIS COLECCIONES',
+            context.l10n.myCollections,
             style: TextStyle(
               fontSize: 11,
               letterSpacing: 2,

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/data/models/sticker_pack_model.dart';
 
 class PackCard extends StatelessWidget {
@@ -96,7 +97,7 @@ class PackCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'por ${pack.author}',
+                    context.l10n.packCountByAuthor(pack.author),
                     style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 12,
@@ -122,8 +123,8 @@ class PackCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     isFull
-                        ? '${pack.filledCount} / 30 — ¡Listo para WhatsApp!'
-                        : '${pack.filledCount} / 30 stickers',
+                        ? context.l10n.stickerCountStatus(pack.filledCount)
+                        : context.l10n.stickerCountSimple(pack.filledCount),
                     style: TextStyle(
                       fontSize: 11,
                       color: isFull ? AppColors.accent : AppColors.textMuted,
@@ -132,8 +133,8 @@ class PackCard extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(width: 8),
-            Icon(
+            const SizedBox(width: 8),
+            const Icon(
               Icons.chevron_right_rounded,
               color: AppColors.textMuted,
               size: 20,

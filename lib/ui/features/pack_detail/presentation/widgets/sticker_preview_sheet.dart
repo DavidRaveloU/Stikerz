@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 class StickerPreviewSheet extends StatelessWidget {
   final String webpPath;
@@ -63,33 +64,37 @@ class StickerPreviewSheet extends StatelessWidget {
                 Positioned(
                   bottom: 8,
                   right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.loop_rounded,
-                          size: 9,
-                          color: AppColors.accent,
+                  child: Builder(
+                    builder: (context) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 3,
                         ),
-                        SizedBox(width: 3),
-                        Text(
-                          'loop',
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: AppColors.accent,
-                          ),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                      ],
-                    ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.loop_rounded,
+                              size: 9,
+                              color: AppColors.accent,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              context.l10n.loop,
+                              style: const TextStyle(
+                                fontSize: 9,
+                                color: AppColors.accent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -108,18 +113,18 @@ class StickerPreviewSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.red.withOpacity(0.2)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.delete_outline_rounded,
                       color: Colors.redAccent,
                       size: 18,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
-                      'Eliminar sticker',
-                      style: TextStyle(
+                      context.l10n.deleteSticker,
+                      style: const TextStyle(
                         color: Colors.redAccent,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,

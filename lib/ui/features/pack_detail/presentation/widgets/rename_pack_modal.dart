@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
 
 class RenamePackModal extends StatefulWidget {
@@ -84,9 +85,9 @@ class _RenamePackModalState extends State<RenamePackModal> {
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Renombrar paquete',
-                style: TextStyle(
+              Text(
+                context.l10n.renamePackTitle,
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -95,26 +96,29 @@ class _RenamePackModalState extends State<RenamePackModal> {
               const SizedBox(height: 20),
 
               _buildField(
-                label: 'NOMBRE DEL PAQUETE',
+                label: context.l10n.packNameLabel,
                 controller: _nameCtrl,
-                hint: 'Ej: Mis mejores momentos',
+                hint: context.l10n.packNamePlaceholder,
                 onChanged: (_) {
                   if (_nameInlineError != null)
                     setState(() => _nameInlineError = null);
                 },
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Escribe un nombre';
+                  if (v == null || v.trim().isEmpty) {
+                    return context.l10n.emptyFieldError;
+                  }
                   return _nameInlineError;
                 },
               ),
               const SizedBox(height: 14),
 
               _buildField(
-                label: 'NOMBRE DEL AUTOR',
+                label: context.l10n.authorNameLabel,
                 controller: _authorCtrl,
-                hint: 'Ej: Carlos R.',
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Escribe el autor' : null,
+                hint: context.l10n.authorNamePlaceholder,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? context.l10n.emptyFieldError
+                    : null,
               ),
               const SizedBox(height: 22),
 
@@ -141,9 +145,9 @@ class _RenamePackModalState extends State<RenamePackModal> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text(
-                            'Guardar cambios →',
-                            style: TextStyle(
+                        : Text(
+                            context.l10n.saveChangesButton,
+                            style: const TextStyle(
                               color: AppColors.background,
                               fontSize: 15,
                               fontWeight: FontWeight.w700,

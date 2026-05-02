@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/core/services/whatsapp_sticker_service.dart';
 import 'package:whaticker/data/models/sticker_pack_model.dart';
 
@@ -30,9 +31,7 @@ class _WhatsAppButtonState extends State<WhatsAppButton> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo enviar el paquete a WhatsApp.'),
-        ),
+        SnackBar(content: Text(context.l10n.couldNotSendToWhatsApp)),
       );
     } finally {
       if (mounted) {
@@ -47,13 +46,13 @@ class _WhatsAppButtonState extends State<WhatsAppButton> {
 
     String label;
     if (_isExporting) {
-      label = 'Enviando a WhatsApp...';
+      label = context.l10n.sendingToWhatsApp;
     } else if (!widget.pack.hasCover) {
-      label = 'Agrega una portada primero';
+      label = context.l10n.addCoverFirst;
     } else if (widget.pack.filledCount < 3) {
-      label = 'Necesitas al menos 3 stickers';
+      label = context.l10n.needAtLeastThreeStickers;
     } else {
-      label = 'Agregar a WhatsApp';
+      label = context.l10n.addToWhatsApp;
     }
 
     return GestureDetector(

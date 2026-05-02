@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/core/providers/share_provider.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
 import 'package:whaticker/data/models/sticker_pack_model.dart';
@@ -43,25 +44,23 @@ class _HomePageState extends ConsumerState<HomePage> {
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Eliminar paquete',
+        title: Text(
+          context.l10n.deletePackTitle,
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
-        content: Text(
-          '¿Eliminar "${pack.name}"? Esta acción no se puede deshacer.',
-        ),
+        content: Text(context.l10n.deletePackMessage(pack.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await PackRepository.instance.deletePack(pack.id);
             },
-            child: const Text(
-              'Eliminar',
+            child: Text(
+              context.l10n.delete,
               style: TextStyle(color: Colors.redAccent),
             ),
           ),
@@ -160,7 +159,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                           .state =
                                       null;
                                 },
-                                child: const Text('Descartar'),
+                                child: Text(context.l10n.discard),
                               ),
                           ],
                         ),
@@ -210,28 +209,28 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.auto_awesome_rounded,
             size: 48,
             color: AppColors.textMuted,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
-            'No tienes paquetes aún',
-            style: TextStyle(
+            context.l10n.noPacksTitle,
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            'Toca el botón + para crear tu primer paquete',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+            context.l10n.noPacksDesc,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
           ),
         ],
       ),
@@ -240,38 +239,38 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   String _shareBannerTitle(PendingShare pending, int totalCount) {
     if (pending.isResolving) {
-      return 'Preparando tu video';
+      return context.l10n.preparingVideo;
     }
 
     if (totalCount == 0) {
-      return 'Crea primero un paquete';
+      return context.l10n.createPackFirst;
     }
 
-    return 'Selecciona el paquete';
+    return context.l10n.selectPackTitle;
   }
 
   String _shareBannerSubtitle(PendingShare pending, int totalCount) {
     if (pending.isResolving) {
-      return 'Estamos convirtiendo el enlace para que puedas agregarlo sin pasos extra.';
+      return context.l10n.convertingLink;
     }
 
     if (totalCount == 0) {
-      return 'Después de crear tu primer paquete, podrás agregar este video compartido.';
+      return context.l10n.createPackHint;
     }
 
-    return 'El enlace ya está listo. Elige el paquete donde quieres agregarlo.';
+    return context.l10n.selectPackDesc;
   }
 
   String _shareBannerHint(PendingShare pending, int totalCount) {
     if (pending.isResolving) {
-      return 'Estamos preparando el video compartido. Espera un momento.';
+      return context.l10n.preparingVideoHint;
     }
 
     if (totalCount == 0) {
-      return 'Crea primero un paquete para agregar este video.';
+      return context.l10n.createPackHint2;
     }
 
-    return 'Selecciona el paquete donde quieres agregar este video.';
+    return context.l10n.selectPackHint;
   }
 
   Widget _buildFAB() {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/data/models/sticker_pack_model.dart';
 
 class PackInfo extends StatelessWidget {
@@ -11,23 +12,30 @@ class PackInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _InfoRow(label: 'Nombre del paquete', value: pack.name),
-        _InfoRow(label: 'Autor', value: pack.author),
+        _InfoRow(label: context.l10n.packInfoName, value: pack.name),
+        _InfoRow(label: context.l10n.packInfoAuthor, value: pack.author),
         _InfoRow(
-          label: 'Stickers agregados',
-          value: '${pack.filledCount} de 30',
+          label: context.l10n.packInfoStickersAdded,
+          value: context.l10n.stickerCountSimple(pack.filledCount),
         ),
         _InfoRow(
-          label: 'Portada',
-          value: pack.hasCover ? 'Configurada ✓' : 'Sin portada',
+          label: context.l10n.packInfoCover,
+          value: pack.hasCover
+              ? context.l10n.coverConfigured
+              : context.l10n.noCover,
           valueColor: pack.hasCover ? AppColors.accent : Colors.redAccent,
         ),
         _InfoRow(
-          label: 'Estado',
-          value: pack.isFull ? 'Completo ✓' : 'En progreso',
+          label: context.l10n.packInfoStatus,
+          value: pack.isFull
+              ? context.l10n.statusComplete
+              : context.l10n.statusInProgress,
           valueColor: pack.isFull ? AppColors.accent : AppColors.textSecondary,
         ),
-        _InfoRow(label: 'Creado', value: _formatDate(pack.createdAt)),
+        _InfoRow(
+          label: context.l10n.packInfoCreated,
+          value: _formatDate(pack.createdAt),
+        ),
       ],
     );
   }

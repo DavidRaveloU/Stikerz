@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 class VideoPickerTopBar extends StatelessWidget {
   final VoidCallback onBack;
@@ -32,21 +33,24 @@ class VideoPickerTopBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Seleccionar video',
-                    style: TextStyle(
+                    context.l10n.selectedVideoLabel,
+                    style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
-                    'Toca un video para seleccionarlo',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+                    context.l10n.selectVideoHint,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),

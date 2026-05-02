@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/core/services/video_picker_service.dart';
 import 'package:whaticker/routes/app_router.dart' show routeObserver;
 import 'package:whaticker/ui/features/video_picker/presentation/widgets/confirm_bar.dart';
@@ -191,8 +192,8 @@ class _VideoPickerPageState extends State<VideoPickerPage>
                 size: 48,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Sin acceso a la galería',
+              Text(
+                context.l10n.noGalleryAccess,
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 16,
@@ -200,8 +201,8 @@ class _VideoPickerPageState extends State<VideoPickerPage>
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Necesitamos acceso a tus videos para crear stickers.',
+              Text(
+                context.l10n.galleryAccessNeeded,
                 style: TextStyle(color: AppColors.textMuted, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
@@ -220,9 +221,9 @@ class _VideoPickerPageState extends State<VideoPickerPage>
                       color: AppColors.accent.withOpacity(0.3),
                     ),
                   ),
-                  child: const Text(
-                    'Dar acceso',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.giveAccess,
+                    style: const TextStyle(
                       color: AppColors.accent,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -254,13 +255,13 @@ class _VideoPickerPageState extends State<VideoPickerPage>
                     size: 18,
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Acceso limitado a galería',
-                          style: TextStyle(
+                          context.l10n.limitedGalleryAccess,
+                          style: const TextStyle(
                             color: AppColors.accent,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -268,8 +269,8 @@ class _VideoPickerPageState extends State<VideoPickerPage>
                         ),
                         SizedBox(height: 2),
                         Text(
-                          'Toca para agregar más videos',
-                          style: TextStyle(
+                          context.l10n.addMoreVideos,
+                          style: const TextStyle(
                             color: AppColors.accent,
                             fontSize: 11,
                             fontWeight: FontWeight.w400,
@@ -288,11 +289,11 @@ class _VideoPickerPageState extends State<VideoPickerPage>
             ),
           ),
           if (_videos.isEmpty)
-            const Expanded(
+            Expanded(
               child: Center(
                 child: Text(
-                  'No se encontraron videos',
-                  style: TextStyle(color: AppColors.textMuted),
+                  context.l10n.noVideosFound,
+                  style: const TextStyle(color: AppColors.textMuted),
                 ),
               ),
             )
@@ -328,10 +329,10 @@ class _VideoPickerPageState extends State<VideoPickerPage>
 
     // Sin acceso limitado: mostrar grid normalmente
     if (_videos.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'No se encontraron videos',
-          style: TextStyle(color: AppColors.textMuted),
+          context.l10n.noVideosFound,
+          style: const TextStyle(color: AppColors.textMuted),
         ),
       );
     }

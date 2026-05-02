@@ -1,13 +1,16 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
 import 'package:whaticker/core/providers/share_provider.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
+import 'package:whaticker/generated_l10n/app_localizations.dart';
 import 'package:whaticker/routes/app_router.dart';
 
 Future<void> main(List<String> args) async {
@@ -111,9 +114,17 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
-      title: 'Whaticker',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
+      locale: _getLocale(),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('en'), Locale('es'), Locale('pt')],
       theme: ThemeData(
         brightness: Brightness.dark,
         useMaterial3: true,
@@ -125,5 +136,22 @@ class App extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  static Locale _getLocale() {
+    // Get device locale from PlatformDispatcher
+    final deviceLocale = ui.PlatformDispatcher.instance.locale;
+    final deviceLanguage = deviceLocale.languageCode.toLowerCase();
+
+    // Supported languages
+    const supportedLanguages = ['en', 'es', 'pt'];
+
+    // If device language matches one of our supported languages, use it
+    if (supportedLanguages.contains(deviceLanguage)) {
+      return Locale(deviceLanguage);
+    }
+
+    // Default to English if not supported
+    return const Locale('en');
   }
 }

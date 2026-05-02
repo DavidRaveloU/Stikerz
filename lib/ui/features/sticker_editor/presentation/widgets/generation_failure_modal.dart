@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 class GenerationFailureModal extends StatelessWidget {
   final bool canRetry;
@@ -39,8 +40,8 @@ class GenerationFailureModal extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            const Text(
-              'No se pudo crear el sticker',
+            Text(
+              context.l10n.couldNotCreateSticker,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -49,44 +50,44 @@ class GenerationFailureModal extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            const Text(
-              'El video tiene demasiados detalles y supera el límite de tamaño.',
+            Text(
+              context.l10n.videoTooComplex,
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
 
-            _tip('Reduce el área de selección'),
-            _tip('Acorta la duración del clip'),
+            _tip(context.l10n.reduceSelectionArea),
+            _tip(context.l10n.shortenClipDuration),
             const SizedBox(height: 18),
 
             _strategyButton(
-              'Blur + reducir FPS (Recomendado)',
-              'Blur leve + 10 FPS',
+              context.l10n.blurReduceFps,
+              context.l10n.blurMildTenFps,
               onRetryWithBlurAndReduceFps,
             ),
             _strategyButton(
-              'Suavizar detalles',
-              'Aplica blur leve',
+              context.l10n.smoothDetails,
+              context.l10n.applyMildBlur,
               onRetryWithBlur,
             ),
             _strategyButton(
-              'Reducir FPS',
-              'Baja a 10 FPS',
+              context.l10n.reduceFpsLabel,
+              context.l10n.reduceTo10Fps,
               onRetryWithReduceFps,
             ),
             _strategyButton(
-              'Más transparencia',
-              'Reduce área visible',
+              context.l10n.moreTransparency,
+              context.l10n.reduceVisibleArea,
               onRetryWithTransparency,
             ),
 
             if (canRetry)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 10),
                 child: Text(
-                  'Prueba otra estrategia',
-                  style: TextStyle(color: Colors.orange, fontSize: 12),
+                  context.l10n.tryAnotherStrategy,
+                  style: const TextStyle(color: Colors.orange, fontSize: 12),
                 ),
               ),
           ],

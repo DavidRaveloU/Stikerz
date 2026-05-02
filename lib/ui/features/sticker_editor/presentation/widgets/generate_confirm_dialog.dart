@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 import 'aspect_ratio_selector.dart';
 
@@ -24,8 +25,8 @@ class GenerateConfirmDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text(
-        'Generar sticker',
+      title: Text(
+        context.l10n.generateStickerTitle,
         style: TextStyle(
           color: AppColors.textPrimary,
           fontWeight: FontWeight.w800,
@@ -35,27 +36,33 @@ class GenerateConfirmDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _ConfirmRow(label: 'Aspecto', value: aspectRatio.label),
-          _ConfirmRow(label: 'Inicio', value: _formatTime(startSecs)),
           _ConfirmRow(
-            label: 'Duración',
-            value: '${durationSecs.toStringAsFixed(1)}s',
+            label: context.l10n.aspectLabel,
+            value: aspectRatio.label,
+          ),
+          _ConfirmRow(
+            label: context.l10n.startLabel,
+            value: _formatTime(startSecs),
+          ),
+          _ConfirmRow(
+            label: context.l10n.durationShort,
+            value: context.l10n.durationValue(durationSecs.toStringAsFixed(1)),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: onCancel,
-          child: const Text(
-            'Cancelar',
-            style: TextStyle(color: AppColors.textSecondary),
+          child: Text(
+            context.l10n.cancel,
+            style: const TextStyle(color: AppColors.textSecondary),
           ),
         ),
         TextButton(
           onPressed: onConfirm,
-          child: const Text(
-            'Generar',
-            style: TextStyle(
+          child: Text(
+            context.l10n.generateButton,
+            style: const TextStyle(
               color: AppColors.accent,
               fontWeight: FontWeight.w700,
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/core/services/instagram_service.dart';
 import 'package:whaticker/core/services/tiktok_service.dart';
 
@@ -53,7 +54,7 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
     if (_mode == _ImportMode.tiktok) {
       final extractedUrl = TikTokService.extractFirstTikTokUrl(raw);
       if (extractedUrl == null) {
-        setState(() => _errorMessage = 'Pega un enlace válido de TikTok');
+        setState(() => _errorMessage = context.l10n.pasteValidTikTokLink);
         return;
       }
 
@@ -79,7 +80,7 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
       final extractedUrl = InstagramService.cleanInstagramUrl(raw);
 
       if (extractedUrl == null) {
-        setState(() => _errorMessage = 'Pega un enlace válido de Instagram');
+        setState(() => _errorMessage = context.l10n.pasteValidInstagramLink);
         return;
       }
 
@@ -107,9 +108,9 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
 
   String get _sheetTitle {
     return switch (_mode) {
-      _ImportMode.tiktok => 'Importar de TikTok',
-      _ImportMode.instagram => 'Importar de Instagram',
-      _ImportMode.none => 'Nuevo sticker',
+      _ImportMode.tiktok => context.l10n.importFromTikTok,
+      _ImportMode.instagram => context.l10n.importFromInstagram,
+      _ImportMode.none => context.l10n.newSticker,
     };
   }
 
@@ -180,8 +181,8 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                 ),
                 iconBg: AppColors.accent.withOpacity(0.08),
                 iconBorder: AppColors.accent.withOpacity(0.2),
-                title: 'Importar de TikTok',
-                subtitle: 'Pega un enlace del video',
+                title: context.l10n.importFromTikTok,
+                subtitle: context.l10n.pasteVideoLink,
               ),
               const SizedBox(height: 8),
               _ImportOption(
@@ -199,8 +200,8 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                 ),
                 iconBg: const Color(0xFFE1306C).withOpacity(0.08),
                 iconBorder: const Color(0xFFE1306C).withOpacity(0.2),
-                title: 'Importar de Instagram',
-                subtitle: 'Pega un enlace del Reel',
+                title: context.l10n.importFromInstagram,
+                subtitle: context.l10n.pasteReelLink,
               ),
               const SizedBox(height: 8),
               _ImportOption(
@@ -212,8 +213,8 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                 ),
                 iconBg: Colors.white.withOpacity(0.04),
                 iconBorder: AppColors.border,
-                title: 'Video local',
-                subtitle: 'Desde tu galería',
+                title: context.l10n.localVideo,
+                subtitle: context.l10n.fromGallery,
               ),
               const SizedBox(height: 24),
             ] else ...[
@@ -222,9 +223,9 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'ENLACE DEL VIDEO',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.videoLinkLabel,
+                      style: const TextStyle(
                         fontSize: 11,
                         letterSpacing: 1.5,
                         color: AppColors.textMuted,
@@ -290,7 +291,7 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              'Pegar',
+                                              context.l10n.paste,
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
@@ -350,8 +351,8 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Text(
-                                    'Ir →',
+                                : Text(
+                                    context.l10n.go,
                                     style: TextStyle(
                                       color: AppColors.background,
                                       fontWeight: FontWeight.w700,

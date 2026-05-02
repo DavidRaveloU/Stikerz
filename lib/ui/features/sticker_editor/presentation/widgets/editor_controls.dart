@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 import 'aspect_ratio_selector.dart';
 import 'editor_slider.dart';
@@ -53,14 +54,14 @@ class EditorControls extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '⏱ ${_formatTime(startSecs)}',
+                context.l10n.startTime(_formatTime(startSecs)),
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                 ),
               ),
               Text(
-                '${_formatTime(videoDurationSecs)} total',
+                context.l10n.totalDuration(_formatTime(videoDurationSecs)),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 12,
@@ -72,7 +73,7 @@ class EditorControls extends StatelessWidget {
 
           // Slider: Punto de inicio
           EditorSlider(
-            label: 'Punto de inicio',
+            label: context.l10n.startPointLabel,
             valueLabel: _formatTime(startSecs),
             value: startPoint,
             min: 0,
@@ -83,8 +84,8 @@ class EditorControls extends StatelessWidget {
 
           // Slider: Duración
           EditorSlider(
-            label: 'Duración',
-            valueLabel: '${duration.toStringAsFixed(1)}s',
+            label: context.l10n.durationLabel,
+            valueLabel: context.l10n.durationValue(duration.toStringAsFixed(1)),
             value: duration,
             min: 0.1,
             max: maxDuration,
@@ -132,8 +133,8 @@ class EditorControls extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     isGenerating
-                        ? 'Creando sticker...'
-                        : 'Generar Sticker Animado',
+                        ? context.l10n.creatingSticker
+                        : context.l10n.generateAnimatedSticker,
                     style: const TextStyle(
                       color: AppColors.background,
                       fontSize: 15,
@@ -168,23 +169,9 @@ class EditorControls extends StatelessWidget {
           ],
 
           const SizedBox(height: 8),
-          RichText(
-            text: const TextSpan(
-              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
-              children: [
-                TextSpan(text: 'Máx. '),
-                TextSpan(
-                  text: '5s',
-                  style: TextStyle(color: AppColors.accent),
-                ),
-                TextSpan(text: ' · '),
-                TextSpan(
-                  text: '500KB',
-                  style: TextStyle(color: AppColors.accent),
-                ),
-                TextSpan(text: ' · formato WebP animado'),
-              ],
-            ),
+          Text(
+            context.l10n.stickerLimits,
+            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
           ),
         ],
       ),

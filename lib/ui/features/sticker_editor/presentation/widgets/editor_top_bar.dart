@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 import 'aspect_ratio_selector.dart';
 
@@ -41,9 +42,9 @@ class EditorTopBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'Editor de Sticker',
-              style: TextStyle(
+            Text(
+              context.l10n.stickerEditorTitle,
+              style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,

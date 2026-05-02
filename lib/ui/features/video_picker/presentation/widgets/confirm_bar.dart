@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 class ConfirmBar extends StatelessWidget {
   final VoidCallback onConfirm;
@@ -28,18 +29,18 @@ class ConfirmBar extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.check_rounded,
                   color: AppColors.background,
                   size: 20,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
-                  'Usar este video',
-                  style: TextStyle(
+                  context.l10n.useThisVideo,
+                  style: const TextStyle(
                     color: AppColors.background,
                     fontSize: 15,
                     fontWeight: FontWeight.w800,

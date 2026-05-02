@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
 import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/crop_box.dart';
 import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/crop_overlay.dart';
@@ -55,11 +56,11 @@ class EditorVideoArea extends StatelessWidget {
                 // Loading mejorado para Instagram
                 Container(
                   color: Colors.black,
-                  child: const Center(
+                  child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           width: 36,
                           height: 36,
                           child: CircularProgressIndicator(
@@ -67,19 +68,19 @@ class EditorVideoArea extends StatelessWidget {
                             strokeWidth: 3.5,
                           ),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         Text(
-                          'Cargando video...',
-                          style: TextStyle(
+                          context.l10n.loadingVideo,
+                          style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(height: 6),
+                        const SizedBox(height: 6),
                         Text(
-                          'Esto puede tardar unos segundos con Instagram',
-                          style: TextStyle(
+                          context.l10n.instagramLoadingNote,
+                          style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 13,
                           ),

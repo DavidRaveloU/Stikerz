@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:whaticker/core/extensions/localization_extension.dart';
 
 class HomeSearchBar extends StatefulWidget {
   final TextEditingController controller;
@@ -45,9 +46,9 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
                   fontSize: 14,
                 ),
                 cursorColor: AppColors.accent,
-                decoration: const InputDecoration(
-                  hintText: 'Buscar paquete...',
-                  hintStyle: TextStyle(
+                decoration: InputDecoration(
+                  hintText: context.l10n.searchPackPlaceholder,
+                  hintStyle: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 14,
                   ),
