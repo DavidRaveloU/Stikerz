@@ -1035,6 +1035,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resolving shared video...'**
   String get resolvingSharedVideo;
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Whaticker!'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your own sticker packs from TikTok and Instagram videos, and share them with your friends on WhatsApp.'**
+  String get onboardingWelcomeDesc;
+
+  /// No description provided for @onboardingAddVideosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Your Videos'**
+  String get onboardingAddVideosTitle;
+
+  /// No description provided for @onboardingAddVideosMethodLink.
+  ///
+  /// In en, this message translates to:
+  /// **'🔗 Paste TikTok or Instagram links directly in the app'**
+  String get onboardingAddVideosMethodLink;
+
+  /// No description provided for @onboardingAddVideosMethodGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'📱 Or select videos from your device gallery'**
+  String get onboardingAddVideosMethodGallery;
+
+  /// No description provided for @onboardingShareDirectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Directly from Apps'**
+  String get onboardingShareDirectTitle;
+
+  /// No description provided for @onboardingShareDirectDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The easiest way to extract stickers from your favorite videos'**
+  String get onboardingShareDirectDesc;
+
+  /// No description provided for @onboardingShareDirectSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'How to do it:'**
+  String get onboardingShareDirectSteps;
+
+  /// No description provided for @onboardingShareDirectStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TikTok or Instagram and find a video you love'**
+  String get onboardingShareDirectStep1;
+
+  /// No description provided for @onboardingShareDirectStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the share button and select \"Whaticker\" from the options'**
+  String get onboardingShareDirectStep2;
+
+  /// No description provided for @onboardingAdsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for using Whaticker!'**
+  String get onboardingAdsTitle;
+
+  /// No description provided for @onboardingAdsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re grateful for your support! This app is free to use thanks to ads that help us maintain and improve it. Your understanding and patience mean everything to us. Enjoy creating and sharing your stickers! 🎨'**
+  String get onboardingAdsDescription;
+
+  /// No description provided for @onboardingFinishButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get onboardingFinishButton;
+
+  /// No description provided for @onboardingNextButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Next →'**
+  String get onboardingNextButton;
+
+  /// No description provided for @onboardingBackButton.
+  ///
+  /// In en, this message translates to:
+  /// **'← Back'**
+  String get onboardingBackButton;
+
+  /// No description provided for @onboardingWelcomeSmallLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'WELCOME TO THE FUTURE'**
+  String get onboardingWelcomeSmallLabel;
+
+  /// No description provided for @onboardingWelcomeTitlePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Animate'**
+  String get onboardingWelcomeTitlePrimary;
+
+  /// No description provided for @onboardingWelcomeTitleAccent.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything'**
+  String get onboardingWelcomeTitleAccent;
+
+  /// No description provided for @onboardingContentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR CONTENT, ANIMATED'**
+  String get onboardingContentLabel;
+
+  /// No description provided for @onboardingFromSocialTitlePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'From Social'**
+  String get onboardingFromSocialTitlePrimary;
+
+  /// No description provided for @onboardingFromSocialTitleAccent.
+  ///
+  /// In en, this message translates to:
+  /// **'to Stickers'**
+  String get onboardingFromSocialTitleAccent;
+
+  /// No description provided for @onboardingFromSocialDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Transform your favorite TikTok videos and Instagram Reels into animated WhatsApp stickers in seconds.'**
+  String get onboardingFromSocialDesc;
+
+  /// No description provided for @onboardingShareLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SHARE DIRECTLY'**
+  String get onboardingShareLabel;
+
+  /// No description provided for @onboardingShareTitlePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct'**
+  String get onboardingShareTitlePrimary;
+
+  /// No description provided for @onboardingShareTitleAccent.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get onboardingShareTitleAccent;
+
+  /// No description provided for @onboardingShareDescExtended.
+  ///
+  /// In en, this message translates to:
+  /// **'Just hit share on TikTok or IG and send it straight to our app. It takes only a couple taps — fast, preserves quality, and converts clips into animated stickers instantly.'**
+  String get onboardingShareDescExtended;
 }
 
 class _AppLocalizationsDelegate

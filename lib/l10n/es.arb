@@ -154,5 +154,34 @@
   "statusInProgress": "En progreso",
   "processCoverError": "No se pudo procesar la portada.",
   "fullPackWarning": "Este paquete ya está lleno. Elige otro paquete o crea uno nuevo.",
-  "resolvingSharedVideo": "Resolviendo video compartido..."
+  "resolvingSharedVideo": "Resolviendo video compartido...",
+  "onboardingWelcomeTitle": "¡Bienvenido a Whaticker!",
+  "onboardingWelcomeDesc": "Crea tus propios paquetes de stickers a partir de videos de TikTok e Instagram, y compártelos con tus amigos en WhatsApp.",
+  "onboardingAddVideosTitle": "Agrega Tus Videos",
+  "onboardingAddVideosMethodLink": "🔗 Pega enlaces de TikTok o Instagram directamente en la app",
+  "onboardingAddVideosMethodGallery": "📱 O selecciona videos de tu galería del dispositivo",
+  "onboardingShareDirectTitle": "Comparte Directamente desde Apps",
+  "onboardingShareDirectDesc": "La forma más fácil de extraer stickers de tus videos favoritos",
+  "onboardingShareDirectSteps": "Cómo hacerlo:",
+  "onboardingShareDirectStep1": "Abre TikTok o Instagram y encuentra un video que te encante",
+  "onboardingShareDirectStep2": "Usa el botón de compartir y selecciona \"Whaticker\" de las opciones",
+  "onboardingAdsTitle": "¡Gracias por usar Whaticker!",
+  "onboardingAdsDescription": "¡Apreciamos tu apoyo! Esta app es gratuita gracias a los anuncios que nos ayudan a mantenerla y mejorarla. Tu comprensión y paciencia significan mucho para nosotros. ¡Disfruta creando y compartiendo tus stickers! 🎨",
+  "onboardingFinishButton": "Finalizar",
+  "onboardingNextButton": "Siguiente →",
+  "onboardingBackButton": "← Atrás",
+
+  "onboardingWelcomeSmallLabel": "BIENVENIDO AL FUTURO",
+  "onboardingWelcomeTitlePrimary": "Anima",
+  "onboardingWelcomeTitleAccent": "Cualquier cosa",
+
+  "onboardingContentLabel": "TU CONTENIDO, ANIMADO",
+  "onboardingFromSocialTitlePrimary": "De Social",
+  "onboardingFromSocialTitleAccent": "a Stickers",
+  "onboardingFromSocialDesc": "Transforma tus videos favoritos de TikTok y Reels de Instagram en stickers animados para WhatsApp en segundos.",
+
+  "onboardingShareLabel": "COMPARTE DIRECTAMENTE",
+  "onboardingShareTitlePrimary": "Directo",
+  "onboardingShareTitleAccent": "Compartir",
+  "onboardingShareDescExtended": "Simplemente usa el botón compartir en TikTok o IG y envíalo directamente a nuestra app. Son solo un par de toques — rápido, preserva la calidad y convierte clips en stickers animados al instante."
 }

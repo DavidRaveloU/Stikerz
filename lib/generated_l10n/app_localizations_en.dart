@@ -526,4 +526,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resolvingSharedVideo => 'Resolving shared video...';
+
+  @override
+  String get onboardingWelcomeTitle => 'Welcome to Whaticker!';
+
+  @override
+  String get onboardingWelcomeDesc =>
+      'Create your own sticker packs from TikTok and Instagram videos, and share them with your friends on WhatsApp.';
+
+  @override
+  String get onboardingAddVideosTitle => 'Add Your Videos';
+
+  @override
+  String get onboardingAddVideosMethodLink =>
+      '🔗 Paste TikTok or Instagram links directly in the app';
+
+  @override
+  String get onboardingAddVideosMethodGallery =>
+      '📱 Or select videos from your device gallery';
+
+  @override
+  String get onboardingShareDirectTitle => 'Share Directly from Apps';
+
+  @override
+  String get onboardingShareDirectDesc =>
+      'The easiest way to extract stickers from your favorite videos';
+
+  @override
+  String get onboardingShareDirectSteps => 'How to do it:';
+
+  @override
+  String get onboardingShareDirectStep1 =>
+      'Open TikTok or Instagram and find a video you love';
+
+  @override
+  String get onboardingShareDirectStep2 =>
+      'Use the share button and select \"Whaticker\" from the options';
+
+  @override
+  String get onboardingAdsTitle => 'Thank you for using Whaticker!';
+
+  @override
+  String get onboardingAdsDescription =>
+      'We\'re grateful for your support! This app is free to use thanks to ads that help us maintain and improve it. Your understanding and patience mean everything to us. Enjoy creating and sharing your stickers! 🎨';
+
+  @override
+  String get onboardingFinishButton => 'Finish';
+
+  @override
+  String get onboardingNextButton => 'Next →';
+
+  @override
+  String get onboardingBackButton => '← Back';
+
+  @override
+  String get onboardingWelcomeSmallLabel => 'WELCOME TO THE FUTURE';
+
+  @override
+  String get onboardingWelcomeTitlePrimary => 'Animate';
+
+  @override
+  String get onboardingWelcomeTitleAccent => 'Anything';
+
+  @override
+  String get onboardingContentLabel => 'YOUR CONTENT, ANIMATED';
+
+  @override
+  String get onboardingFromSocialTitlePrimary => 'From Social';
+
+  @override
+  String get onboardingFromSocialTitleAccent => 'to Stickers';
+
+  @override
+  String get onboardingFromSocialDesc =>
+      'Transform your favorite TikTok videos and Instagram Reels into animated WhatsApp stickers in seconds.';
+
+  @override
+  String get onboardingShareLabel => 'SHARE DIRECTLY';
+
+  @override
+  String get onboardingShareTitlePrimary => 'Direct';
+
+  @override
+  String get onboardingShareTitleAccent => 'Share';
+
+  @override
+  String get onboardingShareDescExtended =>
+      'Just hit share on TikTok or IG and send it straight to our app. It takes only a couple taps — fast, preserves quality, and converts clips into animated stickers instantly.';
 }

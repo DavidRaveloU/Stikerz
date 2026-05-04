@@ -529,4 +529,91 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get resolvingSharedVideo => 'Resolvendo vídeo compartilhado...';
+
+  @override
+  String get onboardingWelcomeTitle => 'Bem-vindo ao Whaticker!';
+
+  @override
+  String get onboardingWelcomeDesc =>
+      'Crie seus próprios pacotes de adesivos a partir de vídeos do TikTok e Instagram, e compartilhe com seus amigos no WhatsApp.';
+
+  @override
+  String get onboardingAddVideosTitle => 'Adicione Seus Vídeos';
+
+  @override
+  String get onboardingAddVideosMethodLink =>
+      '🔗 Cole links do TikTok ou Instagram diretamente no app';
+
+  @override
+  String get onboardingAddVideosMethodGallery =>
+      '📱 Ou selecione vídeos da galeria do seu dispositivo';
+
+  @override
+  String get onboardingShareDirectTitle => 'Compartilhe Diretamente dos Apps';
+
+  @override
+  String get onboardingShareDirectDesc =>
+      'A maneira mais fácil de extrair adesivos de seus vídeos favoritos';
+
+  @override
+  String get onboardingShareDirectSteps => 'Como fazer:';
+
+  @override
+  String get onboardingShareDirectStep1 =>
+      'Abra TikTok ou Instagram e encontre um vídeo que você ama';
+
+  @override
+  String get onboardingShareDirectStep2 =>
+      'Use o botão de compartilhamento e selecione \"Whaticker\" das opções';
+
+  @override
+  String get onboardingAdsTitle => 'Obrigado por usar o Whaticker!';
+
+  @override
+  String get onboardingAdsDescription =>
+      'Agradecemos seu apoio! Este app é gratuito graças aos anúncios que nos ajudam a mantê-lo e melhorá-lo. Sua compreensão e paciência significam muito para nós. Aproveite criando e compartilhando seus adesivos! 🎨';
+
+  @override
+  String get onboardingFinishButton => 'Finalizar';
+
+  @override
+  String get onboardingNextButton => 'Próximo →';
+
+  @override
+  String get onboardingBackButton => '← Voltar';
+
+  @override
+  String get onboardingWelcomeSmallLabel => 'BEM-VINDO AO FUTURO';
+
+  @override
+  String get onboardingWelcomeTitlePrimary => 'Anime';
+
+  @override
+  String get onboardingWelcomeTitleAccent => 'Qualquer coisa';
+
+  @override
+  String get onboardingContentLabel => 'SEU CONTEÚDO, ANIMADO';
+
+  @override
+  String get onboardingFromSocialTitlePrimary => 'From Social';
+
+  @override
+  String get onboardingFromSocialTitleAccent => 'to Stickers';
+
+  @override
+  String get onboardingFromSocialDesc =>
+      'Transforme seus vídeos favoritos do TikTok e Reels do Instagram em adesivos animados do WhatsApp em segundos.';
+
+  @override
+  String get onboardingShareLabel => 'COMPARTILHE DIRETAMENTE';
+
+  @override
+  String get onboardingShareTitlePrimary => 'Direct';
+
+  @override
+  String get onboardingShareTitleAccent => 'Share';
+
+  @override
+  String get onboardingShareDescExtended =>
+      'Basta tocar em compartilhar no TikTok ou IG e enviar diretamente para nosso app. São apenas alguns toques — rápido, preserva a qualidade e converte clipes em adesivos animados instantaneamente.';
 }

@@ -11,7 +11,7 @@ import 'package:whaticker/core/constants/app_colors.dart';
 import 'package:whaticker/core/providers/share_provider.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
 import 'package:whaticker/generated_l10n/app_localizations.dart';
-import 'package:whaticker/routes/app_router.dart';
+import 'package:whaticker/routes/app_router.dart' show appRouterProvider;
 
 Future<void> main(List<String> args) async {
   runZonedGuarded(
@@ -113,10 +113,11 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouterProvider);
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
-      routerConfig: appRouter,
+      routerConfig: router,
       locale: _getLocale(),
       localizationsDelegates: const [
         AppLocalizations.delegate,

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:isar/isar.dart';
 
+import '../../data/models/app_state_model.dart';
 import '../../data/models/sticker_model.dart';
 import '../../data/models/sticker_pack_model.dart';
 
@@ -30,24 +31,19 @@ class PackRepository {
     if (_isar != null && _isar!.isOpen) return;
 
     try {
-      print("ISAR: INIT START");
-
       final dir = Directory('/data/user/0/com.davidravelo.whaticker/files');
-      print("ISAR: DIR = ${dir.path}");
 
       _isar = await Isar.open(
-        [StickerPackModelSchema],
+        [StickerPackModelSchema, AppStateModelSchema],
         directory: dir.path,
         name: 'whaticker_db',
       );
-
-      print("ISAR: INIT OK");
-    } catch (e, stack) {
-      print("ISAR ERROR: $e");
-      print(stack);
+    } catch (e) {
       rethrow;
     }
   }
+
+  static Isar? get db => _isar;
 
   Isar get _db {
     if (_isar == null || !_isar!.isOpen) {

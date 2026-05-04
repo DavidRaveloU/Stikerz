@@ -154,5 +154,34 @@
   "statusInProgress": "Em progresso",
   "processCoverError": "Não foi possível processar a capa.",
   "fullPackWarning": "Este pacote já está cheio. Escolha outro pacote ou crie um novo.",
-  "resolvingSharedVideo": "Resolvendo vídeo compartilhado..."
+  "resolvingSharedVideo": "Resolvendo vídeo compartilhado...",
+  "onboardingWelcomeTitle": "Bem-vindo ao Whaticker!",
+  "onboardingWelcomeDesc": "Crie seus próprios pacotes de adesivos a partir de vídeos do TikTok e Instagram, e compartilhe com seus amigos no WhatsApp.",
+  "onboardingAddVideosTitle": "Adicione Seus Vídeos",
+  "onboardingAddVideosMethodLink": "🔗 Cole links do TikTok ou Instagram diretamente no app",
+  "onboardingAddVideosMethodGallery": "📱 Ou selecione vídeos da galeria do seu dispositivo",
+  "onboardingShareDirectTitle": "Compartilhe Diretamente dos Apps",
+  "onboardingShareDirectDesc": "A maneira mais fácil de extrair adesivos de seus vídeos favoritos",
+  "onboardingShareDirectSteps": "Como fazer:",
+  "onboardingShareDirectStep1": "Abra TikTok ou Instagram e encontre um vídeo que você ama",
+  "onboardingShareDirectStep2": "Use o botão de compartilhamento e selecione \"Whaticker\" das opções",
+  "onboardingAdsTitle": "Obrigado por usar o Whaticker!",
+  "onboardingAdsDescription": "Agradecemos seu apoio! Este app é gratuito graças aos anúncios que nos ajudam a mantê-lo e melhorá-lo. Sua compreensão e paciência significam muito para nós. Aproveite criando e compartilhando seus adesivos! 🎨",
+  "onboardingFinishButton": "Finalizar",
+  "onboardingNextButton": "Próximo →",
+  "onboardingBackButton": "← Voltar"
+  ,
+  "onboardingWelcomeSmallLabel": "BEM-VINDO AO FUTURO",
+  "onboardingWelcomeTitlePrimary": "Anime",
+  "onboardingWelcomeTitleAccent": "Qualquer coisa",
+
+  "onboardingContentLabel": "SEU CONTEÚDO, ANIMADO",
+  "onboardingFromSocialTitlePrimary": "From Social",
+  "onboardingFromSocialTitleAccent": "to Stickers",
+  "onboardingFromSocialDesc": "Transforme seus vídeos favoritos do TikTok e Reels do Instagram em adesivos animados do WhatsApp em segundos.",
+
+  "onboardingShareLabel": "COMPARTILHE DIRETAMENTE",
+  "onboardingShareTitlePrimary": "Direct",
+  "onboardingShareTitleAccent": "Share",
+  "onboardingShareDescExtended": "Basta tocar em compartilhar no TikTok ou IG e enviar diretamente para nosso app. São apenas alguns toques — rápido, preserva a qualidade e converte clipes em adesivos animados instantaneamente."
 }
