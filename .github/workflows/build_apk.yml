@@ -46,7 +46,7 @@ jobs:
             --dart-define=ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID }}
 
       - name: Upload APK as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: whaticker-apk
           path: build/app/outputs/flutter-apk/app-release.apk
