@@ -28,6 +28,10 @@ android {
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Read AdMob App ID from gradle.properties; fallback to placeholder for safety
+        val admobAppId = project.properties["ADMOB_APP_ID"]?.toString() ?: "ADMOB_APP_ID_PLACEHOLDER"
+        resValue("string", "admob_app_id", admobAppId)
     }
 
     buildTypes {

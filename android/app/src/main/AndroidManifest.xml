@@ -12,6 +12,11 @@
         android:icon="@mipmap/ic_launcher"
         tools:replace="android:name">
 
+        <!-- Google Mobile Ads App ID (injected at build-time from gradle.properties) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id"/>
+
         <!-- ContentProvider para WhatsApp Stickers -->
         <provider
             android:name=".StickerContentProvider"

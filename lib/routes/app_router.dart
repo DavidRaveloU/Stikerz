@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:whaticker/core/providers/onboarding_provider.dart';
 import 'package:whaticker/routes/route_paths.dart';
+import 'package:whaticker/ui/components/app_ad_shell.dart';
 import 'package:whaticker/ui/features/home/presentation/pages/home_page.dart';
 import 'package:whaticker/ui/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:whaticker/ui/features/pack_detail/presentation/pages/pack_detail_page.dart';
@@ -37,36 +38,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.onboarding,
         builder: (context, state) => const OnboardingPage(),
       ),
-      GoRoute(
-        path: RoutePaths.home,
-        builder: (context, state) => const HomePage(),
-      ),
-      GoRoute(
-        path: '${RoutePaths.details}/:packId',
-        builder: (context, state) {
-          final packId = int.parse(state.pathParameters['packId']!);
-          final heroTag = 'pack_cover_$packId';
-          return PackDetailPage(packId: packId, heroTag: heroTag);
-        },
-      ),
-      GoRoute(
-        path: '${RoutePaths.editor}/:packId/:slotIndex/:sourceType',
-        builder: (context, state) {
-          final packId = int.parse(state.pathParameters['packId']!);
-          final slotIndex = int.parse(state.pathParameters['slotIndex']!);
-          final sourceType =
-              state.pathParameters['sourceType']!; // 'tiktok' o 'local'
+      ShellRoute(
+        builder: (context, state, child) => AppAdShell(child: child),
+        routes: [
+          GoRoute(
+            path: RoutePaths.home,
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: '${RoutePaths.details}/:packId',
+            builder: (context, state) {
+              final packId = int.parse(state.pathParameters['packId']!);
+              final heroTag = 'pack_cover_$packId';
+              return PackDetailPage(packId: packId, heroTag: heroTag);
+            },
+          ),
+          GoRoute(
+            path: '${RoutePaths.editor}/:packId/:slotIndex/:sourceType',
+            builder: (context, state) {
+              final packId = int.parse(state.pathParameters['packId']!);
+              final slotIndex = int.parse(state.pathParameters['slotIndex']!);
+              final sourceType =
+                  state.pathParameters['sourceType']!; // 'tiktok' o 'local'
 
-          return StickerEditorPage(
-            packId: packId,
-            slotIndex: slotIndex,
-            sourceType: sourceType,
-          );
-        },
-      ),
-      GoRoute(
-        path: RoutePaths.picker,
-        builder: (context, state) => const VideoPickerPage(),
+              return StickerEditorPage(
+                packId: packId,
+                slotIndex: slotIndex,
+                sourceType: sourceType,
+              );
+            },
+          ),
+          GoRoute(
+            path: RoutePaths.picker,
+            builder: (context, state) => const VideoPickerPage(),
+          ),
+        ],
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
@@ -81,36 +87,41 @@ final GoRouter appRouter = GoRouter(
   debugLogDiagnostics: true,
 
   routes: [
-    GoRoute(
-      path: RoutePaths.home,
-      builder: (context, state) => const HomePage(),
-    ),
-    GoRoute(
-      path: '${RoutePaths.details}/:packId',
-      builder: (context, state) {
-        final packId = int.parse(state.pathParameters['packId']!);
-        final heroTag = 'pack_cover_$packId';
-        return PackDetailPage(packId: packId, heroTag: heroTag);
-      },
-    ),
-    GoRoute(
-      path: '${RoutePaths.editor}/:packId/:slotIndex/:sourceType',
-      builder: (context, state) {
-        final packId = int.parse(state.pathParameters['packId']!);
-        final slotIndex = int.parse(state.pathParameters['slotIndex']!);
-        final sourceType =
-            state.pathParameters['sourceType']!; // 'tiktok' o 'local'
+    ShellRoute(
+      builder: (context, state, child) => AppAdShell(child: child),
+      routes: [
+        GoRoute(
+          path: RoutePaths.home,
+          builder: (context, state) => const HomePage(),
+        ),
+        GoRoute(
+          path: '${RoutePaths.details}/:packId',
+          builder: (context, state) {
+            final packId = int.parse(state.pathParameters['packId']!);
+            final heroTag = 'pack_cover_$packId';
+            return PackDetailPage(packId: packId, heroTag: heroTag);
+          },
+        ),
+        GoRoute(
+          path: '${RoutePaths.editor}/:packId/:slotIndex/:sourceType',
+          builder: (context, state) {
+            final packId = int.parse(state.pathParameters['packId']!);
+            final slotIndex = int.parse(state.pathParameters['slotIndex']!);
+            final sourceType =
+                state.pathParameters['sourceType']!; // 'tiktok' o 'local'
 
-        return StickerEditorPage(
-          packId: packId,
-          slotIndex: slotIndex,
-          sourceType: sourceType,
-        );
-      },
-    ),
-    GoRoute(
-      path: RoutePaths.picker,
-      builder: (context, state) => const VideoPickerPage(),
+            return StickerEditorPage(
+              packId: packId,
+              slotIndex: slotIndex,
+              sourceType: sourceType,
+            );
+          },
+        ),
+        GoRoute(
+          path: RoutePaths.picker,
+          builder: (context, state) => const VideoPickerPage(),
+        ),
+      ],
     ),
   ],
   errorBuilder: (context, state) =>

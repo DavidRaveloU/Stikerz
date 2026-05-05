@@ -1,0 +1,72 @@
+name: Build and Release APK
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+          cache: true
+
+      - name: Create gradle.properties from secrets
+        run: |
+          mkdir -p android
+          cat > android/gradle.properties << 'EOF'
+          org.gradle.jvmargs=-Xmx8G -XX:MaxMetaspaceSize=4G -XX:ReservedCodeCacheSize=512m -XX:+HeapDumpOnOutOfMemoryError
+          android.useAndroidX=true
+          kotlin.jvm.target.validation.mode=warning
+          ADMOB_APP_ID=${{ secrets.ADMOB_APP_ID }}
+          EOF
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Run Flutter build APK
+        run: |
+          flutter build apk --release \
+            --dart-define=ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID }} \
+            --dart-define=ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID }}
+
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: whaticker-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create Release and upload APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print build summary
+        run: |
+          echo "✓ APK built successfully"
+          echo "✓ Location: build/app/outputs/flutter-apk/app-release.apk"
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "✓ Release created and APK uploaded"
+          else
+            echo "ℹ️ APK available as artifact (push to tag or create Release manually)"
+          fi

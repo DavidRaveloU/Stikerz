@@ -1,0 +1,24 @@
+# gradle.properties template
+# 
+# Copy this file to gradle.properties and fill in your real values.
+# IMPORTANT: gradle.properties should NEVER be committed to Git.
+# 
+# How to get these values:
+# - ADMOB_APP_ID: from Google AdMob console, format: ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY
+# 
+# For local development:
+# 1. Copy this file: cp android/gradle.properties.template android/gradle.properties
+# 2. Fill in your real AdMob App ID
+# 3. Run: flutter build apk --release
+#
+# For GitHub Actions:
+# - Set repository Secrets (Settings > Secrets and variables > Actions):
+#   - ADMOB_APP_ID (your real value)
+# - The workflow will create gradle.properties at build-time
+
+org.gradle.jvmargs=-Xmx8G -XX:MaxMetaspaceSize=4G -XX:ReservedCodeCacheSize=512m -XX:+HeapDumpOnOutOfMemoryError
+android.useAndroidX=true
+kotlin.jvm.target.validation.mode=warning
+
+# AdMob App ID (injected into strings.xml for AndroidManifest.xml)
+ADMOB_APP_ID=ca-app-pub-3940256099942544~3347511713

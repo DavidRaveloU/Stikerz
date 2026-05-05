@@ -261,13 +261,13 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
   void _showGenerateConfirm() {
     showDialog(
       context: context,
-      builder: (_) => GenerateConfirmDialog(
+      builder: (dialogContext) => GenerateConfirmDialog(
         aspectRatio: _aspectRatio,
         startSecs: _startPoint * _videoDurationSecs,
         durationSecs: _duration,
-        onCancel: () => Navigator.pop(context),
+        onCancel: () => Navigator.of(dialogContext).pop(),
         onConfirm: () {
-          Navigator.pop(context);
+          Navigator.of(dialogContext).pop();
           _generateSticker();
         },
       ),

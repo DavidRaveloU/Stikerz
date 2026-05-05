@@ -11,6 +11,7 @@ import 'package:whaticker/core/constants/app_colors.dart';
 import 'package:whaticker/core/extensions/localization_extension.dart';
 import 'package:whaticker/core/providers/share_provider.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
+import 'package:whaticker/core/services/ads_service.dart';
 import 'package:whaticker/data/models/sticker_model.dart';
 import 'package:whaticker/data/models/sticker_pack_model.dart';
 import 'package:whaticker/ui/features/pack_detail/presentation/providers/pack_detail_provider.dart';
@@ -42,6 +43,29 @@ class PackDetailPage extends ConsumerStatefulWidget {
 class _PackDetailPageState extends ConsumerState<PackDetailPage> {
   final ImagePicker _imagePicker = ImagePicker();
   String? _lastFullPackWarningKey;
+
+  Future<void> _openEditorAndHandleInterstitial({
+    required int slotIndex,
+    required String sourceType,
+    required String videoPath,
+  }) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StickerEditorPage(
+          packId: widget.packId,
+          slotIndex: slotIndex,
+          sourceType: sourceType,
+          videoPath: videoPath,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    if (result == 'generated') {
+      await AdsService().showInterstitialAd();
+    }
+  }
 
   // ── Acciones ─────────────────────────────────────────────────────────────
 
@@ -168,43 +192,25 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
           ).then((videoPath) {
             if (videoPath == null || !mounted) return;
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => StickerEditorPage(
-                  packId: widget.packId,
-                  slotIndex: index,
-                  sourceType: 'local',
-                  videoPath: videoPath,
-                ),
-              ),
+            _openEditorAndHandleInterstitial(
+              slotIndex: index,
+              sourceType: 'local',
+              videoPath: videoPath,
             );
           });
         },
         onTikTokUrl: (videoUrl) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => StickerEditorPage(
-                packId: widget.packId,
-                slotIndex: index,
-                sourceType: 'tiktok',
-                videoPath: videoUrl,
-              ),
-            ),
+          _openEditorAndHandleInterstitial(
+            slotIndex: index,
+            sourceType: 'tiktok',
+            videoPath: videoUrl,
           );
         },
         onInstagramUrl: (videoUrl) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => StickerEditorPage(
-                packId: widget.packId,
-                slotIndex: index,
-                sourceType: 'instagram',
-                videoPath: videoUrl,
-              ),
-            ),
+          _openEditorAndHandleInterstitial(
+            slotIndex: index,
+            sourceType: 'instagram',
+            videoPath: videoUrl,
           );
         },
       ),
@@ -257,7 +263,7 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
           return const Scaffold(backgroundColor: AppColors.background);
         }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           final currentPending = ref.read(pendingShareProvider);
           if (currentPending == null) return;
 
@@ -295,16 +301,10 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
           final videoUrl = currentPending.resolvedVideoUrl!;
           final int slotIndex = empty;
           ref.read(pendingShareProvider.notifier).state = null;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => StickerEditorPage(
-                packId: widget.packId,
-                slotIndex: slotIndex,
-                sourceType: currentPending.source,
-                videoPath: videoUrl,
-              ),
-            ),
+          await _openEditorAndHandleInterstitial(
+            slotIndex: slotIndex,
+            sourceType: currentPending.source,
+            videoPath: videoUrl,
           );
         });
 

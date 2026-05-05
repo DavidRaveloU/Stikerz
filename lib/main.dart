@@ -10,6 +10,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:whaticker/core/constants/app_colors.dart';
 import 'package:whaticker/core/providers/share_provider.dart';
 import 'package:whaticker/core/repositories/pack_repository.dart';
+import 'package:whaticker/core/services/ads_service.dart';
 import 'package:whaticker/generated_l10n/app_localizations.dart';
 import 'package:whaticker/routes/app_router.dart' show appRouterProvider;
 
@@ -19,6 +20,7 @@ Future<void> main(List<String> args) async {
       WidgetsFlutterBinding.ensureInitialized();
 
       MediaKit.ensureInitialized();
+      await AdsService().initialize();
 
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
