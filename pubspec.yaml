@@ -49,7 +49,7 @@ dependencies:
   connectivity_plus: ^6.0.3 # ← para validar internet
   ffmpeg_kit_flutter_new: ^4.1.0
   isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
+  isar_community_flutter_libs: ^3.3.2
   path_provider: ^2.1.5
   go_router: ^17.2.2
   flutter_riverpod: ^2.6.1

@@ -8,7 +8,7 @@ import Foundation
 import connectivity_plus
 import ffmpeg_kit_flutter_new
 import file_selector_macos
-import isar_flutter_libs
+import isar_community_flutter_libs
 import media_kit_libs_macos_video
 import media_kit_video
 import package_info_plus
