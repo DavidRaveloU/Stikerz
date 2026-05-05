@@ -2,11 +2,14 @@ name: Build and Release APK
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Target branch for this build (use "main" for production IDs)'
+        required: false
+        default: 'main'
 
 permissions:
   contents: write
@@ -26,24 +29,49 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Create gradle.properties from secrets
+      - name: Create gradle.properties (prod vs test)
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.target_branch }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           mkdir -p android
-          cat > android/gradle.properties << 'EOF'
+          cat > android/gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx8G -XX:MaxMetaspaceSize=4G -XX:ReservedCodeCacheSize=512m -XX:+HeapDumpOnOutOfMemoryError
           android.useAndroidX=true
           kotlin.jvm.target.validation.mode=warning
-          ADMOB_APP_ID=${{ secrets.ADMOB_APP_ID }}
           EOF
+          # Decide prod (tag or explicit main target) vs test IDs
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" && "${TARGET_BRANCH}" == "main" ]] || [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            cat >> android/gradle.properties <<EOF
+          ADMOB_APP_ID=${{ secrets.ADMOB_APP_ID }}
+          ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID }}
+          ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID }}
+          EOF
+          else
+            cat >> android/gradle.properties <<EOF
+          ADMOB_APP_ID=ca-app-pub-3940256099942544~3347511713
+          ADMOB_BANNER_ID=ca-app-pub-3940256099942544/6300978111
+          ADMOB_INTERSTITIAL_ID=ca-app-pub-3940256099942544/1033173712
+          EOF
+          fi
 
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Run Flutter build APK
+      - name: Run Flutter build APK (prod vs test)
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.target_branch }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          flutter build apk --release \
-            --dart-define=ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID }} \
-            --dart-define=ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID }}
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" && "${TARGET_BRANCH}" == "main" ]] || [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            flutter build apk --release \
+              --dart-define=ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID }} \
+              --dart-define=ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID }}
+          else
+            flutter build apk --release \
+              --dart-define=ADMOB_BANNER_ID=ca-app-pub-3940256099942544/6300978111 \
+              --dart-define=ADMOB_INTERSTITIAL_ID=ca-app-pub-3940256099942544/1033173712
+          fi
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
