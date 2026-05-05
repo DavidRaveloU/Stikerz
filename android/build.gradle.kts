@@ -1,5 +1,6 @@
 import org.gradle.api.tasks.Delete
 import org.gradle.api.file.Directory
+import com.android.build.api.dsl.LibraryExtension
 
 allprojects {
     repositories {
@@ -24,6 +25,16 @@ subprojects {
 
 // FIX GLOBAL REAL
 subprojects {
+    // Ensure legacy plugins define namespace under modern AGP.
+    plugins.withId("com.android.library") {
+        if (project.name == "isar_flutter_libs") {
+            extensions.configure<LibraryExtension> {
+                if (namespace == null) {
+                    namespace = "dev.isar.isar_flutter_libs"
+                }
+            }
+        }
+    }
 
     afterEvaluate {
 
