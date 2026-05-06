@@ -1,17 +1,69 @@
-# whaticker
+# Whaticker
 
-A new Flutter project.
+**Create animated WhatsApp sticker packs from your favorite videos.**
 
-## Getting Started
+Whaticker lets you capture short-form videos from TikTok, Instagram, or your device gallery, transform them into animated stickers, organize them into packs, and export them to WhatsApp. Quick, intuitive, and ready to use.
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## Screenshots
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/5cb1f189-6770-49be-b994-9b7fd221b444" width="30%" style="margin: 0 8px;" />
+  <img src="https://github.com/user-attachments/assets/c85ddde4-5d51-4ea9-a7d9-8bdaef592614" width="30%" style="margin: 0 8px;" />
+  <img src="https://github.com/user-attachments/assets/df1204e8-1fa5-4e01-9db5-5342b61dc6a7" width="30%" style="margin: 0 8px;" />
+</p>
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+---
+
+## Highlights
+
+- Import videos from TikTok, Instagram, or your phone gallery.
+- Customize video crop, timing, and effects before generating stickers.
+- Organize stickers into themed packs.
+- Export complete packs to WhatsApp with just one tap.
+- Available in multiple languages with automatic detection.
+- Works offline after initial setup.
+
+---
+
+## Core Features
+
+### Sticker Packs
+
+- Create and manage multiple sticker packs.
+- Add, remove, rename, and preview stickers.
+- Store packs locally on your device.
+- Track pack status and completeness.
+
+### Sticker Generation
+
+- Import videos from TikTok, Instagram, or your gallery.
+- Adjust crop and timing before generating.
+- Convert video clips into smooth, shareable stickers.
+- Handle edge cases with smart retry strategies.
+
+### WhatsApp Export
+
+- Validate pack requirements before export (cover + at least 3 stickers).
+- Package and send sticker packs directly to WhatsApp.
+- Real-time feedback during the export process.
+
+### Languages
+
+- English, Spanish, and Portuguese.
+- Automatic detection based on device settings.
+- All labels, dialogs, and messages localized.
+
+---
+
+## Tech Stack
+
+- **Flutter / Dart** for the application.
+- **Riverpod** for state management.
+- **GoRouter** for navigation.
+- **Media processing** for sticker generation.
+
+
+
