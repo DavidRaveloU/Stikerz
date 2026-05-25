@@ -62,6 +62,7 @@ flutter build apk --release \
 ```
 
 **Instalar en tu dispositivo:**
+
 ```bash
 # Opción A: si el dispositivo está conectado vía ADB
 adb install -r build/app/outputs/flutter-apk/app-release.apk
@@ -109,6 +110,7 @@ Una vez que `main` esté actualizada con los cambios de `development`, genera el
 4. Haz clic en **"Run workflow"**
 
 El workflow automáticamente:
+
 - Usa tus GitHub Secrets (IDs de AdMob reales)
 - Construye el APK con IDs de producción
 - Sube el APK como artifact
@@ -131,16 +133,18 @@ git push origin v1.1.0
 ### Paso a paso
 
 1. **Desarrolla en `development`**
+
    ```bash
    git checkout development
    # ... edita código, commititea, pushea
    ```
 
 2. **Prueba localmente (debug y release)**
+
    ```bash
    flutter run  # debug en dispositivo conectado
    # ... prueba exhaustiva
-   
+
    # Cuando necesites un release local
    cat > android/gradle.properties <<EOF
    org.gradle.jvmargs=-Xmx8G -XX:MaxMetaspaceSize=4G -XX:ReservedCodeCacheSize=512m -XX:+HeapDumpOnOutOfMemoryError
@@ -148,13 +152,14 @@ git push origin v1.1.0
    kotlin.jvm.target.validation.mode=warning
    ADMOB_APP_ID=ca-app-pub-3940256099942544~3347511713
    EOF
-   
+
    flutter build apk --release \
      --dart-define=ADMOB_BANNER_ID=ca-app-pub-3940256099942544/6300978111 \
      --dart-define=ADMOB_INTERSTITIAL_ID=ca-app-pub-3940256099942544/1033173712
    ```
 
 3. **Merge a `main` cuando estés listo**
+
    ```bash
    git checkout main
    git pull origin main
@@ -191,8 +196,8 @@ git push origin v1.1.0
 ## Protección de ramas (opcional)
 
 Para evitar pushes directos a `main`, configura **Branch Protection**:
+
 - Ve a GitHub → Settings → Branches → Add rule
 - Rama: `main`
 - Activa "Require a pull request before merging"
 - Haz que todos los merges pasen por PR desde `development`
-

@@ -1,23 +1,31 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class StickerPreviewSheet extends StatelessWidget {
   final String webpPath;
   final VoidCallback onDelete;
+  final Widget? previewContent;
 
   const StickerPreviewSheet({
     super.key,
     required this.webpPath,
     required this.onDelete,
+    this.previewContent,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+      margin: EdgeInsets.fromLTRB(
+        context.responsiveSize(16, tabletSize: 20),
+        0,
+        context.responsiveSize(16, tabletSize: 20),
+        context.responsiveSize(32, tabletSize: 36),
+      ),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
@@ -26,19 +34,19 @@ class StickerPreviewSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 12),
+          SizedBox(height: context.responsiveSize(12, tabletSize: 14)),
           Container(
-            width: 36,
+            width: context.responsiveSize(36, tabletSize: 40),
             height: 4,
             decoration: BoxDecoration(
               color: AppColors.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: context.responsiveSize(16, tabletSize: 18)),
           Container(
-            width: 140,
-            height: 140,
+            width: context.responsiveSize(140, tabletSize: 160),
+            height: context.responsiveSize(140, tabletSize: 160),
             decoration: BoxDecoration(
               color: const Color(0xFF111114),
               borderRadius: BorderRadius.circular(20),
@@ -49,17 +57,19 @@ class StickerPreviewSheet extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(18),
-                  child: Image.file(
-                    File(webpPath),
-                    fit: BoxFit.contain,
-                    width: 140,
-                    height: 140,
-                    errorBuilder: (_, _, _) => const Icon(
-                      Icons.broken_image_rounded,
-                      color: AppColors.textMuted,
-                      size: 36,
-                    ),
-                  ),
+                  child:
+                      previewContent ??
+                      Image.file(
+                        File(webpPath),
+                        fit: BoxFit.contain,
+                        width: context.responsiveSize(140, tabletSize: 160),
+                        height: context.responsiveSize(140, tabletSize: 160),
+                        errorBuilder: (_, _, _) => const Icon(
+                          Icons.broken_image_rounded,
+                          color: AppColors.textMuted,
+                          size: 36,
+                        ),
+                      ),
                 ),
                 Positioned(
                   bottom: 8,
@@ -72,7 +82,7 @@ class StickerPreviewSheet extends StatelessWidget {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.accent.withOpacity(0.15),
+                          color: AppColors.accent.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -83,11 +93,14 @@ class StickerPreviewSheet extends StatelessWidget {
                               size: 9,
                               color: AppColors.accent,
                             ),
-                            const SizedBox(width: 3),
+                            SizedBox(
+                              width: context.responsiveSize(3, tabletSize: 4),
+                            ),
                             Text(
                               context.l10n.loop,
-                              style: const TextStyle(
-                                fontSize: 9,
+                              style: context.responsiveTextStyle(
+                                mobileSize: 9,
+                                tabletSize: 10,
                                 color: AppColors.accent,
                               ),
                             ),
@@ -100,18 +113,25 @@ class StickerPreviewSheet extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: context.responsiveSize(16, tabletSize: 18)),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            padding: EdgeInsets.fromLTRB(
+              context.responsiveSize(16, tabletSize: 20),
+              0,
+              context.responsiveSize(16, tabletSize: 20),
+              context.responsiveSize(8, tabletSize: 10),
+            ),
             child: GestureDetector(
               onTap: onDelete,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(
+                  vertical: context.responsiveSize(14, tabletSize: 16),
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.07),
+                  color: Colors.red.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.red.withOpacity(0.2)),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -121,12 +141,13 @@ class StickerPreviewSheet extends StatelessWidget {
                       color: Colors.redAccent,
                       size: 18,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: context.responsiveSize(8, tabletSize: 10)),
                     Text(
                       context.l10n.deleteSticker,
-                      style: const TextStyle(
+                      style: context.responsiveTextStyle(
+                        mobileSize: 14,
+                        tabletSize: 15,
                         color: Colors.redAccent,
-                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

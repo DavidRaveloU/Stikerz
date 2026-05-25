@@ -4,4 +4,5 @@ class RoutePaths {
   static const String details = '/details';
   static const String editor = '/editor';
   static const String picker = '/picker';
+  static const String settings = '/settings';
 }

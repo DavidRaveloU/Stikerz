@@ -19,12 +19,15 @@ class StickerGenerationResult {
   final String? path;
   final bool usedStrategy;
   final String? error;
+  // Size in bytes when generation failed due to exceeding allowed size.
+  final int? failedSize;
 
   const StickerGenerationResult({
     required this.success,
     this.path,
     this.usedStrategy = false,
     this.error,
+    this.failedSize,
   });
 }
 
@@ -74,13 +77,13 @@ class StickerGenerationService {
     void Function(String status, double? progress)? onStatus,
   }) async {
     final strategyMode = _parseStrategy(strategy);
-    onStatus?.call('Preparando video...', 0.05);
+    onStatus?.call('Preparing video...', 0.05);
 
     await _validateWebpRuntime();
 
     if (req.requiresInternet && !await _hasConnection()) {
       throw const StickerGenerationException(
-        'Necesitas internet estable para crear stickers desde TikTok.',
+        'A stable internet connection is required to create stickers from online sources.',
       );
     }
 
@@ -107,20 +110,21 @@ class StickerGenerationService {
     }
 
     try {
-      onStatus?.call('Iniciando conversión...', 0.12);
+      onStatus?.call('Starting conversion...', 0.12);
       String? lastFailure;
+      int? lastFailedSize;
 
       for (var i = 0; i < profiles.length; i++) {
         final progress = 0.15 + (0.75 * (i / profiles.length));
 
         onStatus?.call(
-          'Generando sticker (intento ${i + 1}/${profiles.length})...',
+          'Generating sticker (attempt ${i + 1}/${profiles.length})...',
           progress,
         );
 
         if (req.requiresInternet && !await _hasConnection()) {
           throw const StickerGenerationException(
-            'Se perdió internet durante la creación del sticker.',
+            'Internet connection lost during sticker creation.',
           );
         }
 
@@ -159,7 +163,7 @@ class StickerGenerationService {
 
         if (lostConnection) {
           throw const StickerGenerationException(
-            'Se perdió internet durante la creación del sticker.',
+            'Internet connection lost during sticker creation.',
           );
         }
 
@@ -170,17 +174,17 @@ class StickerGenerationService {
 
         if (!await attemptFile.exists()) {
           lastFailure =
-              'FFmpeg terminó sin error pero no generó archivo de salida.';
+              'FFmpeg finished without error but did not produce an output file.';
           continue;
         }
 
         final bytes = await attemptFile.length();
 
         if (bytes <= _maxBytes) {
-          onStatus?.call('Guardando sticker...', 0.95);
+          onStatus?.call('Saving sticker...', 0.95);
           await attemptFile.rename(finalPath);
           await _createThumbnail(finalPath);
-          onStatus?.call('Sticker creado.', 1.0);
+          onStatus?.call('Sticker created.', 1.0);
 
           return StickerGenerationResult(
             success: true,
@@ -188,12 +192,15 @@ class StickerGenerationService {
             usedStrategy: strategyMode != StickerStrategy.none,
           );
         }
+        // Keep the latest oversized result for better diagnostics.
+        lastFailedSize = bytes;
       }
 
       return StickerGenerationResult(
         success: false,
         usedStrategy: strategyMode != StickerStrategy.none,
         error: lastFailure,
+        failedSize: lastFailedSize,
       );
     } finally {
       await sub?.cancel();
@@ -285,8 +292,6 @@ class StickerGenerationService {
     }
   }
 
-  // ─── resto igual ─────────────────────────────────────────
-
   static Future<bool> _hasConnection() async {
     final results = await Connectivity().checkConnectivity();
     return !_isOffline(results);
@@ -351,7 +356,7 @@ class StickerGenerationService {
     final output = (await session.getOutput()) ?? '';
 
     if (!output.contains('libwebp')) {
-      throw const StickerGenerationException('FFmpeg no soporta WebP.');
+      throw const StickerGenerationException('FFmpeg does not support WebP.');
     }
 
     _checkedWebpRuntime = true;

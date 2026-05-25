@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class ConfirmBar extends StatelessWidget {
   final VoidCallback onConfirm;
@@ -12,18 +13,26 @@ class ConfirmBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        padding: EdgeInsets.fromLTRB(
+          context.responsiveSize(16, tabletSize: 20),
+          context.responsiveSize(8, tabletSize: 10),
+          context.responsiveSize(16, tabletSize: 20),
+          context.responsiveSize(16, tabletSize: 20),
+        ),
         child: GestureDetector(
           onTap: onConfirm,
           child: Container(
             width: double.infinity,
-            height: 52,
+            // Vertical padding keeps the button resilient to larger system fonts.
+            padding: EdgeInsets.symmetric(
+              vertical: context.responsiveSize(16, tabletSize: 18),
+            ),
             decoration: BoxDecoration(
               color: AppColors.accent,
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.accent.withOpacity(0.3),
+                  color: AppColors.accent.withValues(alpha: 0.3),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
@@ -37,12 +46,13 @@ class ConfirmBar extends StatelessWidget {
                   color: AppColors.background,
                   size: 20,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: context.responsiveSize(8, tabletSize: 10)),
                 Text(
                   context.l10n.useThisVideo,
-                  style: const TextStyle(
+                  style: context.responsiveTextStyle(
+                    mobileSize: 15,
+                    tabletSize: 16,
                     color: AppColors.background,
-                    fontSize: 15,
                     fontWeight: FontWeight.w800,
                   ),
                 ),

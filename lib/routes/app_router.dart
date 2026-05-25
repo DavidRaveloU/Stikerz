@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:whaticker/core/providers/onboarding_provider.dart';
-import 'package:whaticker/routes/route_paths.dart';
-import 'package:whaticker/ui/components/app_ad_shell.dart';
-import 'package:whaticker/ui/features/home/presentation/pages/home_page.dart';
-import 'package:whaticker/ui/features/onboarding/presentation/pages/onboarding_page.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/pages/pack_detail_page.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/pages/sticker_editor_page.dart';
-import 'package:whaticker/ui/features/video_picker/presentation/pages/video_picker_page.dart';
+import 'package:stikerz/core/providers/onboarding_provider.dart';
+import 'package:stikerz/core/providers/share_provider.dart';
+import 'package:stikerz/routes/route_paths.dart';
+import 'package:stikerz/ui/components/app_ad_shell.dart';
+import 'package:stikerz/ui/features/home/presentation/pages/home_page.dart';
+import 'package:stikerz/ui/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/pages/pack_detail_page.dart';
+import 'package:stikerz/ui/features/settings/presentation/pages/settings_page.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/pages/sticker_editor_page.dart';
+import 'package:stikerz/ui/features/video_picker/presentation/pages/video_picker_page.dart';
 
-/// GlobalRouteObserver para detectar cambios de rutas de navegación
+/// Route observer used to monitor navigation transitions.
 final routeObserver = RouteObserver<PageRoute>();
 
-/// Provider para el GoRouter dinámico basado en onboarding state
+/// Provides the app router and applies onboarding-based redirects.
 final appRouterProvider = Provider<GoRouter>((ref) {
   final onboardingCompleted = ref.watch(onboardingNotifierProvider);
+  ref.watch(shareFlowResetProvider);
 
   return GoRouter(
     initialLocation: onboardingCompleted
@@ -23,11 +26,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         : RoutePaths.onboarding,
     debugLogDiagnostics: true,
     redirect: (context, state) {
-      // Si el onboarding no está completado, redirigir al onboarding
+      // Redirect users to onboarding until it is completed.
       if (!onboardingCompleted && state.uri.path != RoutePaths.onboarding) {
         return RoutePaths.onboarding;
       }
-      // Si el onboarding está completado y estamos en onboarding, ir a home
+      // Prevent navigating back to onboarding once completed.
       if (onboardingCompleted && state.uri.path == RoutePaths.onboarding) {
         return RoutePaths.home;
       }
@@ -46,6 +49,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const HomePage(),
           ),
           GoRoute(
+            path: RoutePaths.settings,
+            builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
             path: '${RoutePaths.details}/:packId',
             builder: (context, state) {
               final packId = int.parse(state.pathParameters['packId']!);
@@ -58,8 +65,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final packId = int.parse(state.pathParameters['packId']!);
               final slotIndex = int.parse(state.pathParameters['slotIndex']!);
-              final sourceType =
-                  state.pathParameters['sourceType']!; // 'tiktok' o 'local'
+              final sourceType = state.pathParameters['sourceType']!;
 
               return StickerEditorPage(
                 packId: packId,
@@ -81,7 +87,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-// Router estático (legacy - mantener por compatibilidad)
+// Legacy static router kept for backward compatibility.
 final GoRouter appRouter = GoRouter(
   initialLocation: RoutePaths.home,
   debugLogDiagnostics: true,
@@ -107,8 +113,7 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) {
             final packId = int.parse(state.pathParameters['packId']!);
             final slotIndex = int.parse(state.pathParameters['slotIndex']!);
-            final sourceType =
-                state.pathParameters['sourceType']!; // 'tiktok' o 'local'
+            final sourceType = state.pathParameters['sourceType']!;
 
             return StickerEditorPage(
               packId: packId,

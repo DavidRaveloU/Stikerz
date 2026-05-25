@@ -26,17 +26,17 @@ class PackRepository {
 
   PackRepository._();
 
-  /// Inicializa Isar (debe llamarse una sola vez en main.dart)
+  /// Initialize Isar (should be called once from main.dart)
   static Future<void> init() async {
     if (_isar != null && _isar!.isOpen) return;
 
     try {
-      final dir = Directory('/data/user/0/com.davidravelo.whaticker/files');
+      final dir = Directory('/data/user/0/com.davidravelo.stikerz/files');
 
       _isar = await Isar.open(
         [StickerPackModelSchema, AppStateModelSchema],
         directory: dir.path,
-        name: 'whaticker_db',
+        name: 'stikerz_db',
       );
     } catch (e) {
       rethrow;
@@ -48,7 +48,7 @@ class PackRepository {
   Isar get _db {
     if (_isar == null || !_isar!.isOpen) {
       throw Exception(
-        'PackRepository no está inicializado. Llama a PackRepository.init() primero.',
+        'PackRepository is not initialized. Call PackRepository.init() first.',
       );
     }
     return _isar!;
@@ -58,7 +58,7 @@ class PackRepository {
     return name.trim().toLowerCase();
   }
 
-  // ── Lectura Reactiva ─────────────────────────────────────────────────────
+  // ── Reactive reads ─────────────────────────────────────────────────────
 
   Stream<List<StickerPackModel>> watchAllPacks() {
     return _db.stickerPackModels.where().sortByCreatedAtDesc().watch(
@@ -70,7 +70,7 @@ class PackRepository {
     return _db.stickerPackModels.watchObject(id, fireImmediately: true);
   }
 
-  // ── CRUD Básico ─────────────────────────────────────────────────────────
+  // ── Basic CRUD ─────────────────────────────────────────────────────────
 
   Future<StickerPackModel> createPack({
     required String name,
@@ -87,7 +87,7 @@ class PackRepository {
 
     if (duplicate) {
       throw const DuplicatePackNameException(
-        'Ya existe un paquete con ese nombre.',
+        'A pack with that name already exists.',
       );
     }
 
@@ -117,7 +117,7 @@ class PackRepository {
 
     if (duplicate) {
       throw const DuplicatePackNameException(
-        'Ya existe un paquete con ese nombre.',
+        'A pack with that name already exists.',
       );
     }
 

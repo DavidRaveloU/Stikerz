@@ -1,20 +1,23 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/data/models/sticker_pack_model.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
 
 class PackCard extends StatelessWidget {
   final StickerPackModel pack;
   final VoidCallback onTap;
   final VoidCallback? onDelete;
+  final Widget? coverPreview;
 
   const PackCard({
     super.key,
     required this.pack,
     required this.onTap,
     required this.onDelete,
+    this.coverPreview,
   });
 
   @override
@@ -22,55 +25,49 @@ class PackCard extends StatelessWidget {
     final progress = (pack.filledCount / 30).clamp(0.0, 1.0);
     final isFull = pack.isFull;
 
+    final thumbnailSize = context.responsiveSize(52, tabletSize: 58);
+
     return GestureDetector(
       onTap: onTap,
       onLongPress: onDelete,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(context.responsiveSize(14, tabletSize: 16)),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.border),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Hero(
               tag: 'pack_cover_${pack.id}',
               placeholderBuilder: (context, size, child) => child,
-              flightShuttleBuilder:
-                  (
-                    flightContext,
-                    animation,
-                    direction,
-                    fromContext,
-                    toContext,
-                  ) {
-                    return Material(
-                      color: Colors.transparent,
-                      child: toContext.widget,
-                    );
-                  },
               child: Container(
-                width: 52,
-                height: 52,
+                width: thumbnailSize,
+                height: thumbnailSize,
                 decoration: BoxDecoration(
                   color: pack.hasCover
-                      ? AppColors.accent.withOpacity(0.16)
+                      ? AppColors.accent.withValues(alpha: 0.16)
                       : AppColors.surface,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withOpacity(0.08)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
                 ),
                 child: pack.hasCover
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(14),
-                        child: Image.file(
-                          File(pack.coverImagePath!),
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const Icon(
-                            Icons.photo_library_rounded,
-                            color: Colors.white38,
-                          ),
-                        ),
+                        child:
+                            coverPreview ??
+                            Image.file(
+                              File(pack.coverImagePath!),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => const Icon(
+                                Icons.photo_library_rounded,
+                                color: Colors.white38,
+                              ),
+                            ),
                       )
                     : const Icon(
                         Icons.photo_library_rounded,
@@ -78,35 +75,36 @@ class PackCard extends StatelessWidget {
                       ),
               ),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: context.responsiveSize(14, tabletSize: 16)),
 
-            // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     pack.name,
-                    style: const TextStyle(
+                    style: context.responsiveTextStyle(
+                      mobileSize: 15,
+                      tabletSize: 16,
                       color: AppColors.textPrimary,
-                      fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: context.responsiveSize(2, tabletSize: 3)),
                   Text(
                     context.l10n.packCountByAuthor(pack.author),
-                    style: const TextStyle(
+                    style: context.responsiveTextStyle(
+                      mobileSize: 12,
+                      tabletSize: 13,
                       color: AppColors.textMuted,
-                      fontSize: 12,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                  // Barra de progreso
+                  SizedBox(height: context.responsiveSize(8, tabletSize: 10)),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(2),
                     child: LinearProgressIndicator(
@@ -115,29 +113,32 @@ class PackCard extends StatelessWidget {
                       valueColor: AlwaysStoppedAnimation(
                         isFull
                             ? AppColors.accent
-                            : AppColors.accent.withOpacity(0.7),
+                            : AppColors.accent.withValues(alpha: 0.7),
                       ),
                       minHeight: 3,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: context.responsiveSize(4, tabletSize: 5)),
                   Text(
                     isFull
                         ? context.l10n.stickerCountStatus(pack.filledCount)
                         : context.l10n.stickerCountSimple(pack.filledCount),
-                    style: TextStyle(
-                      fontSize: 11,
+                    style: context.responsiveTextStyle(
+                      mobileSize: 11,
+                      tabletSize: 12,
                       color: isFull ? AppColors.accent : AppColors.textMuted,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            const Icon(
+            SizedBox(width: context.responsiveSize(8, tabletSize: 10)),
+            Icon(
               Icons.chevron_right_rounded,
               color: AppColors.textMuted,
-              size: 20,
+              size: context.responsiveSize(20, tabletSize: 22),
             ),
           ],
         ),

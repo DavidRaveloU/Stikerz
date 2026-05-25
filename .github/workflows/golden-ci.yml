@@ -1,0 +1,56 @@
+name: Goldens CI
+
+on:
+  pull_request:
+    paths:
+      - "lib/**"
+      - "test/**"
+      - "pubspec.yaml"
+  push:
+    branches: [main]
+
+jobs:
+  goldens-check:
+    name: Goldens check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "stable"
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze
+      - name: Run golden tests (check)
+        run: flutter test test/goldens --concurrency=1
+      - name: Upload golden images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-images
+          path: test/goldens/**/*.png
+
+  update-baselines:
+    name: Regenerate baselines (manual)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "stable"
+      - name: Install deps
+        run: flutter pub get
+      - name: Regenerate baselines
+        run: flutter test test/goldens --update-goldens --concurrency=1
+      - name: Commit baselines
+        env:
+          GIT_AUTHOR_NAME: CI Bot
+          GIT_AUTHOR_EMAIL: ci@example.com
+        run: |
+          git add test/goldens/*.png || true
+          git commit -m "Update golden baselines [ci skip]" || echo "No changes"
+          git push origin HEAD:goldens/update || echo "Push failed or not permitted"

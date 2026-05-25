@@ -3,13 +3,13 @@ name: Build and Release APK
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       target_branch:
         description: 'Target branch for this build (use "main" for production IDs)'
         required: false
-        default: 'main'
+        default: "main"
 
 permissions:
   contents: write
@@ -18,7 +18,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -76,7 +76,7 @@ jobs:
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: whaticker-apk
+          name: stikerz-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
       - name: Create Release and upload APK

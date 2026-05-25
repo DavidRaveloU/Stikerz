@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class OnboardingPage3ShareDirect extends StatelessWidget {
-  const OnboardingPage3ShareDirect({super.key});
+  final bool showAnimations;
+
+  const OnboardingPage3ShareDirect({super.key, this.showAnimations = true});
 
   @override
   Widget build(BuildContext context) {
@@ -12,69 +15,80 @@ class OnboardingPage3ShareDirect extends StatelessWidget {
       child: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.responsiveSize(24, tabletSize: 32),
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Etiqueta superior sugerida
                 Text(
                   context.l10n.onboardingShareLabel,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  style: context.responsiveTextStyle(
+                    mobileSize: 11,
+                    tabletSize: 12,
                     color: AppColors.textSecondary,
                     letterSpacing: 2,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: context.responsiveSize(24, tabletSize: 28)),
 
-                // Título principal
                 RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
                     children: [
                       TextSpan(
                         text: '${context.l10n.onboardingShareTitlePrimary} ',
-                        style: Theme.of(context).textTheme.displaySmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
+                        style: context.responsiveTextStyle(
+                          mobileSize: 30,
+                          tabletSize: 36,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       TextSpan(
                         text: context.l10n.onboardingShareTitleAccent,
-                        style: Theme.of(context).textTheme.displaySmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.accent,
-                            ),
+                        style: context.responsiveTextStyle(
+                          mobileSize: 30,
+                          tabletSize: 36,
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: context.responsiveSize(24, tabletSize: 28)),
 
-                // Descripción
                 Text(
                   context.l10n.onboardingShareDescExtended,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  style: context.responsiveTextStyle(
+                    mobileSize: 16,
+                    tabletSize: 18,
                     color: AppColors.textSecondary,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 60),
+                SizedBox(height: context.responsiveSize(60, tabletSize: 72)),
 
-                // Lottie animación
                 SizedBox(
-                  height: 300,
-
-                  child: Lottie.asset(
-                    'assets/lottie/share_options.json',
-                    fit: BoxFit.contain,
-                    repeat: true,
-                  ),
+                  height: context.responsiveSize(300, tabletSize: 360),
+                  child: showAnimations
+                      ? Lottie.asset(
+                          'assets/lottie/share_options.json',
+                          fit: BoxFit.contain,
+                          repeat: true,
+                        )
+                      : Center(
+                          child: Icon(
+                            Icons.share_rounded,
+                            size: context.responsiveSize(84, tabletSize: 96),
+                            color: AppColors.accent,
+                          ),
+                        ),
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: context.responsiveSize(40, tabletSize: 48)),
               ],
             ),
           ),

@@ -2,16 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/data/models/sticker_pack_model.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/providers/pack_detail_provider.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/providers/pack_detail_provider.dart';
 
 class PackDetailHero extends ConsumerWidget {
   final StickerPackModel pack;
   final String heroTag;
   final VoidCallback onCoverTap;
   final VoidCallback onOptionsTap;
+  final Widget? coverPreview;
 
   const PackDetailHero({
     super.key,
@@ -19,6 +21,7 @@ class PackDetailHero extends ConsumerWidget {
     required this.heroTag,
     required this.onCoverTap,
     required this.onOptionsTap,
+    this.coverPreview,
   });
 
   @override
@@ -39,7 +42,7 @@ class PackDetailHero extends ConsumerWidget {
           children: [
             _buildTopBar(context),
             _buildCoverRow(context),
-            _buildProgressRow(),
+            _buildProgressRow(context),
             _buildTabs(context, ref),
           ],
         ),
@@ -49,7 +52,12 @@ class PackDetailHero extends ConsumerWidget {
 
   Widget _buildTopBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+      padding: EdgeInsets.fromLTRB(
+        context.responsiveSize(18, tabletSize: 22),
+        context.responsiveSize(10, tabletSize: 12),
+        context.responsiveSize(18, tabletSize: 22),
+        0,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -76,7 +84,12 @@ class PackDetailHero extends ConsumerWidget {
 
   Widget _buildCoverRow(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      padding: EdgeInsets.fromLTRB(
+        context.responsiveSize(20, tabletSize: 24),
+        context.responsiveSize(20, tabletSize: 24),
+        context.responsiveSize(20, tabletSize: 24),
+        0,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -87,30 +100,32 @@ class PackDetailHero extends ConsumerWidget {
               child: Stack(
                 children: [
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: context.responsiveSize(80, tabletSize: 96),
+                    height: context.responsiveSize(80, tabletSize: 96),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(22),
                       border: Border.all(
                         color: pack.hasCover
-                            ? Colors.white.withOpacity(0.1)
-                            : AppColors.accent.withOpacity(0.4),
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : AppColors.accent.withValues(alpha: 0.4),
                         width: pack.hasCover ? 1.5 : 2,
                       ),
                     ),
                     child: pack.hasCover
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: Image.file(
-                              File(pack.coverImagePath!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const Icon(
-                                Icons.broken_image_rounded,
-                                color: Colors.white54,
-                                size: 30,
-                              ),
-                            ),
+                            child:
+                                coverPreview ??
+                                Image.file(
+                                  File(pack.coverImagePath!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => const Icon(
+                                    Icons.broken_image_rounded,
+                                    color: Colors.white54,
+                                    size: 30,
+                                  ),
+                                ),
                           )
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -120,11 +135,17 @@ class PackDetailHero extends ConsumerWidget {
                                 color: AppColors.accent,
                                 size: 22,
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(
+                                height: context.responsiveSize(
+                                  4,
+                                  tabletSize: 5,
+                                ),
+                              ),
                               Text(
                                 context.l10n.packInfoCover,
-                                style: const TextStyle(
-                                  fontSize: 9,
+                                style: context.responsiveTextStyle(
+                                  mobileSize: 9,
+                                  tabletSize: 10,
                                   color: AppColors.accent,
                                 ),
                               ),
@@ -136,8 +157,8 @@ class PackDetailHero extends ConsumerWidget {
                       bottom: 0,
                       right: 0,
                       child: Container(
-                        width: 22,
-                        height: 22,
+                        width: context.responsiveSize(22, tabletSize: 24),
+                        height: context.responsiveSize(22, tabletSize: 24),
                         decoration: BoxDecoration(
                           color: AppColors.accent,
                           borderRadius: BorderRadius.circular(7),
@@ -146,9 +167,9 @@ class PackDetailHero extends ConsumerWidget {
                             width: 1.5,
                           ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.edit_rounded,
-                          size: 11,
+                          size: context.responsiveSize(11, tabletSize: 12),
                           color: AppColors.background,
                         ),
                       ),
@@ -157,38 +178,41 @@ class PackDetailHero extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(width: 18),
+          SizedBox(width: context.responsiveSize(18, tabletSize: 20)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   pack.name,
-                  style: const TextStyle(
+                  style: context.responsiveTextStyle(
+                    mobileSize: 22,
+                    tabletSize: 26,
                     color: AppColors.textPrimary,
-                    fontSize: 22,
                     fontWeight: FontWeight.w800,
                     height: 1.15,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: context.responsiveSize(4, tabletSize: 6)),
                 Text(
                   context.l10n.packCountByAuthor(pack.author),
-                  style: const TextStyle(
+                  style: context.responsiveTextStyle(
+                    mobileSize: 12,
+                    tabletSize: 13,
                     color: AppColors.textMuted,
-                    fontSize: 12,
                   ),
                 ),
-                const SizedBox(height: 10),
-                Row(
+                SizedBox(height: context.responsiveSize(10, tabletSize: 12)),
+                Wrap(
+                  spacing: context.responsiveSize(8, tabletSize: 10),
+                  runSpacing: context.responsiveSize(8, tabletSize: 10),
                   children: [
                     _StatChip(
                       label: context.l10n.myStickers,
                       value: '${pack.filledCount}',
                     ),
-                    const SizedBox(width: 8),
                     _StatChip(
                       label: context.l10n.freeSlots,
                       value: '${30 - pack.filledCount}',
@@ -203,9 +227,14 @@ class PackDetailHero extends ConsumerWidget {
     );
   }
 
-  Widget _buildProgressRow() {
+  Widget _buildProgressRow(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: EdgeInsets.fromLTRB(
+        context.responsiveSize(20, tabletSize: 24),
+        context.responsiveSize(16, tabletSize: 18),
+        context.responsiveSize(20, tabletSize: 24),
+        0,
+      ),
       child: Row(
         children: [
           Expanded(
@@ -217,21 +246,25 @@ class PackDetailHero extends ConsumerWidget {
                 valueColor: AlwaysStoppedAnimation(
                   pack.isFull
                       ? AppColors.accent
-                      : AppColors.accent.withOpacity(0.7),
+                      : AppColors.accent.withValues(alpha: 0.7),
                 ),
                 minHeight: 4,
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: context.responsiveSize(10, tabletSize: 12)),
           RichText(
             text: TextSpan(
-              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+              style: TextStyle(
+                fontSize: context.responsiveSize(11, tabletSize: 12),
+                color: AppColors.textMuted,
+              ),
               children: [
                 TextSpan(
                   text: '${pack.filledCount}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.accent,
+                    fontSize: context.responsiveSize(11, tabletSize: 12),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -249,7 +282,12 @@ class PackDetailHero extends ConsumerWidget {
     final selectedTab = ref.watch(packDetailTabProvider);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: EdgeInsets.fromLTRB(
+        context.responsiveSize(20, tabletSize: 24),
+        context.responsiveSize(16, tabletSize: 18),
+        context.responsiveSize(20, tabletSize: 24),
+        0,
+      ),
       child: Row(
         children: List.generate(tabs.length, (i) {
           final isSelected = i == selectedTab;
@@ -259,9 +297,9 @@ class PackDetailHero extends ConsumerWidget {
               onTap: () => ref.read(packDetailTabProvider.notifier).state = i,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 7,
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.responsiveSize(16, tabletSize: 18),
+                  vertical: context.responsiveSize(7, tabletSize: 8),
                 ),
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.accent : AppColors.surface,
@@ -272,8 +310,9 @@ class PackDetailHero extends ConsumerWidget {
                 ),
                 child: Text(
                   tabs[i],
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: context.responsiveTextStyle(
+                    mobileSize: 12,
+                    tabletSize: 13,
                     fontWeight: FontWeight.w500,
                     color: isSelected
                         ? AppColors.background
@@ -289,7 +328,7 @@ class PackDetailHero extends ConsumerWidget {
   }
 }
 
-// ── Widgets auxiliares ───────────────────────────────────────────────────
+// Helper widgets.
 class _CircleButton extends StatelessWidget {
   final VoidCallback onTap;
   final Widget child;
@@ -301,10 +340,10 @@ class _CircleButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 36,
-        height: 36,
+        width: context.responsiveSize(36, tabletSize: 40),
+        height: context.responsiveSize(36, tabletSize: 40),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.border),
         ),
@@ -323,9 +362,12 @@ class _StatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: EdgeInsets.symmetric(
+        horizontal: context.responsiveSize(10, tabletSize: 12),
+        vertical: context.responsiveSize(5, tabletSize: 6),
+      ),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.border),
       ),
@@ -334,15 +376,18 @@ class _StatChip extends StatelessWidget {
           children: [
             TextSpan(
               text: '$value ',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.accent,
-                fontSize: 11,
+                fontSize: context.responsiveSize(11, tabletSize: 12),
                 fontWeight: FontWeight.w600,
               ),
             ),
             TextSpan(
               text: label,
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: context.responsiveSize(11, tabletSize: 12),
+              ),
             ),
           ],
         ),

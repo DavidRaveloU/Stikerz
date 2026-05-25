@@ -1,4 +1,4 @@
-# Guía de Internacionalización (i18n) - Whaticker
+# Guía de Internacionalización (i18n) - Stikerz
 
 ## Configuración Actual
 
@@ -22,7 +22,7 @@ El app detecta automáticamente el idioma del dispositivo:
 ### Método 1: Usando la Extension (Recomendado)
 
 ```dart
-import 'package:whaticker/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
 
 class MyWidget extends StatelessWidget {
   @override
@@ -35,7 +35,7 @@ class MyWidget extends StatelessWidget {
 ### Método 2: Acceso Directo
 
 ```dart
-import 'package:whaticker/generated_l10n/app_localizations.dart';
+import 'package:stikerz/generated_l10n/app_localizations.dart';
 
 class MyWidget extends StatelessWidget {
   @override
@@ -97,7 +97,7 @@ Los archivos `.arb` (Application Resource Bundle) siguen este formato:
 ```json
 {
   "@@locale": "en",
-  "appTitle": "Whaticker",
+  "appTitle": "Stikerz",
   "description": "The main app title"
 }
 ```

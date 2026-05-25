@@ -1,4 +1,4 @@
-name: whaticker
+name: stikerz
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -55,12 +55,19 @@ dependencies:
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
   receive_sharing_intent: ^1.4.5
-  lottie: ^3.0.0
+  lottie: ^3.3.3
   google_mobile_ads: ^5.1.0
+  flutter_svg: ^2.3.0
+  device_info_plus: ^13.1.0
+  package_info_plus: ^10.1.0
+  url_launcher: ^6.3.2
+  flutter_inappwebview: ^6.0.0
+  # animated_splash_screen and page_transition were removed per user request
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  golden_test: 1.0.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

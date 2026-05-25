@@ -1,20 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+
 import '../config/ads_config.dart';
 
-/// Servicio centralizado para manejar Google Mobile Ads (Banner + Interstitial)
-/// 
-/// Cumplen con políticas de AdMob:
-/// - No clickear ads automáticamente
-/// - No ocultar ads
-/// - No usar IDs de test en producción
-/// - Respetar carga y destrucción de ads
+/// Centralized service to manage Google Mobile Ads (Banner + Interstitial)
+///
+/// AdMob policy considerations:
+/// - Do not programmatically click ads
+/// - Do not hide ads
+/// - Do not use test IDs in production builds
+/// - Respect ad load and dispose lifecycle
 class AdsService {
   static String get _bannerAdUnitId => AdsConfig.bannerAdUnitId;
   static String get _interstitialAdUnitId => AdsConfig.interstitialAdUnitId;
   static const Duration _interstitialCooldown = Duration(seconds: 45);
 
-  // Singletons
+  // Singleton instance.
   static final AdsService _instance = AdsService._internal();
 
   factory AdsService() {
@@ -23,92 +26,146 @@ class AdsService {
 
   AdsService._internal();
 
-  // Estado
+  // Internal state.
   BannerAd? _bannerAd;
   InterstitialAd? _interstitialAd;
   bool _isBannerLoaded = false;
   bool _isInterstitialLoaded = false;
   DateTime? _lastInterstitialShownAt;
 
-  // Getters
+  // Public state accessors.
   BannerAd? get bannerAd => _isBannerLoaded ? _bannerAd : null;
   bool get isBannerLoaded => _isBannerLoaded;
   bool get isInterstitialLoaded => _isInterstitialLoaded;
 
-  /// Inicializar Google Mobile Ads SDK
+  /// Initializes the Google Mobile Ads SDK.
   Future<void> initialize() async {
+    if (!AdsConfig.adsEnabled) {
+      if (kDebugMode) {
+        debugPrint('Ads disabled: skipping MobileAds initialization');
+      }
+      return;
+    }
+
     try {
       await MobileAds.instance.initialize();
-      debugPrint('MobileAds inicializado correctamente');
+      if (kDebugMode) debugPrint('MobileAds initialized successfully');
     } catch (e) {
-      debugPrint('Error inicializando MobileAds: $e');
+      if (kDebugMode) debugPrint('Error initializing MobileAds: $e');
     }
   }
 
-  /// Cargar banner ad
-  void loadBannerAd() {
+  /// Loads a banner ad.
+  Future<void> loadBannerAd() async {
+    if (!AdsConfig.adsEnabled) {
+      _bannerAd = null;
+      _isBannerLoaded = false;
+      return;
+    }
+
+    final loadedCompleter = Completer<void>();
+
     _bannerAd = BannerAd(
       adUnitId: _bannerAdUnitId,
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          debugPrint('✓ Banner Ad cargado');
+          if (kDebugMode) debugPrint('✓ Banner Ad loaded');
           _isBannerLoaded = true;
+          if (!loadedCompleter.isCompleted) {
+            loadedCompleter.complete();
+          }
         },
         onAdFailedToLoad: (ad, error) {
-          debugPrint('✗ Banner Ad falló: ${error.message}');
+          if (kDebugMode) debugPrint('✗ Banner Ad failed: ${error.message}');
           ad.dispose();
           _bannerAd = null;
           _isBannerLoaded = false;
+          if (!loadedCompleter.isCompleted) {
+            loadedCompleter.complete();
+          }
         },
         onAdOpened: (ad) {
-          debugPrint('→ Banner Ad abierto (user clicked)');
+          if (kDebugMode) debugPrint('→ Banner Ad opened (user clicked)');
         },
         onAdClosed: (ad) {
-          debugPrint('← Banner Ad cerrado');
+          if (kDebugMode) debugPrint('← Banner Ad closed');
         },
         onAdClicked: (ad) {
-          debugPrint('🖱️ Banner Ad clickeado');
+          if (kDebugMode) debugPrint('🖱️ Banner Ad clicked');
         },
       ),
     );
 
     _bannerAd!.load();
+    await loadedCompleter.future;
   }
 
-  /// Cargar interstitial ad (solo carga, no muestra automáticamente)
+  /// Reset the current banner to avoid reusing the same AdWidget instance
+  /// when restarting the share flow.
+  Future<void> resetBannerAd() async {
+    if (!AdsConfig.adsEnabled) {
+      _bannerAd = null;
+      _isBannerLoaded = false;
+      return;
+    }
+
+    await _bannerAd?.dispose();
+    _bannerAd = null;
+    _isBannerLoaded = false;
+  }
+
+  /// Load interstitial ad (only loads; does not show automatically)
   void loadInterstitialAd({VoidCallback? onLoaded}) {
+    if (!AdsConfig.adsEnabled) {
+      _interstitialAd = null;
+      _isInterstitialLoaded = false;
+      onLoaded?.call();
+      return;
+    }
+
     InterstitialAd.load(
       adUnitId: _interstitialAdUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          debugPrint('✓ Interstitial Ad cargado');
+          if (kDebugMode) debugPrint('✓ Interstitial Ad loaded');
           _interstitialAd = ad;
           _isInterstitialLoaded = true;
           onLoaded?.call();
         },
         onAdFailedToLoad: (error) {
-          debugPrint('✗ Interstitial Ad falló: ${error.message}');
+          if (kDebugMode) {
+            debugPrint('✗ Interstitial Ad failed: ${error.message}');
+          }
           _isInterstitialLoaded = false;
         },
       ),
     );
   }
 
-  /// Mostrar interstitial ad (con validaciones de AdMob)
+  /// Shows an interstitial ad with safety checks.
   Future<void> showInterstitialAd({VoidCallback? onDismissed}) async {
+    if (!AdsConfig.adsEnabled) {
+      if (kDebugMode) debugPrint('Ads disabled: skipping interstitial');
+      onDismissed?.call();
+      return;
+    }
+
     final now = DateTime.now();
     final lastShown = _lastInterstitialShownAt;
-    if (lastShown != null && now.difference(lastShown) < _interstitialCooldown) {
-      debugPrint('ℹ️ Interstitial en cooldown, no se muestra todavía');
+    if (lastShown != null &&
+        now.difference(lastShown) < _interstitialCooldown) {
+      if (kDebugMode) {
+        debugPrint('ℹ️ Interstitial in cooldown, not showing yet');
+      }
       onDismissed?.call();
       return;
     }
 
     if (!_isInterstitialLoaded || _interstitialAd == null) {
-      debugPrint('⚠️  Interstitial Ad no está listo. Cargando...');
+      if (kDebugMode) debugPrint('⚠️ Interstitial Ad is not ready. Loading...');
       loadInterstitialAd();
       onDismissed?.call();
       return;
@@ -117,39 +174,51 @@ class AdsService {
     try {
       _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdShowedFullScreenContent: (ad) {
-          debugPrint('📺 Interstitial Ad mostrado');
+          if (kDebugMode) debugPrint('📺 Interstitial Ad shown');
           _lastInterstitialShownAt = DateTime.now();
         },
         onAdDismissedFullScreenContent: (ad) {
-          debugPrint('👈 Interstitial Ad cerrado por usuario');
+          if (kDebugMode) debugPrint('👈 Interstitial Ad dismissed by user');
           ad.dispose();
           _interstitialAd = null;
           _isInterstitialLoaded = false;
           onDismissed?.call();
-          // Cargar el siguiente ad para futuras ocasiones
+          // Preload the next ad for future displays.
           loadInterstitialAd();
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
-          debugPrint('✗ Error mostrando Interstitial: ${error.message}');
+          if (kDebugMode) {
+            debugPrint('✗ Error showing Interstitial: ${error.message}');
+          }
           ad.dispose();
           _interstitialAd = null;
           _isInterstitialLoaded = false;
           onDismissed?.call();
         },
         onAdClicked: (ad) {
-          debugPrint('🖱️ Interstitial Ad clickeado');
+          if (kDebugMode) {
+            debugPrint('🛛️ Interstitial Ad clicked');
+          }
         },
       );
 
       await _interstitialAd!.show();
     } catch (e) {
-      debugPrint('❌ Excepción mostrando Interstitial: $e');
+      if (kDebugMode) debugPrint('❌ Exception showing Interstitial: $e');
       onDismissed?.call();
     }
   }
 
-  /// Limpiar recursos
+  /// Disposes ad resources and resets local state.
   Future<void> dispose() async {
+    if (!AdsConfig.adsEnabled) {
+      _bannerAd = null;
+      _interstitialAd = null;
+      _isBannerLoaded = false;
+      _isInterstitialLoaded = false;
+      return;
+    }
+
     await _bannerAd?.dispose();
     await _interstitialAd?.dispose();
     _bannerAd = null;

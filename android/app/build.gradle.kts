@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.davidravelo.whaticker"
+    namespace = "com.davidravelo.stikerz"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.davidravelo.whaticker"
+        applicationId = "com.davidravelo.stikerz"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
         versionCode = flutter.versionCode

@@ -7,33 +7,39 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/core/providers/share_provider.dart';
-import 'package:whaticker/core/repositories/pack_repository.dart';
-import 'package:whaticker/core/services/ads_service.dart';
-import 'package:whaticker/data/models/sticker_model.dart';
-import 'package:whaticker/data/models/sticker_pack_model.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/providers/pack_detail_provider.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/widgets/add_sticker_sheet.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/widgets/pack_detail_hero.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/widgets/pack_info.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/widgets/pack_options_sheet.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/widgets/rename_pack_modal.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/widgets/sticker_grid.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/widgets/sticker_preview_sheet.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/widgets/whatsapp_button.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/pages/sticker_editor_page.dart';
-import 'package:whaticker/ui/features/video_picker/presentation/pages/video_picker_page.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/providers/share_provider.dart';
+import 'package:stikerz/core/repositories/pack_repository.dart';
+import 'package:stikerz/core/services/ads_service.dart';
+import 'package:stikerz/core/utils/error_localization.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/data/models/sticker_model.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/providers/pack_detail_provider.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/widgets/add_sticker_sheet.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/widgets/pack_detail_hero.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/widgets/pack_info.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/widgets/pack_options_sheet.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/widgets/rename_pack_modal.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/widgets/sticker_grid.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/widgets/sticker_preview_sheet.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/widgets/whatsapp_button.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/pages/sticker_editor_page.dart';
+import 'package:stikerz/ui/features/video_picker/presentation/pages/video_picker_page.dart';
 
 class PackDetailPage extends ConsumerStatefulWidget {
   final int packId;
   final String heroTag;
+  final VoidCallback? preloadInterstitialAd;
+  final Widget? heroCoverPreview;
 
   const PackDetailPage({
     super.key,
     required this.packId,
     required this.heroTag,
+    this.preloadInterstitialAd,
+    this.heroCoverPreview,
   });
 
   @override
@@ -44,30 +50,12 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
   final ImagePicker _imagePicker = ImagePicker();
   String? _lastFullPackWarningKey;
 
-  Future<void> _openEditorAndHandleInterstitial({
-    required int slotIndex,
-    required String sourceType,
-    required String videoPath,
-  }) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => StickerEditorPage(
-          packId: widget.packId,
-          slotIndex: slotIndex,
-          sourceType: sourceType,
-          videoPath: videoPath,
-        ),
-      ),
-    );
-
-    if (!mounted) return;
-    if (result == 'generated') {
-      await AdsService().showInterstitialAd();
-    }
+  @override
+  void initState() {
+    super.initState();
+    // Preload interstitial so it is ready after sticker creation.
+    (widget.preloadInterstitialAd ?? AdsService().loadInterstitialAd)();
   }
-
-  // ── Acciones ─────────────────────────────────────────────────────────────
 
   Future<void> _onCoverTap(StickerPackModel pack) async {
     final picked = await _imagePicker.pickImage(
@@ -191,26 +179,43 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
             MaterialPageRoute(builder: (_) => const VideoPickerPage()),
           ).then((videoPath) {
             if (videoPath == null || !mounted) return;
-
-            _openEditorAndHandleInterstitial(
-              slotIndex: index,
-              sourceType: 'local',
-              videoPath: videoPath,
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => StickerEditorPage(
+                  packId: widget.packId,
+                  slotIndex: index,
+                  sourceType: 'local',
+                  videoPath: videoPath,
+                ),
+              ),
             );
           });
         },
         onTikTokUrl: (videoUrl) {
-          _openEditorAndHandleInterstitial(
-            slotIndex: index,
-            sourceType: 'tiktok',
-            videoPath: videoUrl,
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StickerEditorPage(
+                packId: widget.packId,
+                slotIndex: index,
+                sourceType: 'tiktok',
+                videoPath: videoUrl,
+              ),
+            ),
           );
         },
         onInstagramUrl: (videoUrl) {
-          _openEditorAndHandleInterstitial(
-            slotIndex: index,
-            sourceType: 'instagram',
-            videoPath: videoUrl,
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StickerEditorPage(
+                packId: widget.packId,
+                slotIndex: index,
+                sourceType: 'instagram',
+                videoPath: videoUrl,
+              ),
+            ),
           );
         },
       ),
@@ -221,13 +226,13 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => PackOptionsSheet(
+      builder: (dialogContext) => PackOptionsSheet(
         onRename: () {
-          Navigator.pop(context);
+          Navigator.of(dialogContext).pop();
           _showRenameModal(pack);
         },
         onDelete: () async {
-          Navigator.pop(context);
+          Navigator.of(dialogContext).pop();
           await PackRepository.instance.deletePack(widget.packId);
         },
       ),
@@ -268,10 +273,11 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
           if (currentPending == null) return;
 
           if (currentPending.error != null) {
+            final display = localizeServiceError(context, currentPending.error);
             ref.read(pendingShareProvider.notifier).state = null;
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(currentPending.error!)));
+            ).showSnackBar(SnackBar(content: Text(display)));
             return;
           }
 
@@ -301,10 +307,16 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
           final videoUrl = currentPending.resolvedVideoUrl!;
           final int slotIndex = empty;
           ref.read(pendingShareProvider.notifier).state = null;
-          await _openEditorAndHandleInterstitial(
-            slotIndex: slotIndex,
-            sourceType: currentPending.source,
-            videoPath: videoUrl,
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StickerEditorPage(
+                packId: widget.packId,
+                slotIndex: slotIndex,
+                sourceType: currentPending.source,
+                videoPath: videoUrl,
+              ),
+            ),
           );
         });
 
@@ -338,10 +350,16 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
                     heroTag: widget.heroTag,
                     onCoverTap: () => _onCoverTap(pack),
                     onOptionsTap: () => _showPackOptions(pack),
+                    coverPreview: widget.heroCoverPreview,
                   ),
                 ),
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                  padding: EdgeInsets.fromLTRB(
+                    context.responsiveSize(16, tabletSize: 20),
+                    context.responsiveSize(16, tabletSize: 20),
+                    context.responsiveSize(16, tabletSize: 20),
+                    context.responsiveSize(120, tabletSize: 132),
+                  ),
                   sliver: selectedTab == 0
                       ? StickerGrid(
                           pack: pack,
@@ -352,7 +370,7 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
               ],
             ),
             Positioned(
-              bottom: 35,
+              bottom: context.responsiveSize(35, tabletSize: 42),
               left: 0,
               right: 0,
               child: Center(child: WhatsAppButton(pack: pack)),
@@ -360,7 +378,7 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
             if (pendingShare != null && pendingShare.isResolving)
               Positioned.fill(
                 child: Container(
-                  color: Colors.black.withOpacity(0.72),
+                  color: Colors.black.withValues(alpha: 0.72),
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -368,10 +386,14 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
                         const CircularProgressIndicator(
                           color: AppColors.accent,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: context.responsiveSize(16, tabletSize: 20),
+                        ),
                         Text(
                           context.l10n.resolvingSharedVideo,
-                          style: const TextStyle(
+                          style: context.responsiveTextStyle(
+                            mobileSize: 14,
+                            tabletSize: 16,
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
                           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
 
 class CropBox extends StatefulWidget {
   final Offset offset;
@@ -53,16 +54,16 @@ class _CropBoxState extends State<CropBox> {
           _startWidth = widget.cropWidth;
           _startFocalPoint = details.focalPoint;
 
-          // BLOQUEAR TIPO DE GESTO
+          // Lock gesture mode at start to avoid mixing move and scale.
           _isScaling = details.pointerCount >= 2;
         },
 
         onScaleUpdate: (details) {
           if (vr.width <= 0 || vr.height <= 0) return;
 
-          // USAR SOLO EL MODO INICIAL
+          // Keep handling only the initial gesture mode.
           if (_isScaling == false) {
-            // ── MOVER ─────────────────────────
+            // Move mode.
             final startOffset = _startOffset ?? widget.offset;
             final startFocal = _startFocalPoint ?? details.focalPoint;
 
@@ -75,7 +76,7 @@ class _CropBoxState extends State<CropBox> {
 
             widget.onChanged(newOffset, widget.cropWidth);
           } else {
-            // ── ZOOM ──────────────────────────
+            // Scale mode.
             const sensitivity = 0.2;
 
             final startWidth = _startWidth ?? widget.cropWidth;
@@ -114,13 +115,13 @@ class _CropBoxState extends State<CropBox> {
                   widget.onChanged(widget.offset, newWidth);
                 },
                 child: Container(
-                  width: 48,
-                  height: 48,
+                  width: context.responsiveSize(48, tabletSize: 52),
+                  height: context.responsiveSize(48, tabletSize: 52),
                   color: Colors.transparent,
                   alignment: Alignment.center,
                   child: Container(
-                    width: 26,
-                    height: 26,
+                    width: context.responsiveSize(26, tabletSize: 28),
+                    height: context.responsiveSize(26, tabletSize: 28),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,

@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/core/providers/share_provider.dart';
-import 'package:whaticker/core/repositories/pack_repository.dart';
-import 'package:whaticker/data/models/sticker_pack_model.dart';
-import 'package:whaticker/ui/components/create_pack_modal.dart';
-import 'package:whaticker/ui/features/home/presentation/providers/home_provider.dart';
-import 'package:whaticker/ui/features/home/presentation/widgets/home_header.dart';
-import 'package:whaticker/ui/features/home/presentation/widgets/home_search_bar.dart';
-import 'package:whaticker/ui/features/home/presentation/widgets/pack_list.dart';
-import 'package:whaticker/ui/features/pack_detail/presentation/pages/pack_detail_page.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/providers/share_provider.dart';
+import 'package:stikerz/core/repositories/pack_repository.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
+import 'package:stikerz/ui/components/create_pack_modal.dart';
+import 'package:stikerz/ui/features/home/presentation/providers/home_provider.dart';
+import 'package:stikerz/ui/features/home/presentation/widgets/home_header.dart';
+import 'package:stikerz/ui/features/home/presentation/widgets/home_search_bar.dart';
+import 'package:stikerz/ui/features/home/presentation/widgets/pack_list.dart';
+import 'package:stikerz/ui/features/pack_detail/presentation/pages/pack_detail_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -41,27 +42,50 @@ class _HomePageState extends ConsumerState<HomePage> {
   void _showDeleteDialog(StickerPackModel pack) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           context.l10n.deletePackTitle,
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: context.responsiveTextStyle(
+            mobileSize: 18,
+            tabletSize: 20,
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-        content: Text(context.l10n.deletePackMessage(pack.name)),
+        content: Text(
+          context.l10n.deletePackMessage(pack.name),
+          style: context.responsiveTextStyle(
+            mobileSize: 14,
+            tabletSize: 15,
+            color: AppColors.textSecondary,
+          ),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.cancel),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              context.l10n.cancel,
+              style: context.responsiveTextStyle(
+                mobileSize: 14,
+                tabletSize: 15,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.of(dialogContext).pop();
               await PackRepository.instance.deletePack(pack.id);
             },
             child: Text(
               context.l10n.delete,
-              style: TextStyle(color: Colors.redAccent),
+              style: context.responsiveTextStyle(
+                mobileSize: 14,
+                tabletSize: 15,
+                color: Colors.redAccent,
+              ),
             ),
           ),
         ],
@@ -87,9 +111,9 @@ class _HomePageState extends ConsumerState<HomePage> {
               const HomeHeader(),
               if (pending != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.responsiveSize(16, tabletSize: 20),
+                    vertical: context.responsiveSize(8, tabletSize: 10),
                   ),
                   child: Material(
                     color: AppColors.surface,
@@ -105,8 +129,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                           ),
                         );
                       },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
+                      child: Padding(
+                        padding: EdgeInsets.all(
+                          context.responsiveSize(12, tabletSize: 14),
+                        ),
                         child: Row(
                           children: [
                             Icon(
@@ -114,8 +140,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   ? Icons.hourglass_top_rounded
                                   : Icons.add_to_photos_rounded,
                               color: AppColors.accent,
+                              size: context.responsiveSize(22, tabletSize: 24),
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(
+                              width: context.responsiveSize(12, tabletSize: 14),
+                            ),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,26 +152,35 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 children: [
                                   Text(
                                     _shareBannerTitle(pending, totalCount),
-                                    style: const TextStyle(
+                                    style: context.responsiveTextStyle(
+                                      mobileSize: 15,
+                                      tabletSize: 16,
                                       color: Colors.white,
-                                      fontSize: 15,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  SizedBox(
+                                    height: context.responsiveSize(
+                                      2,
+                                      tabletSize: 3,
+                                    ),
+                                  ),
                                   Text(
                                     _shareBannerSubtitle(pending, totalCount),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
+                                    style: context.responsiveTextStyle(
+                                      mobileSize: 13,
+                                      tabletSize: 14,
                                       color: AppColors.textMuted,
-                                      fontSize: 13,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: context.responsiveSize(8, tabletSize: 10),
+                            ),
                             if (pending.isResolving)
                               const SizedBox(
                                 width: 18,
@@ -181,7 +219,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         ),
                       )
                     : filteredPacks.isEmpty && totalCount == 0
-                    ? _buildEmptyState()
+                    ? _buildEmptyState(context)
                     : PackList(
                         packs: filteredPacks,
                         searchQuery: ref.watch(homeSearchQueryProvider),
@@ -203,34 +241,39 @@ class _HomePageState extends ConsumerState<HomePage> {
             ],
           ),
         ),
-        floatingActionButton: _buildFAB(),
+        floatingActionButton: _buildFAB(context),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.auto_awesome_rounded,
-            size: 48,
+            size: context.responsiveSize(48, tabletSize: 56),
             color: AppColors.textMuted,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: context.responsiveSize(16, tabletSize: 20)),
           Text(
             context.l10n.noPacksTitle,
-            style: const TextStyle(
+            style: context.responsiveTextStyle(
+              mobileSize: 18,
+              tabletSize: 22,
               color: AppColors.textSecondary,
-              fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: context.responsiveSize(8, tabletSize: 10)),
           Text(
             context.l10n.noPacksDesc,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+            style: context.responsiveTextStyle(
+              mobileSize: 13,
+              tabletSize: 14,
+              color: AppColors.textMuted,
+            ),
           ),
         ],
       ),
@@ -238,62 +281,48 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   String _shareBannerTitle(PendingShare pending, int totalCount) {
-    if (pending.isResolving) {
-      return context.l10n.preparingVideo;
-    }
-
-    if (totalCount == 0) {
-      return context.l10n.createPackFirst;
-    }
-
+    if (pending.isResolving) return context.l10n.preparingVideo;
+    if (totalCount == 0) return context.l10n.createPackFirst;
     return context.l10n.selectPackTitle;
   }
 
   String _shareBannerSubtitle(PendingShare pending, int totalCount) {
-    if (pending.isResolving) {
-      return context.l10n.convertingLink;
-    }
-
-    if (totalCount == 0) {
-      return context.l10n.createPackHint;
-    }
-
+    if (pending.isResolving) return context.l10n.convertingLink;
+    if (totalCount == 0) return context.l10n.createPackHint;
     return context.l10n.selectPackDesc;
   }
 
   String _shareBannerHint(PendingShare pending, int totalCount) {
-    if (pending.isResolving) {
-      return context.l10n.preparingVideoHint;
-    }
-
-    if (totalCount == 0) {
-      return context.l10n.createPackHint2;
-    }
-
+    if (pending.isResolving) return context.l10n.preparingVideoHint;
+    if (totalCount == 0) return context.l10n.createPackHint2;
     return context.l10n.selectPackHint;
   }
 
-  Widget _buildFAB() {
+  Widget _buildFAB(BuildContext context) {
+    // Fixed dimensions are fine here because this control has no text.
+    final fabSize = context.responsiveSize(54, tabletSize: 60);
+    final iconSize = context.responsiveSize(26, tabletSize: 28);
+
     return GestureDetector(
       onTap: _showCreatePackModal,
       child: Container(
-        width: 54,
-        height: 54,
+        width: fabSize,
+        height: fabSize,
         decoration: BoxDecoration(
           color: AppColors.accent,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: AppColors.accent.withOpacity(0.3),
+              color: AppColors.accent.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),
           ],
         ),
-        child: const Icon(
+        child: Icon(
           Icons.add_rounded,
           color: AppColors.background,
-          size: 26,
+          size: iconSize,
         ),
       ),
     );

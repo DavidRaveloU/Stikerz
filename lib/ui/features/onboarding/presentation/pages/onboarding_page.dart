@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/providers/onboarding_provider.dart';
-import 'package:whaticker/ui/features/onboarding/presentation/widgets/onboarding_page_1_welcome.dart';
-import 'package:whaticker/ui/features/onboarding/presentation/widgets/onboarding_page_2_add_videos.dart';
-import 'package:whaticker/ui/features/onboarding/presentation/widgets/onboarding_page_3_share_direct.dart';
-import 'package:whaticker/ui/features/onboarding/presentation/widgets/onboarding_page_4_ads.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/providers/onboarding_provider.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/ui/features/onboarding/presentation/widgets/onboarding_page_1_welcome.dart';
+import 'package:stikerz/ui/features/onboarding/presentation/widgets/onboarding_page_2_add_videos.dart';
+import 'package:stikerz/ui/features/onboarding/presentation/widgets/onboarding_page_3_share_direct.dart';
+import 'package:stikerz/ui/features/onboarding/presentation/widgets/onboarding_page_4_ads.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
-  const OnboardingPage({super.key});
+  final bool showAnimations;
+
+  const OnboardingPage({super.key, this.showAnimations = true});
 
   @override
   ConsumerState<OnboardingPage> createState() => _OnboardingPageState();
@@ -56,7 +59,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       child: Scaffold(
         body: Stack(
           children: [
-            // Contenido principal con PageView (builder + preload hints)
+            // Main vertical pager.
             PageView.builder(
               controller: _pageController,
               scrollDirection: Axis.vertical,
@@ -68,29 +71,40 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
               itemBuilder: (context, index) {
                 switch (index) {
                   case 0:
-                    return const RepaintBoundary(
-                      child: OnboardingPage1Welcome(),
+                    return RepaintBoundary(
+                      child: OnboardingPage1Welcome(
+                        showAnimations: widget.showAnimations,
+                      ),
                     );
                   case 1:
-                    return const RepaintBoundary(
-                      child: OnboardingPage2AddVideos(),
+                    return RepaintBoundary(
+                      child: OnboardingPage2AddVideos(
+                        showAnimations: widget.showAnimations,
+                      ),
                     );
                   case 2:
-                    return const RepaintBoundary(
-                      child: OnboardingPage3ShareDirect(),
+                    return RepaintBoundary(
+                      child: OnboardingPage3ShareDirect(
+                        showAnimations: widget.showAnimations,
+                      ),
                     );
                   case 3:
                     return RepaintBoundary(
-                      child: OnboardingPage4Ads(onFinish: _completeOnboarding),
+                      child: OnboardingPage4Ads(
+                        onFinish: _completeOnboarding,
+                        initialSeconds: widget.showAnimations
+                            ? kOnboardingPage4InitialSeconds
+                            : 0,
+                      ),
                     );
                   default:
                     return const SizedBox.shrink();
                 }
               },
             ),
-            // Dots de progreso vertical a la derecha
+            // Right-side vertical progress dots.
             Positioned(
-              right: 24,
+              right: context.responsiveSize(24, tabletSize: 32),
               top: 0,
               bottom: 0,
               child: Column(
@@ -101,8 +115,12 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      width: _currentPage == index ? 12 : 8,
-                      height: _currentPage == index ? 12 : 8,
+                      width: _currentPage == index
+                          ? context.responsiveSize(12, tabletSize: 14)
+                          : context.responsiveSize(8, tabletSize: 10),
+                      height: _currentPage == index
+                          ? context.responsiveSize(12, tabletSize: 14)
+                          : context.responsiveSize(8, tabletSize: 10),
                       decoration: BoxDecoration(
                         color: _currentPage == index
                             ? AppColors.accent

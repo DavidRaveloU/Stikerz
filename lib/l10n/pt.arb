@@ -106,6 +106,15 @@
   "generateButton": "Gerar",
   "couldNotCreateSticker": "Não foi possível criar o adesivo",
   "videoTooComplex": "O vídeo tem muitos detalhes e excede o limite de tamanho.",
+  "stickerTooHeavy": "O adesivo está muito pesado",
+  "needToReduce": "Reduza mais {amount}KB para cumprir o limite de 500KB",
+  "@needToReduce": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "reduceSelectionArea": "Reduza a área de seleção",
   "shortenClipDuration": "Encurte a duração do clipe",
   "blurReduceFps": "Blur + reduzir FPS (Recomendado)",
@@ -177,12 +186,51 @@
   "onboardingWelcomeTitleAccent": "Qualquer coisa",
 
   "onboardingContentLabel": "SEU CONTEÚDO, ANIMADO",
-  "onboardingFromSocialTitlePrimary": "From Social",
-  "onboardingFromSocialTitleAccent": "to Stickers",
+  "onboardingFromSocialTitlePrimary": "Do social",
+  "onboardingFromSocialTitleAccent": "para stickers",
   "onboardingFromSocialDesc": "Transforme seus vídeos favoritos do TikTok e Reels do Instagram em adesivos animados do WhatsApp em segundos.",
 
   "onboardingShareLabel": "COMPARTILHE DIRETAMENTE",
-  "onboardingShareTitlePrimary": "Direct",
-  "onboardingShareTitleAccent": "Share",
-  "onboardingShareDescExtended": "Basta tocar em compartilhar no TikTok ou IG e enviar diretamente para nosso app. São apenas alguns toques — rápido, preserva a qualidade e converte clipes em adesivos animados instantaneamente."
-}
+  "onboardingShareTitlePrimary": "Direto",
+  "onboardingShareTitleAccent": "Compartilhar",
+  "onboardingShareDescExtended": "Basta tocar em compartilhar no TikTok ou IG e enviar diretamente para nosso app. São apenas alguns toques — rápido, preserva a qualidade e converte clipes em adesivos animados instantaneamente.",
+  "onboardingLegalPrefix": "Ao continuar, você concorda com nossos ",
+  "onboardingLegalAnd": " e com nossa ",
+  "onboardingLegalSuffix": ".",
+  "permissionRequiredTitle": "Acesso à galeria necessário",
+  "permissionRequiredDesc": "Anteriormente você negou acesso aos seus vídeos. Para importar vídeos da sua galeria, você precisa habilitar a permissão manualmente.",
+  "openSettingsButton": "Abrir configurações",
+  "permissionStep1": "Toque em 'Abrir configurações' abaixo",
+  "permissionStep2": "Encontre 'Permissões' e toque em 'Fotos e vídeos' ou 'Mídia'",
+  "permissionStep3": "Selecione 'Permitir' ou 'Permitir todos'"
+  ,
+    "settingsTitle": "Configurações",
+    "changeLanguage": "Mudar idioma",
+    "useDeviceLanguage": "Usar o idioma do dispositivo",
+    "languageEnglish": "Inglês",
+    "languageSpanish": "Espanhol",
+    "languagePortuguese": "Português",
+    "termsAndConditions": "Termos e Condições",
+    "privacyPolicy": "Política de Privacidade",
+    "rateApp": "Avaliar app",
+    "reportBug": "Reportar bug",
+    "aboutDeveloper": "Sobre o desenvolvedor",
+    "aboutRole": "Desenvolvedor e Designer Principal",
+    "aboutDescription": "Criando experiências digitais fluidas e bonitas para o mundo.",
+    "versionLabel": "Versão",
+    "bugReport": "Relatório de erro",
+    "deviceInfo": "Informações do dispositivo",
+    "describeProblem": "Descreva o problema",
+    "describeProblemHint": "Descreva seu problema ou forneça comentários",
+    "email": "Email",
+    "emailHint": "seu.email@exemplo.com",
+    "sendFeedback": "Enviar comentários",
+    "alternatively": "Alternativamente",
+    "sendEmail": "Enviar email",
+    "feedbackSent": "Obrigado! Seus comentários foram enviados.",
+    "externalServiceDown": "Não foi possível conectar ao serviço externo. Pode estar temporariamente fora do ar; tente novamente mais tarde.",
+    "externalServiceTimeout": "Tempo de espera esgotado. Tente novamente em instantes.",
+    "externalServiceInvalidResponse": "Resposta inválida do serviço externo.",
+    "externalServiceNotVideo": "O link não é um vídeo. Escolha um vídeo válido.",
+    "externalServiceVideoNotPublic": "Não foi possível obter o vídeo. Verifique se está público."
+  }

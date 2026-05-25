@@ -1,10 +1,17 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whaticker/core/services/instagram_service.dart';
-import 'package:whaticker/core/services/tiktok_service.dart';
+// ignore_for_file: constant_identifier_names
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stikerz/core/services/instagram_service.dart';
+import 'package:stikerz/core/services/tiktok_service.dart';
+
+/// Local error tokens used by services and provider.
+const String ERR_INVALID_TIKTOK_LINK = 'err_invalid_tiktok_link';
+const String ERR_INVALID_INSTAGRAM_LINK = 'err_invalid_instagram_link';
+
+/// Represents an incoming shared text item that may resolve to a video URL.
 class PendingShare {
   final String rawText;
-  final String source; // 'tiktok' | 'instagram' | 'unknown'
+  final String source;
   final String? resolvedVideoUrl;
   final String? error;
   final bool isResolving;
@@ -33,16 +40,22 @@ class PendingShare {
     );
   }
 
-  bool get hasResolvedVideo => resolvedVideoUrl != null && resolvedVideoUrl!.isNotEmpty;
+  bool get hasResolvedVideo =>
+      resolvedVideoUrl != null && resolvedVideoUrl!.isNotEmpty;
   String get displayText => rawText;
 }
 
 final pendingShareProvider = StateProvider<PendingShare?>((ref) => null);
+final shareFlowResetProvider = StateProvider<int>((ref) => 0);
 
 String detectShareSource(String text) {
   final t = text.toLowerCase();
-  if (t.contains('tiktok.com') || t.contains('vm.tiktok.com')) return 'tiktok';
-  if (t.contains('instagram.com') || t.contains('instagr.am')) return 'instagram';
+  if (t.contains('tiktok.com') || t.contains('vm.tiktok.com')) {
+    return 'tiktok';
+  }
+  if (t.contains('instagram.com') || t.contains('instagr.am')) {
+    return 'instagram';
+  }
   return 'unknown';
 }
 
@@ -53,7 +66,7 @@ Future<PendingShare> resolvePendingShare(PendingShare pending) async {
       if (extractedUrl == null) {
         return pending.copyWith(
           isResolving: false,
-          error: 'Pega un enlace válido de TikTok',
+          error: ERR_INVALID_TIKTOK_LINK,
         );
       }
 
@@ -61,7 +74,7 @@ Future<PendingShare> resolvePendingShare(PendingShare pending) async {
       if (!result.success || result.videoUrl == null) {
         return pending.copyWith(
           isResolving: false,
-          error: result.error ?? 'No se pudo obtener el video de TikTok',
+          error: result.error ?? TikTokService.errExternal,
         );
       }
 
@@ -76,7 +89,7 @@ Future<PendingShare> resolvePendingShare(PendingShare pending) async {
       if (extractedUrl == null) {
         return pending.copyWith(
           isResolving: false,
-          error: 'Pega un enlace válido de Instagram',
+          error: ERR_INVALID_INSTAGRAM_LINK,
         );
       }
 
@@ -84,7 +97,7 @@ Future<PendingShare> resolvePendingShare(PendingShare pending) async {
       if (!result.success || result.videoUrl == null) {
         return pending.copyWith(
           isResolving: false,
-          error: result.error ?? 'No se pudo obtener el video de Instagram',
+          error: result.error ?? InstagramService.errExternal,
         );
       }
 

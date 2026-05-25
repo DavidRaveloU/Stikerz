@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class EditorSlider extends StatelessWidget {
   final String label;
@@ -33,23 +34,25 @@ class EditorSlider extends StatelessWidget {
           children: [
             Text(
               label.toUpperCase(),
-              style: const TextStyle(
-                fontSize: 10,
-                letterSpacing: 1.2,
+              style: context.responsiveTextStyle(
+                mobileSize: 10,
+                tabletSize: 11,
                 color: AppColors.textMuted,
+                letterSpacing: 1.2,
               ),
             ),
             Text(
               valueLabel,
-              style: const TextStyle(
-                fontSize: 11,
+              style: context.responsiveTextStyle(
+                mobileSize: 11,
+                tabletSize: 12,
                 color: AppColors.accent,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: context.responsiveSize(8, tabletSize: 10)),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             trackHeight: 4,
@@ -58,7 +61,7 @@ class EditorSlider extends StatelessWidget {
             thumbColor: Colors.white,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-            overlayColor: AppColors.accent.withOpacity(0.15),
+            overlayColor: AppColors.accent.withValues(alpha: 0.15),
           ),
           child: Slider(
             value: value.clamp(min, max),

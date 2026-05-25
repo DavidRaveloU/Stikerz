@@ -1,8 +1,7 @@
-import 'package:whaticker/data/models/sticker_pack_model.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
 
 import 'sticker.dart';
 
-/// Entidad limpia para usar en UI y lógica de negocio
 class StickerPack {
   final int? id;
   final String name;

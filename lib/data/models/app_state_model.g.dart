@@ -26,6 +26,11 @@ const AppStateModelSchema = CollectionSchema(
       id: 1,
       name: r'onboardingCompleted',
       type: IsarType.bool,
+    ),
+    r'preferredLocale': PropertySchema(
+      id: 2,
+      name: r'preferredLocale',
+      type: IsarType.string,
     )
   },
   estimateSize: _appStateModelEstimateSize,
@@ -48,6 +53,12 @@ int _appStateModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.preferredLocale;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -59,6 +70,7 @@ void _appStateModelSerialize(
 ) {
   writer.writeDateTime(offsets[0], object.lastModified);
   writer.writeBool(offsets[1], object.onboardingCompleted);
+  writer.writeString(offsets[2], object.preferredLocale);
 }
 
 AppStateModel _appStateModelDeserialize(
@@ -71,6 +83,7 @@ AppStateModel _appStateModelDeserialize(
   object.id = id;
   object.lastModified = reader.readDateTimeOrNull(offsets[0]);
   object.onboardingCompleted = reader.readBool(offsets[1]);
+  object.preferredLocale = reader.readStringOrNull(offsets[2]);
   return object;
 }
 
@@ -85,6 +98,8 @@ P _appStateModelDeserializeProp<P>(
       return (reader.readDateTimeOrNull(offset)) as P;
     case 1:
       return (reader.readBool(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -323,6 +338,160 @@ extension AppStateModelQueryFilter
       ));
     });
   }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'preferredLocale',
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'preferredLocale',
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'preferredLocale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'preferredLocale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'preferredLocale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'preferredLocale',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'preferredLocale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'preferredLocale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'preferredLocale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'preferredLocale',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'preferredLocale',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterFilterCondition>
+      preferredLocaleIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'preferredLocale',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension AppStateModelQueryObject
@@ -358,6 +527,20 @@ extension AppStateModelQuerySortBy
       sortByOnboardingCompletedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'onboardingCompleted', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterSortBy>
+      sortByPreferredLocale() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'preferredLocale', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterSortBy>
+      sortByPreferredLocaleDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'preferredLocale', Sort.desc);
     });
   }
 }
@@ -403,6 +586,20 @@ extension AppStateModelQuerySortThenBy
       return query.addSortBy(r'onboardingCompleted', Sort.desc);
     });
   }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterSortBy>
+      thenByPreferredLocale() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'preferredLocale', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QAfterSortBy>
+      thenByPreferredLocaleDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'preferredLocale', Sort.desc);
+    });
+  }
 }
 
 extension AppStateModelQueryWhereDistinct
@@ -418,6 +615,14 @@ extension AppStateModelQueryWhereDistinct
       distinctByOnboardingCompleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'onboardingCompleted');
+    });
+  }
+
+  QueryBuilder<AppStateModel, AppStateModel, QDistinct>
+      distinctByPreferredLocale({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'preferredLocale',
+          caseSensitive: caseSensitive);
     });
   }
 }
@@ -441,6 +646,13 @@ extension AppStateModelQueryProperty
       onboardingCompletedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'onboardingCompleted');
+    });
+  }
+
+  QueryBuilder<AppStateModel, String?, QQueryOperations>
+      preferredLocaleProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'preferredLocale');
     });
   }
 }

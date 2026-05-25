@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/crop_box.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/crop_overlay.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_box.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_overlay.dart';
 
 class EditorVideoArea extends StatelessWidget {
   final VideoController videoController;
@@ -43,7 +44,6 @@ class EditorVideoArea extends StatelessWidget {
           color: Colors.black,
           child: Stack(
             children: [
-              // Video Player
               if (videoReady)
                 Positioned.fill(
                   child: Video(
@@ -53,36 +53,38 @@ class EditorVideoArea extends StatelessWidget {
                   ),
                 )
               else
-                // Loading mejorado para Instagram
+                // Fallback loading state used while remote media initializes.
                 Container(
                   color: Colors.black,
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(
-                          width: 36,
-                          height: 36,
+                        SizedBox(
+                          width: context.responsiveSize(36, tabletSize: 40),
+                          height: context.responsiveSize(36, tabletSize: 40),
                           child: CircularProgressIndicator(
                             color: AppColors.accent,
                             strokeWidth: 3.5,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: context.responsiveSize(20, tabletSize: 24)),
                         Text(
                           context.l10n.loadingVideo,
-                          style: const TextStyle(
+                          style: context.responsiveTextStyle(
+                            mobileSize: 16,
+                            tabletSize: 18,
                             color: AppColors.textPrimary,
-                            fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: context.responsiveSize(6, tabletSize: 8)),
                         Text(
                           context.l10n.instagramLoadingNote,
-                          style: const TextStyle(
+                          style: context.responsiveTextStyle(
+                            mobileSize: 13,
+                            tabletSize: 14,
                             color: AppColors.textMuted,
-                            fontSize: 13,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -91,7 +93,6 @@ class EditorVideoArea extends StatelessWidget {
                   ),
                 ),
 
-              // Overlay de crop
               CropOverlay(
                 cropOffset: cropOffset,
                 cropSize: _getCropSize(cropWidth, aspectRatio, videoAspect),
@@ -99,7 +100,6 @@ class EditorVideoArea extends StatelessWidget {
                 videoRect: videoRect,
               ),
 
-              // Crop Box interactivo
               CropBox(
                 offset: cropOffset,
                 cropWidth: cropWidth,
@@ -109,15 +109,14 @@ class EditorVideoArea extends StatelessWidget {
                 onChanged: onCropChanged,
               ),
 
-              // Botón Play/Pause
               Positioned(
-                top: 16,
-                right: 16,
+                top: context.responsiveSize(16, tabletSize: 20),
+                right: context.responsiveSize(16, tabletSize: 20),
                 child: GestureDetector(
                   onTap: onTogglePlay,
                   child: Container(
-                    width: 42,
-                    height: 42,
+                    width: context.responsiveSize(42, tabletSize: 46),
+                    height: context.responsiveSize(42, tabletSize: 46),
                     decoration: BoxDecoration(
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(12),
@@ -128,7 +127,7 @@ class EditorVideoArea extends StatelessWidget {
                           ? Icons.pause_rounded
                           : Icons.play_arrow_rounded,
                       color: Colors.white,
-                      size: 22,
+                      size: context.responsiveSize(22, tabletSize: 24),
                     ),
                   ),
                 ),

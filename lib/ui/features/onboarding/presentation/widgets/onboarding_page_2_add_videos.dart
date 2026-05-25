@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class OnboardingPage2AddVideos extends StatelessWidget {
-  const OnboardingPage2AddVideos({super.key});
+  final bool showAnimations;
+
+  const OnboardingPage2AddVideos({super.key, this.showAnimations = true});
 
   @override
   Widget build(BuildContext context) {
@@ -12,22 +15,24 @@ class OnboardingPage2AddVideos extends StatelessWidget {
       child: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.responsiveSize(24, tabletSize: 32),
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Etiqueta pequeña superior
                 Text(
                   context.l10n.onboardingContentLabel,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  style: context.responsiveTextStyle(
+                    mobileSize: 11,
+                    tabletSize: 12,
                     color: AppColors.textSecondary,
                     letterSpacing: 2,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: context.responsiveSize(24, tabletSize: 28)),
 
-                // Título principal
                 RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
@@ -35,38 +40,43 @@ class OnboardingPage2AddVideos extends StatelessWidget {
                       TextSpan(
                         text:
                             '${context.l10n.onboardingFromSocialTitlePrimary}\n',
-                        style: Theme.of(context).textTheme.displaySmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
+                        style: context.responsiveTextStyle(
+                          mobileSize: 30,
+                          tabletSize: 36,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       TextSpan(
                         text: context.l10n.onboardingFromSocialTitleAccent,
-                        style: Theme.of(context).textTheme.displaySmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.accent,
-                            ),
+                        style: context.responsiveTextStyle(
+                          mobileSize: 30,
+                          tabletSize: 36,
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: context.responsiveSize(24, tabletSize: 28)),
 
-                // Descripción
                 Text(
                   context.l10n.onboardingFromSocialDesc,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  style: context.responsiveTextStyle(
+                    mobileSize: 16,
+                    tabletSize: 18,
                     color: AppColors.textSecondary,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 60),
+                SizedBox(height: context.responsiveSize(60, tabletSize: 72)),
 
-                // Lottie con zoom + delay
-                const _LottieSocials(),
+                // Animated social preview with delayed loop segment.
+                showAnimations
+                    ? const _LottieSocials()
+                    : const _StaticSocials(),
               ],
             ),
           ),
@@ -81,6 +91,41 @@ class _LottieSocials extends StatefulWidget {
 
   @override
   State<_LottieSocials> createState() => _LottieSocialsState();
+}
+
+class _StaticSocials extends StatelessWidget {
+  const _StaticSocials();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: context.responsiveSize(300, tabletSize: 360),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '🎬',
+              style: context.responsiveTextStyle(
+                mobileSize: 72,
+                tabletSize: 84,
+              ),
+            ),
+            SizedBox(height: context.responsiveSize(12, tabletSize: 14)),
+            Text(
+              context.l10n.onboardingFromSocialTitleAccent,
+              style: context.responsiveTextStyle(
+                mobileSize: 16,
+                tabletSize: 18,
+                color: AppColors.accent,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _LottieSocialsState extends State<_LottieSocials>
@@ -99,7 +144,7 @@ class _LottieSocialsState extends State<_LottieSocials>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 300,
+      height: context.responsiveSize(300, tabletSize: 360),
       child: ClipRect(
         child: Transform.scale(
           scale: 1.5,
@@ -117,7 +162,7 @@ class _LottieSocialsState extends State<_LottieSocials>
 
               if (!mounted) return;
 
-              // Intro (0 → 2.14s)
+              // Intro segment (0 -> 2.14s).
               await _controller.animateTo(
                 reboteStart,
                 duration: Duration(
@@ -127,7 +172,7 @@ class _LottieSocialsState extends State<_LottieSocials>
                 ),
               );
 
-              // Loop (2.14 → 5s)
+              // Loop segment (2.14s -> end).
               _controller.repeat(min: reboteStart, max: 1.0);
             },
           ),

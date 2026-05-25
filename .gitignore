@@ -54,3 +54,4 @@ app.*.map.json
 
 /.agents
 **/.last_build_id
+build_release.bat

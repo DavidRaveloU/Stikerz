@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 enum AspectRatioOption {
   square('1:1', 1 / 1),
@@ -31,23 +32,29 @@ class AspectRatioSelector extends StatelessWidget {
           onTap: () => onChanged(opt),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            margin: const EdgeInsets.only(left: 5),
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+            margin: EdgeInsets.only(
+              left: context.responsiveSize(5, tabletSize: 6),
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.responsiveSize(9, tabletSize: 11),
+              vertical: context.responsiveSize(5, tabletSize: 6),
+            ),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppColors.accent.withOpacity(0.12)
+                  ? AppColors.accent.withValues(alpha: 0.12)
                   : AppColors.surface,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isSelected
-                    ? AppColors.accent.withOpacity(0.5)
+                    ? AppColors.accent.withValues(alpha: 0.5)
                     : AppColors.border,
               ),
             ),
             child: Text(
               opt.label,
-              style: TextStyle(
-                fontSize: 10,
+              style: context.responsiveTextStyle(
+                mobileSize: 10,
+                tabletSize: 11,
                 fontWeight: FontWeight.w600,
                 color: isSelected ? AppColors.accent : AppColors.textMuted,
               ),

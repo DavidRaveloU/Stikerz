@@ -1,28 +1,43 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/core/services/ads_service.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/services/ads_service.dart';
 
-/// Pantalla para mostrar un anuncio interstitial después de generar un sticker
-/// 
-/// **Características:**
-/// - Muestra el ad de Google
-/// - Requiere esperar 5 segundos antes de poder cerrar (X button)
-/// - Skip está disponible desde el inicio (regla AdMob: skip opcional pero disponible)
-/// - Cierra automáticamente al finalizar o al clickear X
-/// - Callback onDismissed cuando se cierra
-/// 
-/// **Políticas AdMob cumplidas:**
-/// - El ad NO se cierra automáticamente inmediatamente
-/// - El usuario PUEDE hacer skip desde el inicio
-/// - No hay clics fraudulentos
-/// - Se respetan los tiempos y callbacks
+typedef ShowInterstitialAd = Future<void> Function({VoidCallback? onDismissed});
+
+/// Screen to display an interstitial ad after generating a sticker.
+///
+/// Features:
+/// - Shows a Google interstitial ad
+/// - Requires a short wait (default 5s) before the close button becomes enabled
+/// - Skip is available according to AdMob rules
+/// - Closes automatically when finished or if user clicks the close button
+/// - Invokes `onDismissed` callback when the ad is closed
+///
+/// AdMob policy considerations:
+/// - The ad is not immediately auto-closed
+/// - The user may skip according to policy
+/// - Avoids fraudulent click behaviors
+/// - Respects timing and callbacks
 class InterstitialAdScreen extends StatefulWidget {
   final VoidCallback? onDismissed;
+  final ShowInterstitialAd? showInterstitialAd;
+  final bool autoStartCountdown;
+  final int initialRemainingSeconds;
+  final bool autoShowAd;
 
-  const InterstitialAdScreen({super.key, this.onDismissed});
+  const InterstitialAdScreen({
+    super.key,
+    this.onDismissed,
+    this.showInterstitialAd,
+    this.autoStartCountdown = true,
+    this.initialRemainingSeconds =
+        _InterstitialAdScreenState._requiredWaitSeconds,
+    this.autoShowAd = true,
+  });
 
   @override
   State<InterstitialAdScreen> createState() => _InterstitialAdScreenState();
@@ -37,10 +52,14 @@ class _InterstitialAdScreenState extends State<InterstitialAdScreen> {
   @override
   void initState() {
     super.initState();
-    _remainingSeconds = _requiredWaitSeconds;
-    _startCountdown();
-    // Mostrar el ad de Google (si está disponible)
-    _showAd();
+    _remainingSeconds = widget.initialRemainingSeconds;
+    if (widget.autoStartCountdown && _remainingSeconds > 0) {
+      _startCountdown();
+    }
+    // Show the ad if available.
+    if (widget.autoShowAd) {
+      _showAd();
+    }
   }
 
   void _startCountdown() {
@@ -58,23 +77,28 @@ class _InterstitialAdScreenState extends State<InterstitialAdScreen> {
 
   Future<void> _showAd() async {
     await Future.delayed(const Duration(milliseconds: 500));
+    final show = widget.showInterstitialAd;
     if (mounted) {
-      await AdsService().showInterstitialAd(
-        onDismissed: _handleAdDismissed,
-      );
+      if (show != null) {
+        await show(onDismissed: _handleAdDismissed);
+      } else {
+        await AdsService().showInterstitialAd(onDismissed: _handleAdDismissed);
+      }
     }
   }
 
   void _handleAdDismissed() {
-    debugPrint('Ad dismissed by user or auto-closed');
-    // El ad ya se cerró por sí solo, no necesitamos hacer nada extra aquí
+    if (kDebugMode) debugPrint('Ad dismissed by user or auto-closed');
+    // Ad was closed; nothing further to do here.
   }
 
   void _close() {
     if (!_canClose) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${context.l10n.onboardingFinishButton} ($_remainingSeconds s)'),
+          content: Text(
+            '${context.l10n.onboardingFinishButton} ($_remainingSeconds s)',
+          ),
           duration: const Duration(milliseconds: 1500),
         ),
       );
@@ -116,7 +140,7 @@ class _InterstitialAdScreenState extends State<InterstitialAdScreen> {
         body: SafeArea(
           child: Stack(
             children: [
-              // Contenido principal (la zona de anuncios se superpone aquí)
+              // Main placeholder content while ad is loading.
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -143,84 +167,95 @@ class _InterstitialAdScreenState extends State<InterstitialAdScreen> {
                   ],
                 ),
               ),
-              // Botón de cerrar (X) arriba a la derecha (respecting safe insets)
-              Builder(builder: (ctx) {
-                final topInset = MediaQuery.of(ctx).viewPadding.top;
-                return Positioned(
-                  top: topInset + 8,
-                  right: 16,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: _close,
-                        customBorder: const CircleBorder(),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Icon(
-                            Icons.close,
-                            color: _canClose ? AppColors.accent : AppColors.border,
-                            size: 24,
+              // Top-right close button respecting safe area insets.
+              Builder(
+                builder: (ctx) {
+                  final topInset = MediaQuery.of(ctx).viewPadding.top;
+                  return Positioned(
+                    top: topInset + 8,
+                    right: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _close,
+                          customBorder: const CircleBorder(),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Icon(
+                              Icons.close,
+                              color: _canClose
+                                  ? AppColors.accent
+                                  : AppColors.border,
+                              size: 24,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
-              // Contador de tiempo esperado (lado derecho)
+                  );
+                },
+              ),
+              // Cooldown countdown badge.
               if (!_canClose)
-                Builder(builder: (ctx) {
-                  final topInset = MediaQuery.of(ctx).viewPadding.top;
-                  return Positioned(
-                    top: topInset + 72,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.accent,
-                        borderRadius: BorderRadius.circular(8),
+                Builder(
+                  builder: (ctx) {
+                    final topInset = MediaQuery.of(ctx).viewPadding.top;
+                    return Positioned(
+                      top: topInset + 72,
+                      right: 16,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '$_remainingSeconds s',
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: AppColors.background,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
                       ),
-                      child: Text(
-                        '$_remainingSeconds s',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.background,
-                          fontWeight: FontWeight.bold,
+                    );
+                  },
+                ),
+              // Bottom skip button respecting safe insets.
+              Builder(
+                builder: (ctx) {
+                  final bottomInset = MediaQuery.of(ctx).viewPadding.bottom;
+                  return Positioned(
+                    bottom: bottomInset + 16,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: OutlinedButton(
+                        onPressed: _skip,
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.accent),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'SALTAR',
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(color: AppColors.accent),
                         ),
                       ),
                     ),
                   );
-                }),
-              // Botón Skip abajo (respetando safe inset)
-              Builder(builder: (ctx) {
-                final bottomInset = MediaQuery.of(ctx).viewPadding.bottom;
-                return Positioned(
-                  bottom: bottomInset + 16,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: OutlinedButton(
-                      onPressed: _skip,
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.accent),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        'SALTAR',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.accent,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }),
+                },
+              ),
             ],
           ),
         ),

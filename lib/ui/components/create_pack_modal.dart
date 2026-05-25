@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/core/repositories/pack_repository.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/repositories/pack_repository.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class CreatePackModal extends StatefulWidget {
   const CreatePackModal({super.key});
@@ -51,6 +52,8 @@ class _CreatePackModalState extends State<CreatePackModal> {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
+    final horizontal = context.responsiveSize(20, tabletSize: 24);
+    final modalMaxHeight = media.size.height * (context.isDesktop ? 0.78 : 0.9);
 
     return Padding(
       padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
@@ -63,15 +66,15 @@ class _CreatePackModalState extends State<CreatePackModal> {
           top: false,
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxHeight: media.size.height * 0.9,
+              maxHeight: modalMaxHeight,
               minWidth: double.infinity,
             ),
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
-                20,
-                12,
-                20,
-                24 + media.padding.bottom,
+                horizontal,
+                context.responsiveSize(12, tabletSize: 14),
+                horizontal,
+                context.responsiveSize(24, tabletSize: 28) + media.padding.bottom,
               ),
               child: Center(
                 child: ConstrainedBox(
@@ -82,10 +85,9 @@ class _CreatePackModalState extends State<CreatePackModal> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Handle
                         Center(
                           child: Container(
-                            width: 36,
+                            width: context.responsiveSize(36, tabletSize: 40),
                             height: 4,
                             decoration: BoxDecoration(
                               color: AppColors.border,
@@ -93,19 +95,19 @@ class _CreatePackModalState extends State<CreatePackModal> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: context.responsiveSize(20, tabletSize: 24)),
                         Text(
                           context.l10n.newPack,
-                          style: const TextStyle(
+                          style: context.responsiveTextStyle(
+                            mobileSize: 20,
+                            tabletSize: 22,
                             color: AppColors.textPrimary,
-                            fontSize: 20,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: context.responsiveSize(20, tabletSize: 24)),
 
-                        // Campo: nombre del paquete
-                        _buildLabel(context.l10n.packNameLabel),
+                        _buildLabel(context, context.l10n.packNameLabel),
                         _buildField(
                           context: context,
                           controller: _nameCtrl,
@@ -122,10 +124,9 @@ class _CreatePackModalState extends State<CreatePackModal> {
                             return _nameInlineError;
                           },
                         ),
-                        const SizedBox(height: 14),
+                        SizedBox(height: context.responsiveSize(14, tabletSize: 16)),
 
-                        // Campo: autor
-                        _buildLabel(context.l10n.authorNameLabel),
+                        _buildLabel(context, context.l10n.authorNameLabel),
                         _buildField(
                           context: context,
                           controller: _authorCtrl,
@@ -134,19 +135,18 @@ class _CreatePackModalState extends State<CreatePackModal> {
                               ? context.l10n.emptyFieldError
                               : null,
                         ),
-                        const SizedBox(height: 22),
+                        SizedBox(height: context.responsiveSize(22, tabletSize: 24)),
 
-                        // Botón crear
                         SizedBox(
                           width: double.infinity,
                           child: GestureDetector(
                             onTap: _loading ? null : _submit,
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              height: 52,
+                              height: context.responsiveSize(52, tabletSize: 56),
                               decoration: BoxDecoration(
                                 color: _loading
-                                    ? AppColors.accent.withOpacity(0.6)
+                                    ? AppColors.accent.withValues(alpha: 0.6)
                                     : AppColors.accent,
                                 borderRadius: BorderRadius.circular(14),
                               ),
@@ -162,9 +162,10 @@ class _CreatePackModalState extends State<CreatePackModal> {
                                     )
                                   : Text(
                                       context.l10n.createPackButton,
-                                      style: const TextStyle(
+                                      style: context.responsiveTextStyle(
+                                        mobileSize: 15,
+                                        tabletSize: 16,
                                         color: AppColors.background,
-                                        fontSize: 15,
                                         fontWeight: FontWeight.w700,
                                         letterSpacing: 0.3,
                                       ),
@@ -184,12 +185,13 @@ class _CreatePackModalState extends State<CreatePackModal> {
     );
   }
 
-  Widget _buildLabel(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
+  Widget _buildLabel(BuildContext context, String text) => Padding(
+    padding: EdgeInsets.only(bottom: context.responsiveSize(6, tabletSize: 8)),
     child: Text(
       text,
-      style: const TextStyle(
-        fontSize: 11,
+      style: context.responsiveTextStyle(
+        mobileSize: 11,
+        tabletSize: 12,
         letterSpacing: 1.5,
         color: AppColors.textMuted,
       ),
@@ -207,16 +209,24 @@ class _CreatePackModalState extends State<CreatePackModal> {
       controller: controller,
       onChanged: onChanged,
       validator: validator,
-      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+      style: context.responsiveTextStyle(
+        mobileSize: 14,
+        tabletSize: 15,
+        color: AppColors.textPrimary,
+      ),
       cursorColor: AppColors.accent,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.textMuted),
+        hintStyle: context.responsiveTextStyle(
+          mobileSize: 14,
+          tabletSize: 15,
+          color: AppColors.textMuted,
+        ),
         filled: true,
         fillColor: AppColors.background,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 13,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: context.responsiveSize(14, tabletSize: 16),
+          vertical: context.responsiveSize(13, tabletSize: 14),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -228,7 +238,7 @@ class _CreatePackModalState extends State<CreatePackModal> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.accent.withOpacity(0.6)),
+          borderSide: BorderSide(color: AppColors.accent.withValues(alpha: 0.6)),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

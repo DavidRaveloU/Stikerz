@@ -1,18 +1,21 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/providers/share_provider.dart';
-import 'package:whaticker/core/repositories/pack_repository.dart';
-import 'package:whaticker/core/services/ads_service.dart';
-import 'package:whaticker/generated_l10n/app_localizations.dart';
-import 'package:whaticker/routes/app_router.dart' show appRouterProvider;
+import 'package:stikerz/core/config/ads_config.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/providers/settings_provider.dart';
+import 'package:stikerz/core/providers/share_provider.dart';
+import 'package:stikerz/core/repositories/app_state_repository.dart';
+import 'package:stikerz/core/repositories/pack_repository.dart';
+import 'package:stikerz/core/services/ads_service.dart';
+import 'package:stikerz/generated_l10n/app_localizations.dart';
+import 'package:stikerz/routes/app_router.dart' show appRouterProvider;
 
 Future<void> main(List<String> args) async {
   runZonedGuarded(
@@ -20,7 +23,9 @@ Future<void> main(List<String> args) async {
       WidgetsFlutterBinding.ensureInitialized();
 
       MediaKit.ensureInitialized();
-      await AdsService().initialize();
+      if (AdsConfig.adsEnabled) {
+        await AdsService().initialize();
+      }
 
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
@@ -28,12 +33,13 @@ Future<void> main(List<String> args) async {
       ]);
 
       await PackRepository.init();
+      await AppStateRepository.instance.isOnboardingCompleted();
 
       runApp(const ProviderScope(child: ShareIntentHandler()));
     },
     (error, stack) {
-      debugPrint("ZONED ERROR: $error");
-      debugPrintStack(stackTrace: stack);
+      if (kDebugMode) debugPrint("ZONED ERROR: $error");
+      if (kDebugMode) debugPrintStack(stackTrace: stack);
     },
   );
 }
@@ -47,17 +53,21 @@ class ShareIntentHandler extends ConsumerStatefulWidget {
 
 class _ShareIntentHandlerState extends ConsumerState<ShareIntentHandler> {
   StreamSubscription<List<SharedMediaFile>>? _textSub;
+  int _shareRequestEpoch = 0;
 
-  Future<void> _handleSharedItems(List<SharedMediaFile> items) async {
-    if (items.isEmpty) return;
+  String _extractSharedText(List<SharedMediaFile> items) {
+    if (items.isEmpty) return '';
 
     final first = items.first;
-
     final rawText = first.mimeType != null && first.mimeType!.startsWith('text')
         ? first.path
         : (first.path.isNotEmpty ? first.path : first.message ?? '');
 
-    final text = rawText.trim();
+    return rawText.trim();
+  }
+
+  Future<void> _handleSharedItemsInitial(List<SharedMediaFile> items) async {
+    final text = _extractSharedText(items);
     if (text.isEmpty) return;
 
     final pending = PendingShare(
@@ -75,6 +85,32 @@ class _ShareIntentHandlerState extends ConsumerState<ShareIntentHandler> {
     ref.read(pendingShareProvider.notifier).state = resolved;
   }
 
+  Future<void> _handleSharedItemsStream(List<SharedMediaFile> items) async {
+    final text = _extractSharedText(items);
+    if (text.isEmpty) return;
+
+    final requestEpoch = ++_shareRequestEpoch;
+    ref.read(pendingShareProvider.notifier).state = null;
+    ref.read(shareFlowResetProvider.notifier).state++;
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || requestEpoch != _shareRequestEpoch) return;
+
+    final pending = PendingShare(
+      rawText: text,
+      source: detectShareSource(text),
+      isResolving: true,
+    );
+
+    ref.read(pendingShareProvider.notifier).state = pending;
+
+    final resolved = await resolvePendingShare(pending);
+
+    if (!mounted || requestEpoch != _shareRequestEpoch) return;
+
+    ref.read(pendingShareProvider.notifier).state = resolved;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -82,19 +118,21 @@ class _ShareIntentHandlerState extends ConsumerState<ShareIntentHandler> {
     try {
       ReceiveSharingIntent.instance
           .getInitialMedia()
-          .then(_handleSharedItems)
+          .then(_handleSharedItemsInitial)
           .catchError((e) {
-            debugPrint("ERROR getInitialMedia: $e");
+            if (kDebugMode) debugPrint("ERROR getInitialMedia: $e");
           });
 
       _textSub = ReceiveSharingIntent.instance.getMediaStream().listen(
-        _handleSharedItems,
+        (items) {
+          _handleSharedItemsStream(items);
+        },
         onError: (e) {
-          debugPrint("ERROR mediaStream: $e");
+          if (kDebugMode) debugPrint("ERROR mediaStream: $e");
         },
       );
     } catch (e) {
-      debugPrint("ERROR INIT INTENT: $e");
+      if (kDebugMode) debugPrint("ERROR INIT INTENT: $e");
     }
   }
 
@@ -116,11 +154,13 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final selectedLang = ref.watch(settingsProvider);
+    final locale = selectedLang == null ? null : Locale(selectedLang);
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       routerConfig: router,
-      locale: _getLocale(),
+      locale: locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -139,22 +179,5 @@ class App extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  static Locale _getLocale() {
-    // Get device locale from PlatformDispatcher
-    final deviceLocale = ui.PlatformDispatcher.instance.locale;
-    final deviceLanguage = deviceLocale.languageCode.toLowerCase();
-
-    // Supported languages
-    const supportedLanguages = ['en', 'es', 'pt'];
-
-    // If device language matches one of our supported languages, use it
-    if (supportedLanguages.contains(deviceLanguage)) {
-      return Locale(deviceLanguage);
-    }
-
-    // Default to English if not supported
-    return const Locale('en');
   }
 }

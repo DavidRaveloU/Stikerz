@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class PackOptionsSheet extends StatelessWidget {
   final VoidCallback onRename;
@@ -15,7 +16,12 @@ class PackOptionsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+      margin: EdgeInsets.fromLTRB(
+        context.responsiveSize(16, tabletSize: 20),
+        0,
+        context.responsiveSize(16, tabletSize: 20),
+        context.responsiveSize(32, tabletSize: 36),
+      ),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
@@ -24,16 +30,16 @@ class PackOptionsSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 12),
+          SizedBox(height: context.responsiveSize(12, tabletSize: 14)),
           Container(
-            width: 36,
+            width: context.responsiveSize(36, tabletSize: 40),
             height: 4,
             decoration: BoxDecoration(
               color: AppColors.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: context.responsiveSize(8, tabletSize: 10)),
           _SheetOption(
             icon: Icons.drive_file_rename_outline_rounded,
             label: context.l10n.renamePack,
@@ -45,7 +51,7 @@ class PackOptionsSheet extends StatelessWidget {
             color: Colors.redAccent,
             onTap: onDelete,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: context.responsiveSize(8, tabletSize: 10)),
         ],
       ),
     );
@@ -71,12 +77,22 @@ class _SheetOption extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: EdgeInsets.symmetric(
+          horizontal: context.responsiveSize(20, tabletSize: 22),
+          vertical: context.responsiveSize(14, tabletSize: 16),
+        ),
         child: Row(
           children: [
-            Icon(icon, color: c, size: 20),
-            const SizedBox(width: 14),
-            Text(label, style: TextStyle(color: c, fontSize: 15)),
+            Icon(icon, color: c, size: context.responsiveSize(20, tabletSize: 22)),
+            SizedBox(width: context.responsiveSize(14, tabletSize: 16)),
+            Text(
+              label,
+              style: context.responsiveTextStyle(
+                mobileSize: 15,
+                tabletSize: 16,
+                color: c,
+              ),
+            ),
           ],
         ),
       ),

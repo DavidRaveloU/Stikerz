@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/core/services/whatsapp_sticker_service.dart';
-import 'package:whaticker/data/models/sticker_pack_model.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/services/whatsapp_sticker_service.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
 
 class WhatsAppButton extends StatefulWidget {
   final StickerPackModel pack;
@@ -59,7 +60,10 @@ class _WhatsAppButtonState extends State<WhatsAppButton> {
       onTap: canSend ? _sendToWhatsApp : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+        padding: EdgeInsets.symmetric(
+          horizontal: context.responsiveSize(28, tabletSize: 32),
+          vertical: context.responsiveSize(14, tabletSize: 16),
+        ),
         decoration: BoxDecoration(
           color: canSend ? const Color(0xFF25D366) : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -71,15 +75,20 @@ class _WhatsAppButtonState extends State<WhatsAppButton> {
             Icon(
               Icons.send_rounded,
               color: canSend ? Colors.white : AppColors.textMuted,
-              size: 18,
+              size: context.responsiveSize(18, tabletSize: 20),
             ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: canSend ? Colors.white : AppColors.textMuted,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+            SizedBox(width: context.responsiveSize(8, tabletSize: 10)),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.responsiveTextStyle(
+                  mobileSize: 14,
+                  tabletSize: 15,
+                  color: canSend ? Colors.white : AppColors.textMuted,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],

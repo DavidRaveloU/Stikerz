@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class EditorTimeline extends StatelessWidget {
   final double startPoint;
@@ -18,7 +19,7 @@ class EditorTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
+      height: context.responsiveSize(48, tabletSize: 54),
       color: const Color(0xFF111114),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -29,7 +30,6 @@ class EditorTimeline extends StatelessWidget {
 
           return Stack(
             children: [
-              // Fondo con líneas de tiempo
               Row(
                 children: List.generate(
                   14,
@@ -56,7 +56,6 @@ class EditorTimeline extends StatelessWidget {
                 ),
               ),
 
-              // Rango seleccionado
               Positioned(
                 left: startX,
                 width: (endX - startX).clamp(0.0, w - startX),
@@ -64,7 +63,7 @@ class EditorTimeline extends StatelessWidget {
                 bottom: 0,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.18),
+                    color: AppColors.accent.withValues(alpha: 0.18),
                     border: Border.symmetric(
                       vertical: BorderSide(color: AppColors.accent, width: 2.5),
                     ),
@@ -72,13 +71,12 @@ class EditorTimeline extends StatelessWidget {
                 ),
               ),
 
-              // Playhead
               Positioned(
                 left: playX.clamp(0.0, w - 3),
                 top: 0,
                 bottom: 0,
                 child: Container(
-                  width: 3,
+                  width: context.responsiveSize(3, tabletSize: 4),
                   color: AppColors.accent,
                   child: const Align(
                     alignment: Alignment.topCenter,

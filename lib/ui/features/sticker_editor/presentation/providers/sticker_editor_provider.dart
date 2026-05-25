@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
 
-// Estado del editor de stickers
+/// Immutable state for the sticker editor flow.
 class StickerEditorState {
   final AspectRatioOption aspectRatio;
   final double startPoint;
@@ -42,7 +42,7 @@ class StickerEditorState {
   }
 }
 
-// Provider del estado del editor
+/// State notifier provider for sticker editor state.
 final stickerEditorProvider =
     StateNotifierProvider<StickerEditorNotifier, StickerEditorState>(
       (ref) => StickerEditorNotifier(),

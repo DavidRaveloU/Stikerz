@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:stikerz/core/config/ads_config.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
-/// Widget para mostrar Google Mobile Ads Banner
-/// 
-/// Se debe envolver en un Scaffold para que el banner se muestre correctamente.
-/// El banner se coloca al fondo de la pantalla sin tapar otros elementos.
-/// 
-/// **Políticas AdMob cumplidas:**
-/// - El banner NO está oculto
-/// - El banner NO es clickeado automáticamente
-/// - El banner tiene suficiente espacio alrededor (no comprimido)
+/// Displays a Google Mobile Ads banner placeholder or ad widget.
+///
+/// Keep this widget near the bottom area of a page layout so the banner has
+/// stable space and does not overlap interactive content.
 class BannerAdWidget extends StatelessWidget {
   final BannerAd? bannerAd;
   final bool isLoaded;
@@ -22,10 +19,13 @@ class BannerAdWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!AdsConfig.adsEnabled) {
+      return const SizedBox.shrink();
+    }
+
     if (!isLoaded || bannerAd == null) {
-      // Retornar un SizedBox vacío si el ad no está cargado
-      // Esto previene que la altura cambie dinámicamente
-      return const SizedBox(height: 50);
+      // Reserve banner height to avoid layout jumps while loading.
+      return SizedBox(height: context.responsiveSize(50, tabletSize: 54));
     }
 
     return Container(

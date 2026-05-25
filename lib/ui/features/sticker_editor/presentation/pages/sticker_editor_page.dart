@@ -1,27 +1,31 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/core/repositories/pack_repository.dart';
-import 'package:whaticker/core/services/sticker_generation_service.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/editor_controls.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/editor_timeline.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/editor_top_bar.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/editor_video_area.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/generate_confirm_dialog.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/generation_failure_modal.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/repositories/pack_repository.dart';
+import 'package:stikerz/core/services/ads_service.dart';
+import 'package:stikerz/core/services/sticker_generation_service.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_controls.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_timeline.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_top_bar.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_video_area.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/generate_confirm_dialog.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/generation_failure_modal.dart';
 
 class StickerEditorPage extends ConsumerStatefulWidget {
   final int packId;
   final int slotIndex;
   final String sourceType;
   final String? videoPath;
+  final bool skipVideoInitialization;
 
   const StickerEditorPage({
     super.key,
@@ -29,6 +33,7 @@ class StickerEditorPage extends ConsumerStatefulWidget {
     required this.slotIndex,
     required this.sourceType,
     this.videoPath,
+    this.skipVideoInitialization = false,
   });
 
   @override
@@ -46,7 +51,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
   String _generationStatus = '';
   double? _generationProgress;
 
-  // Estados locales del editor
+  // Local editor state.
   AspectRatioOption _aspectRatio = AspectRatioOption.square;
   double _startPoint = 0.0;
   double _duration = 5.0;
@@ -62,8 +67,10 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
   void initState() {
     super.initState();
 
-    _player = Player();
-    _videoController = VideoController(_player);
+    if (!widget.skipVideoInitialization) {
+      _player = Player();
+      _videoController = VideoController(_player);
+    }
 
     _playheadCtrl =
         AnimationController(
@@ -85,17 +92,19 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
             }
           });
 
-    _initVideo();
+    if (!widget.skipVideoInitialization) {
+      _initVideo();
+    }
   }
 
   Future<void> _initVideo({bool useHwdec = true}) async {
     final path = widget.videoPath;
     try {
       if (path == null || path.trim().isEmpty) {
-        throw const FormatException('Ruta de video vacía');
+        throw const FormatException('Empty video path');
       }
 
-      // Configuración especial para TikTok e Instagram (streams HTTP)
+      // Apply network-friendly player options for remote streams.
       if (path.startsWith('http') && useHwdec) {
         try {
           final nativePlayer = _player.platform as NativePlayer;
@@ -104,16 +113,14 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
           await nativePlayer.setProperty('cache', 'yes');
           await nativePlayer.setProperty('cache-secs', '15');
         } catch (e) {
-          debugPrint('Failed to set native properties: $e');
+          if (kDebugMode) debugPrint('Failed to set native properties: $e');
         }
       }
 
       await _player.open(Media(path), play: false);
 
-      // Esperamos duración + primer frame visible
       bool videoInitialized = false;
 
-      // Duración
       _player.stream.duration.first.then((dur) {
         if (!mounted || videoInitialized) return;
         setState(() {
@@ -124,7 +131,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
         });
       });
 
-      // Video params (aspect ratio)
+      // Keep display aspect ratio in sync with rotation-aware video params.
       _player.stream.videoParams.listen((params) {
         if (!mounted) return;
         final resolved = _resolveAspectFromParams(params);
@@ -133,14 +140,13 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
         }
       });
 
-      // Loop
       _player.stream.completed.listen((_) {
         if (_isPlaying && mounted) {
           _restartLoopPreviewFromStart();
         }
       });
 
-      // Espera inteligente: máximo 8 segundos para marcar como listo
+      // Wait up to 8s for either video params or valid duration.
       try {
         await Future.any([
           _player.stream.videoParams.firstWhere(
@@ -149,7 +155,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
           _player.stream.duration.firstWhere((d) => d.inMilliseconds > 500),
         ]).timeout(const Duration(seconds: 8));
       } catch (_) {
-        debugPrint('Timeout esperando inicialización del video (Instagram)');
+        if (kDebugMode) debugPrint('Timeout waiting for video initialization');
       }
 
       if (!mounted) return;
@@ -159,9 +165,8 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
       if (!mounted) return;
       setState(() => _isPlaying = true);
       _playheadCtrl.forward(from: 0);
-      // Small diagnostic delay to observe if player renders a frame
     } catch (e) {
-      debugPrint('Error inicializando editor de video: $e');
+      if (kDebugMode) debugPrint('Error initializing video editor: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -184,13 +189,28 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
     }
   }
 
+  /// Resolves display aspect ratio using rotation-aware video metadata.
+  ///
+  /// Many phone videos are stored in landscape dimensions with a 90/270
+  /// rotation tag. We transpose width and height when needed so crop and
+  /// preview geometry match what users actually see.
   double? _resolveAspectFromParams(VideoParams params) {
     final baseW = params.dw ?? params.w;
     final baseH = params.dh ?? params.h;
+
     if (baseW == null || baseH == null || baseW <= 0 || baseH <= 0) {
       return null;
     }
-    return baseW / baseH;
+
+    // Rotation is reported in degrees (0, 90, 180, 270).
+    // 90/270 means rendered dimensions are transposed.
+    final rotation = params.rotate ?? 0;
+    final isTransposed = rotation == 90 || rotation == 270;
+
+    final displayW = isTransposed ? baseH : baseW;
+    final displayH = isTransposed ? baseW : baseH;
+
+    return displayW / displayH;
   }
 
   void _syncDurationToWindow() {
@@ -274,8 +294,16 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
     );
   }
 
+  /// Shows an interstitial when available, then pops with `generated`.
+  Future<void> _popWithAd() async {
+    await AdsService().showInterstitialAd(
+      onDismissed: () {
+        if (mounted) Navigator.pop(context, 'generated');
+      },
+    );
+  }
+
   Future<void> _generateSticker() async {
-    // Pausar el video mientras se genera
     if (_isPlaying) {
       await _player.pause();
       _playheadCtrl.stop();
@@ -322,14 +350,14 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
         );
 
         if (!mounted) return;
-        Navigator.pop(context, 'generated');
+        await _popWithAd();
       } else {
         if (!mounted) return;
-        _showFailureModal(retry: true);
+        _showFailureModal(retry: true, failedSize: result.failedSize);
       }
     } catch (e) {
       if (!mounted) return;
-      _showFailureModal(retry: false);
+      _showFailureModal(retry: false, failedSize: null);
     } finally {
       if (mounted) {
         setState(() {
@@ -343,39 +371,43 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
 
   @override
   void dispose() {
-    _player.dispose();
+    if (!widget.skipVideoInitialization) {
+      _player.dispose();
+    }
     _playheadCtrl.dispose();
     super.dispose();
   }
 
-  void _showFailureModal({bool retry = false}) {
+  void _showFailureModal({bool retry = false, int? failedSize}) {
     showDialog(
       context: context,
-      builder: (_) => GenerationFailureModal(
+      builder: (dialogContext) => GenerationFailureModal(
         canRetry: retry,
-        onRetryWithBlur: () => _retryWith(StickerStrategy.lightBlur),
-        onRetryWithReduceFps: () => _retryWith(StickerStrategy.reduceFps),
+        failedSizeBytes: failedSize,
+        onRetryWithBlur: () =>
+            _retryWith(StickerStrategy.lightBlur, dialogContext),
+        onRetryWithReduceFps: () =>
+            _retryWith(StickerStrategy.reduceFps, dialogContext),
         onRetryWithBlurAndReduceFps: () =>
-            _retryWith(StickerStrategy.blurAndReduceFps),
+            _retryWith(StickerStrategy.blurAndReduceFps, dialogContext),
         onRetryWithTransparency: () =>
-            _retryWith(StickerStrategy.increaseTransparency),
-        onClose: () => Navigator.pop(context),
+            _retryWith(StickerStrategy.increaseTransparency, dialogContext),
+        onClose: () => Navigator.of(dialogContext).pop(),
       ),
     );
   }
 
-  void _retryWith(StickerStrategy strategy) {
-    Navigator.pop(context); // cierra el modal de error
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _generateStickerWithStrategy(strategy);
-    });
+  void _retryWith(StickerStrategy strategy, BuildContext dialogContext) {
+    Navigator.of(dialogContext).pop();
+    _generateStickerWithStrategy(strategy);
   }
 
-  // Nuevo método auxiliar
   Future<void> _generateStickerWithStrategy(StickerStrategy strategy) async {
+    if (!mounted) return;
+
     setState(() {
       _isGenerating = true;
-      _generationStatus = 'Intentando con estrategia...';
+      _generationStatus = context.l10n.preparingVideo;
       _generationProgress = 0.0;
     });
 
@@ -404,6 +436,8 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
         },
       );
 
+      if (!mounted) return;
+
       if (result.success && result.path != null) {
         await PackRepository.instance.addSticker(
           packId: widget.packId,
@@ -413,27 +447,41 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
         );
 
         if (!mounted) return;
-        Navigator.pop(context, 'generated');
-      } else {
-        if (!mounted) return;
-        _showFailureModal(retry: true);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showFailureModal(retry: false);
-    } finally {
-      if (mounted) {
         setState(() {
           _isGenerating = false;
           _generationStatus = '';
           _generationProgress = null;
         });
+        await _popWithAd();
+      } else {
+        if (!mounted) return;
+        setState(() {
+          _isGenerating = false;
+          _generationStatus = '';
+          _generationProgress = null;
+        });
+        _showFailureModal(retry: true, failedSize: result.failedSize);
       }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isGenerating = false;
+        _generationStatus = '';
+        _generationProgress = null;
+      });
+      _showFailureModal(retry: false, failedSize: null);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.skipVideoInitialization) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: _buildLoadingArea(context),
+      );
+    }
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
@@ -446,17 +494,19 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
               onBack: () => Navigator.pop(context),
             ),
             Expanded(
-              child: EditorVideoArea(
-                videoController: _videoController,
-                videoReady: _videoReady,
-                cropOffset: _cropOffset,
-                cropWidth: _cropWidth,
-                aspectRatio: _aspectRatio,
-                videoAspect: _videoAspect,
-                onCropChanged: _updateCrop,
-                onTogglePlay: _togglePlay,
-                isPlaying: _isPlaying,
-              ),
+              child: widget.skipVideoInitialization
+                  ? _buildLoadingArea(context)
+                  : EditorVideoArea(
+                      videoController: _videoController,
+                      videoReady: _videoReady,
+                      cropOffset: _cropOffset,
+                      cropWidth: _cropWidth,
+                      aspectRatio: _aspectRatio,
+                      videoAspect: _videoAspect,
+                      onCropChanged: _updateCrop,
+                      onTogglePlay: _togglePlay,
+                      isPlaying: _isPlaying,
+                    ),
             ),
             EditorTimeline(
               startPoint: _startPoint,
@@ -492,6 +542,48 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
                 _restartLoopPreviewFromStart();
               },
               onGenerate: _showGenerateConfirm,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingArea(BuildContext context) {
+    return Container(
+      color: Colors.black,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: context.responsiveSize(36, tabletSize: 40),
+              height: context.responsiveSize(36, tabletSize: 40),
+              child: const CircularProgressIndicator(
+                value: 0.72,
+                color: AppColors.accent,
+                strokeWidth: 3.5,
+              ),
+            ),
+            SizedBox(height: context.responsiveSize(20, tabletSize: 24)),
+            Text(
+              context.l10n.loadingVideo,
+              style: context.responsiveTextStyle(
+                mobileSize: 16,
+                tabletSize: 18,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: context.responsiveSize(6, tabletSize: 8)),
+            Text(
+              context.l10n.instagramLoadingNote,
+              style: context.responsiveTextStyle(
+                mobileSize: 13,
+                tabletSize: 14,
+                color: AppColors.textMuted,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
