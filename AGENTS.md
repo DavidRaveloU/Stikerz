@@ -1,4 +1,4 @@
-# stikerz
+# whaticker
 
 Flutter app (Dart). Entry point: `lib/main.dart`.
 
