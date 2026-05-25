@@ -84,9 +84,17 @@ cd stikerz
 
 ### Configure Local Environment
 
-Two local configuration files are required (both gitignored):
+Three local configuration files are required (all gitignored):
 
-#### 1. `android/local.properties` — Android SDK paths
+#### 1. `android/gradle.properties` — Gradle Configuration & AdMob App ID
+
+```bash
+cp android/gradle.properties.template android/gradle.properties
+```
+
+The file is pre-configured with **test AdMob App ID** (safe for development). Skip editing unless using production IDs.
+
+#### 2. `android/local.properties` — Android SDK paths
 
 ```bash
 cp android/local.properties.template android/local.properties
@@ -102,13 +110,13 @@ flutter.sdk=C:\\[YOUR_FLUTTER_PATH]
 - `sdk.dir`: Run `flutter doctor -v` and check the Android SDK path
 - `flutter.sdk`: Run `which flutter` (macOS/Linux) or `where flutter` (Windows)
 
-#### 2. `.env` — AdMob Configuration
+#### 3. `.env` — Development Environment Variables
 
 ```bash
 cp .env.template .env
 ```
 
-The file is pre-configured with **test AdMob IDs** (safe for development). Skip editing unless using production IDs.
+The file is pre-configured with **test AdMob IDs and other secrets** (safe for development). Skip editing unless using production values.
 
 ### Run
 
@@ -126,6 +134,3 @@ flutter run
 - **Build:** See [BUILD_SCRIPTS.md](BUILD_SCRIPTS.md) for platform-specific instructions
 - **Localization:** See [I18N_GUIDE.md](I18N_GUIDE.md) for adding translations
 - **Golden Tests:** See [docs/GOLDENS.md](docs/GOLDENS.md) for UI regression testing
-
-
-
