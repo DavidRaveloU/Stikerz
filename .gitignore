@@ -44,9 +44,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# gradle.properties contains sensitive build-time secrets (AdMob IDs, etc.)
-# Use gradle.properties.template as reference and create local gradle.properties
+# gradle.properties and local.properties contain machine-specific or sensitive secrets
+# Use .template files as reference and create local versions
 /android/gradle.properties
+/android/local.properties
 
 # .env contains sensitive development secrets (AdMob IDs, API keys, etc.)
 # Never commit to Git; use --dart-define or CI Secrets instead

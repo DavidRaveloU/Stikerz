@@ -1,0 +1,30 @@
+# local.properties - Local Development Configuration
+# 
+# This file contains LOCAL machine-specific paths.
+# Copy this file to local.properties and fill in YOUR machine's paths.
+# IMPORTANT: local.properties should NEVER be committed to Git.
+#
+# How to use:
+# 1. Copy this file: cp android/local.properties.template android/local.properties
+# 2. Edit the paths below with YOUR machine's configuration
+# 3. Each developer will have DIFFERENT paths - that's expected!
+#
+# For GitHub Actions / CI:
+# These paths are set by the runner environment, not from this file.
+
+# Replace with YOUR Android SDK path
+# On Windows: usually C:\\Users\\[USERNAME]\\AppData\\Local\\Android\\sdk
+# On macOS: usually /Users/[USERNAME]/Library/Android/sdk
+# On Linux: usually ~/Android/sdk
+sdk.dir=C:\\Users\\[YOUR_USERNAME]\\AppData\\Local\\Android\\sdk
+
+# Replace with YOUR Flutter installation path
+# Check with: flutter doctor -v
+# On Windows: usually C:\\flutter
+# On macOS/Linux: usually ~/flutter
+flutter.sdk=C:\\[YOUR_FLUTTER_PATH]
+
+# Keep these as-is for local development
+flutter.buildMode=debug
+flutter.versionName=1.0.0
+flutter.versionCode=1
