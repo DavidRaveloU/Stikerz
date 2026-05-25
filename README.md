@@ -65,5 +65,67 @@ Whaticker lets you capture short-form videos from TikTok, Instagram, or your dev
 - **GoRouter** for navigation.
 - **Media processing** for sticker generation.
 
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Flutter SDK ([install](https://flutter.dev/docs/get-started/install))
+- Android SDK (API level 21+)
+- Dart 3.0+
+
+### Clone & Setup
+
+```bash
+git clone https://github.com/DavidRaveloU/Stikerz.git
+cd stikerz
+```
+
+### Configure Local Environment
+
+Two local configuration files are required (both gitignored):
+
+#### 1. `android/local.properties` — Android SDK paths
+
+```bash
+cp android/local.properties.template android/local.properties
+```
+
+Edit `android/local.properties` with your local paths:
+```properties
+sdk.dir=C:\\Users\\[YOUR_USERNAME]\\AppData\\Local\\Android\\sdk
+flutter.sdk=C:\\[YOUR_FLUTTER_PATH]
+```
+
+**Find your paths:**
+- `sdk.dir`: Run `flutter doctor -v` and check the Android SDK path
+- `flutter.sdk`: Run `which flutter` (macOS/Linux) or `where flutter` (Windows)
+
+#### 2. `.env` — AdMob Configuration
+
+```bash
+cp .env.template .env
+```
+
+The file is pre-configured with **test AdMob IDs** (safe for development). Skip editing unless using production IDs.
+
+### Run
+
+```bash
+flutter pub get
+flutter run
+```
+
+---
+
+## Development
+
+- **Analyze:** `flutter analyze`
+- **Test:** `flutter test`
+- **Build:** See [BUILD_SCRIPTS.md](BUILD_SCRIPTS.md) for platform-specific instructions
+- **Localization:** See [I18N_GUIDE.md](I18N_GUIDE.md) for adding translations
+- **Golden Tests:** See [docs/GOLDENS.md](docs/GOLDENS.md) for UI regression testing
+
 
 
