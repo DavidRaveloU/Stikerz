@@ -4,7 +4,17 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+import java.util.Properties
+
 android {
+    val keystoreProperties = Properties()
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    val hasReleaseKeystore = keystorePropertiesFile.exists()
+
+    if (hasReleaseKeystore) {
+        keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+    }
+
     namespace = "com.davidravelo.stikerz"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
@@ -34,14 +44,32 @@ android {
         resValue("string", "admob_app_id", admobAppId)
     }
 
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                val storeFilePath = keystoreProperties["storeFile"] as String
+                val storePasswordValue = keystoreProperties["storePassword"] as String
+                val keyAliasValue = keystoreProperties["keyAlias"] as String
+                val keyPasswordValue = keystoreProperties["keyPassword"] as String
+
+                storeFile = file(storeFilePath)
+                storePassword = storePasswordValue
+                keyAlias = keyAliasValue
+                keyPassword = keyPasswordValue
+            }
+        }
+    }
+
     buildTypes {
         release {
             // evitar que rompa plugins
             isMinifyEnabled = false
             isShrinkResources = false
-
-            // (lo dejamos como lo tienes)
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }

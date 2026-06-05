@@ -743,4 +743,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get externalServiceVideoNotPublic =>
       'Could not retrieve the video. Please ensure it is public.';
+
+  @override
+  String get videoPreparationTitle => 'Processing video';
+
+  @override
+  String get videoPreparationDefault =>
+      'Video processing depends on your internet connection.';
+
+  @override
+  String get videoPreparationSlow =>
+      'We are still preparing the video. If it takes longer, your connection may be slow.';
+
+  @override
+  String get videoPreparationVerySlow =>
+      'The connection looks slow. We are still trying to prepare the video.';
+
+  @override
+  String get videoPreparationTooLong =>
+      'This is taking longer than usual. A weak connection can increase the wait time.';
+
+  @override
+  String videoPreparationRetrying(int attempt, int maxAttempts) {
+    return 'Connection lost. Retrying ($attempt/$maxAttempts)...';
+  }
 }

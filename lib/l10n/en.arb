@@ -229,5 +229,17 @@
   "externalServiceTimeout": "Request timed out. Please try again shortly.",
   "externalServiceInvalidResponse": "Invalid response from external service.",
   "externalServiceNotVideo": "The link is not a video. Please choose a valid video.",
-  "externalServiceVideoNotPublic": "Could not retrieve the video. Please ensure it is public."
+  "externalServiceVideoNotPublic": "Could not retrieve the video. Please ensure it is public.",
+  "videoPreparationTitle": "Processing video",
+  "videoPreparationDefault": "Video processing depends on your internet connection.",
+  "videoPreparationSlow": "We are still preparing the video. If it takes longer, your connection may be slow.",
+  "videoPreparationVerySlow": "The connection looks slow. We are still trying to prepare the video.",
+  "videoPreparationTooLong": "This is taking longer than usual. A weak connection can increase the wait time.",
+  "videoPreparationRetrying": "Connection lost. Retrying ({attempt}/{maxAttempts})...",
+  "@videoPreparationRetrying": {
+    "placeholders": {
+      "attempt": { "type": "int" },
+      "maxAttempts": { "type": "int" }
+    }
+  }
 }

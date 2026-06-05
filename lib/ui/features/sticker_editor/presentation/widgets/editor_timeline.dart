@@ -7,6 +7,7 @@ class EditorTimeline extends StatelessWidget {
   final double duration;
   final double playheadPosition;
   final double videoDurationSecs;
+  final double? bufferedFraction;
 
   const EditorTimeline({
     super.key,
@@ -14,6 +15,7 @@ class EditorTimeline extends StatelessWidget {
     required this.duration,
     required this.playheadPosition,
     required this.videoDurationSecs,
+    this.bufferedFraction,
   });
 
   @override
@@ -30,6 +32,22 @@ class EditorTimeline extends StatelessWidget {
 
           return Stack(
             children: [
+              // Buffered range indicator (light overlay)
+              if (bufferedFraction != null)
+                Positioned(
+                  left: startX,
+                  width:
+                      ((videoDurationSecs * bufferedFraction!) /
+                                  videoDurationSecs *
+                                  w -
+                              startX)
+                          .clamp(0.0, w - startX),
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    color: AppColors.accent.withValues(alpha: 0.08),
+                  ),
+                ),
               Row(
                 children: List.generate(
                   14,

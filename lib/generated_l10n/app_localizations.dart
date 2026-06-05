@@ -1431,6 +1431,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not retrieve the video. Please ensure it is public.'**
   String get externalServiceVideoNotPublic;
+
+  /// No description provided for @videoPreparationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing video'**
+  String get videoPreparationTitle;
+
+  /// No description provided for @videoPreparationDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Video processing depends on your internet connection.'**
+  String get videoPreparationDefault;
+
+  /// No description provided for @videoPreparationSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'We are still preparing the video. If it takes longer, your connection may be slow.'**
+  String get videoPreparationSlow;
+
+  /// No description provided for @videoPreparationVerySlow.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection looks slow. We are still trying to prepare the video.'**
+  String get videoPreparationVerySlow;
+
+  /// No description provided for @videoPreparationTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'This is taking longer than usual. A weak connection can increase the wait time.'**
+  String get videoPreparationTooLong;
+
+  /// No description provided for @videoPreparationRetrying.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost. Retrying ({attempt}/{maxAttempts})...'**
+  String videoPreparationRetrying(int attempt, int maxAttempts);
 }
 
 class _AppLocalizationsDelegate

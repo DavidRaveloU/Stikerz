@@ -1,0 +1,20 @@
+# key.properties - Release signing configuration
+# Copy this file to key.properties and fill in real values.
+# IMPORTANT: key.properties and keystore files must never be committed.
+#
+# How to use:
+# 1. Copy: cp android/key.properties.template android/key.properties
+# 2. Put your keystore at: android/upload-keystore.jks
+# 3. Fill values below.
+
+# Relative path from android/ directory
+storeFile=upload-keystore.jks
+
+# Keystore password
+storePassword=YOUR_STORE_PASSWORD
+
+# Alias name inside the keystore
+keyAlias=upload
+
+# Key password for the alias
+keyPassword=YOUR_KEY_PASSWORD

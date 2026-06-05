@@ -14,7 +14,6 @@ Whaticker lets you capture short-form videos from TikTok, Instagram, or your dev
   <img src="https://github.com/user-attachments/assets/df1204e8-1fa5-4e01-9db5-5342b61dc6a7" width="30%" style="margin: 0 8px;" />
 </p>
 
-
 ---
 
 ## Highlights
@@ -101,12 +100,14 @@ cp android/local.properties.template android/local.properties
 ```
 
 Edit `android/local.properties` with your local paths:
+
 ```properties
 sdk.dir=C:\\Users\\[YOUR_USERNAME]\\AppData\\Local\\Android\\sdk
 flutter.sdk=C:\\[YOUR_FLUTTER_PATH]
 ```
 
 **Find your paths:**
+
 - `sdk.dir`: Run `flutter doctor -v` and check the Android SDK path
 - `flutter.sdk`: Run `which flutter` (macOS/Linux) or `where flutter` (Windows)
 
@@ -118,11 +119,40 @@ cp .env.template .env
 
 The file is pre-configured with **test AdMob IDs and other secrets** (safe for development). Skip editing unless using production values.
 
+### Configure Release Signing (Play Store)
+
+For local/CI production builds, set your upload key files:
+
+```bash
+cp android/key.properties.template android/key.properties
+```
+
+Then edit `android/key.properties` and set your real values:
+
+```properties
+storeFile=upload-keystore.jks
+storePassword=YOUR_STORE_PASSWORD
+keyAlias=upload
+keyPassword=YOUR_KEY_PASSWORD
+```
+
+Place the keystore file at `android/upload-keystore.jks`.
+
+The app uses release signing when `android/key.properties` exists, otherwise it falls back to debug signing.
+
 ### Run
 
 ```bash
 flutter pub get
 flutter run
+```
+
+### Build Release AAB (Play Console)
+
+```bash
+flutter build appbundle --release \
+  --dart-define=ADMOB_BANNER_ID=YOUR_REAL_BANNER_ID \
+  --dart-define=ADMOB_INTERSTITIAL_ID=YOUR_REAL_INTERSTITIAL_ID
 ```
 
 ---

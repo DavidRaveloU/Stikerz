@@ -232,5 +232,17 @@
     "externalServiceTimeout": "Tempo de espera esgotado. Tente novamente em instantes.",
     "externalServiceInvalidResponse": "Resposta inválida do serviço externo.",
     "externalServiceNotVideo": "O link não é um vídeo. Escolha um vídeo válido.",
-    "externalServiceVideoNotPublic": "Não foi possível obter o vídeo. Verifique se está público."
+    "externalServiceVideoNotPublic": "Não foi possível obter o vídeo. Verifique se está público.",
+    "videoPreparationTitle": "Processando vídeo",
+  "videoPreparationDefault": "O processamento do vídeo depende da sua conexão com a internet.",
+  "videoPreparationSlow": "Ainda estamos preparando o vídeo. Se demorar, sua conexão pode estar lenta.",
+  "videoPreparationVerySlow": "A conexão parece lenta. Seguimos tentando preparar o vídeo.",
+  "videoPreparationTooLong": "Isso está demorando mais do que o normal. Uma conexão fraca pode aumentar a espera.",
+  "videoPreparationRetrying": "A conexão caiu. Tentando novamente ({attempt}/{maxAttempts})...",
+  "@videoPreparationRetrying": {
+    "placeholders": {
+      "attempt": { "type": "int" },
+      "maxAttempts": { "type": "int" }
+      }
+    }
   }

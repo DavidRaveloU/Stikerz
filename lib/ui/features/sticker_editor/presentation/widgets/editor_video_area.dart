@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:stikerz/core/constants/app_colors.dart';
@@ -8,8 +10,10 @@ import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_box
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_overlay.dart';
 
 class EditorVideoArea extends StatelessWidget {
-  final VideoController videoController;
+  final VideoController? videoController;
   final bool videoReady;
+  final bool isBuffering;
+  final String? thumbnailPath;
   final Offset cropOffset;
   final double cropWidth;
   final AspectRatioOption aspectRatio;
@@ -20,8 +24,10 @@ class EditorVideoArea extends StatelessWidget {
 
   const EditorVideoArea({
     super.key,
-    required this.videoController,
+    this.videoController,
     required this.videoReady,
+    this.isBuffering = false,
+    this.thumbnailPath,
     required this.cropOffset,
     required this.cropWidth,
     required this.aspectRatio,
@@ -44,49 +50,86 @@ class EditorVideoArea extends StatelessWidget {
           color: Colors.black,
           child: Stack(
             children: [
-              if (videoReady)
+              if (videoReady && videoController != null)
                 Positioned.fill(
                   child: Video(
-                    controller: videoController,
+                    controller: videoController!,
                     controls: NoVideoControls,
                     fit: BoxFit.contain,
                   ),
                 )
               else
-                // Fallback loading state used while remote media initializes.
+                // Show thumbnail if available so user sees immediate feedback.
                 Container(
                   color: Colors.black,
                   child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        SizedBox(
-                          width: context.responsiveSize(36, tabletSize: 40),
-                          height: context.responsiveSize(36, tabletSize: 40),
-                          child: CircularProgressIndicator(
-                            color: AppColors.accent,
-                            strokeWidth: 3.5,
-                          ),
-                        ),
-                        SizedBox(height: context.responsiveSize(20, tabletSize: 24)),
-                        Text(
-                          context.l10n.loadingVideo,
-                          style: context.responsiveTextStyle(
-                            mobileSize: 16,
-                            tabletSize: 18,
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(height: context.responsiveSize(6, tabletSize: 8)),
-                        Text(
-                          context.l10n.instagramLoadingNote,
-                          style: context.responsiveTextStyle(
-                            mobileSize: 13,
-                            tabletSize: 14,
-                            color: AppColors.textMuted,
-                          ),
-                          textAlign: TextAlign.center,
+                        if (thumbnailPath != null)
+                          Positioned.fill(
+                            child: thumbnailPath!.startsWith('http')
+                                ? Image.network(
+                                    thumbnailPath!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.file(
+                                    File(thumbnailPath!),
+                                    fit: BoxFit.cover,
+                                  ),
+                          )
+                        else
+                          const SizedBox(),
+
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: context.responsiveSize(36, tabletSize: 40),
+                              height: context.responsiveSize(
+                                36,
+                                tabletSize: 40,
+                              ),
+                              child: CircularProgressIndicator(
+                                color: AppColors.accent,
+                                strokeWidth: 3.5,
+                              ),
+                            ),
+                            SizedBox(
+                              height: context.responsiveSize(
+                                12,
+                                tabletSize: 14,
+                              ),
+                            ),
+                            Text(
+                              isBuffering
+                                  ? 'Conexión lenta — reintentando…'
+                                  : _getLoadingText(context),
+                              style: context.responsiveTextStyle(
+                                mobileSize: 16,
+                                tabletSize: 18,
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (!isBuffering) ...[
+                              SizedBox(
+                                height: context.responsiveSize(
+                                  6,
+                                  tabletSize: 8,
+                                ),
+                              ),
+                              Text(
+                                _getLoadingNote(context),
+                                style: context.responsiveTextStyle(
+                                  mobileSize: 13,
+                                  tabletSize: 14,
+                                  color: AppColors.textMuted,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
@@ -142,6 +185,22 @@ class EditorVideoArea extends StatelessWidget {
   Size _getCropSize(double width, AspectRatioOption ratio, double videoAspect) {
     final height = (width * videoAspect) / ratio.ratio;
     return Size(width, height);
+  }
+
+  String _getLoadingText(BuildContext context) {
+    try {
+      return context.l10n.loadingVideo;
+    } catch (_) {
+      return 'Loading video...';
+    }
+  }
+
+  String _getLoadingNote(BuildContext context) {
+    try {
+      return context.l10n.instagramLoadingNote;
+    } catch (_) {
+      return 'This may take a few seconds';
+    }
   }
 
   Rect _calculateVideoRect(Size areaSize, double videoAspect) {

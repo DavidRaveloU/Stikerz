@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -19,6 +20,7 @@ import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_t
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_video_area.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/generate_confirm_dialog.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/generation_failure_modal.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/video_prefetcher.dart';
 
 class StickerEditorPage extends ConsumerStatefulWidget {
   final int packId;
@@ -44,9 +46,11 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
     with TickerProviderStateMixin {
   late final Player _player;
   late final VideoController _videoController;
+  late final VideoPrefetcher _prefetcher;
 
   bool _videoReady = false;
   bool _isPlaying = false;
+  bool _isBuffering = false;
   bool _isGenerating = false;
   String _generationStatus = '';
   double? _generationProgress;
@@ -62,6 +66,12 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
   double _videoAspect = 1.0;
 
   late AnimationController _playheadCtrl;
+  StreamSubscription<Duration>? _positionSub;
+  int _lastPositionMs = -1;
+  DateTime _lastPosSeen = DateTime.now();
+  // Native player cache seconds used as an approximation for buffered amount
+  final double _cacheSecs = 15.0;
+  double? _bufferedFraction;
 
   @override
   void initState() {
@@ -70,6 +80,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
     if (!widget.skipVideoInitialization) {
       _player = Player();
       _videoController = VideoController(_player);
+      _prefetcher = VideoPrefetcher(() => _bufferedFraction ?? 0.0);
     }
 
     _playheadCtrl =
@@ -161,6 +172,58 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
       if (!mounted) return;
       setState(() => _videoReady = true);
 
+      // Start listening to position updates to detect stalls/buffering.
+      _positionSub = _player.stream.position.listen((pos) {
+        if (!mounted) return;
+        final ms = pos.inMilliseconds;
+
+        if (_isPlaying) {
+          if (ms == _lastPositionMs) {
+            // position not advancing
+            if (DateTime.now().difference(_lastPosSeen) >
+                const Duration(milliseconds: 800)) {
+              if (!_isBuffering) {
+                setState(() => _isBuffering = true);
+                // pause playback while buffering to avoid audio-only experience
+                _player.pause();
+                // stop the playhead animation so timeline stops moving
+                try {
+                  _playheadCtrl.stop();
+                } catch (_) {}
+              }
+            }
+          } else {
+            // position advanced
+            _lastPositionMs = ms;
+            _lastPosSeen = DateTime.now();
+            // sync playhead with actual player position for accurate timeline
+            final posSecs = ms / 1000.0;
+            setState(() {
+              _playheadPosition = (posSecs / _videoDurationSecs).clamp(
+                0.0,
+                1.0,
+              );
+              _bufferedFraction = ((posSecs + _cacheSecs) / _videoDurationSecs)
+                  .clamp(0.0, 1.0);
+            });
+            if (_isBuffering) {
+              // resume playback when progress resumes
+              _player.play();
+              setState(() => _isBuffering = false);
+              // resume playhead animation from current value
+              try {
+                if (!_playheadCtrl.isAnimating) {
+                  _playheadCtrl.forward();
+                }
+              } catch (_) {}
+            }
+          }
+        } else {
+          _lastPositionMs = ms;
+          _lastPosSeen = DateTime.now();
+        }
+      });
+
       await _player.play();
       if (!mounted) return;
       setState(() => _isPlaying = true);
@@ -183,9 +246,21 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
     setState(() => _playheadPosition = _startPoint);
 
     _playheadCtrl.stop();
-    if (_isPlaying) {
+
+    // Wait for estimated buffered fraction to cover the target start.
+    final targetFraction = _startPoint.clamp(0.0, 1.0);
+    final buffered = await _prefetcher.waitForBuffered(
+      targetFraction,
+      timeout: const Duration(seconds: 8),
+    );
+
+    if (_isPlaying && buffered) {
       await _player.play();
       _playheadCtrl.forward(from: 0);
+    } else if (_isPlaying && !buffered) {
+      // still not buffered: show buffering state and keep paused until
+      // the position stream detects progress and resumes playback.
+      setState(() => _isBuffering = true);
     }
   }
 
@@ -225,11 +300,21 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
   }
 
   void _togglePlay() async {
+    // If currently buffering, avoid trying to play until buffer resumes.
+    if (!_isPlaying && _isBuffering) {
+      // show buffering state and don't start playhead
+      setState(() => _isPlaying = false);
+      return;
+    }
+
     setState(() => _isPlaying = !_isPlaying);
 
     if (_isPlaying) {
       await _player.play();
-      _playheadCtrl.forward();
+      // start playhead animation only when not buffering
+      if (!_isBuffering) {
+        _playheadCtrl.forward();
+      }
     } else {
       await _player.pause();
       _playheadCtrl.stop();
@@ -373,6 +458,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
   void dispose() {
     if (!widget.skipVideoInitialization) {
       _player.dispose();
+      _positionSub?.cancel();
     }
     _playheadCtrl.dispose();
     super.dispose();
@@ -499,6 +585,9 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
                   : EditorVideoArea(
                       videoController: _videoController,
                       videoReady: _videoReady,
+                      isBuffering: _isBuffering,
+                      // no thumbnail path available by default; could be provided later
+                      thumbnailPath: null,
                       cropOffset: _cropOffset,
                       cropWidth: _cropWidth,
                       aspectRatio: _aspectRatio,
@@ -513,6 +602,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
               duration: _duration,
               playheadPosition: _playheadPosition,
               videoDurationSecs: _videoDurationSecs,
+              bufferedFraction: _bufferedFraction,
             ),
             EditorControls(
               startPoint: _startPoint,

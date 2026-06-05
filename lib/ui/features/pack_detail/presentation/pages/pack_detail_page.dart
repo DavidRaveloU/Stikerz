@@ -12,6 +12,7 @@ import 'package:stikerz/core/extensions/localization_extension.dart';
 import 'package:stikerz/core/providers/share_provider.dart';
 import 'package:stikerz/core/repositories/pack_repository.dart';
 import 'package:stikerz/core/services/ads_service.dart';
+import 'package:stikerz/core/services/video_preparation_service.dart';
 import 'package:stikerz/core/utils/error_localization.dart';
 import 'package:stikerz/core/utils/responsive_text.dart';
 import 'package:stikerz/data/models/sticker_model.dart';
@@ -26,6 +27,7 @@ import 'package:stikerz/ui/features/pack_detail/presentation/widgets/sticker_gri
 import 'package:stikerz/ui/features/pack_detail/presentation/widgets/sticker_preview_sheet.dart';
 import 'package:stikerz/ui/features/pack_detail/presentation/widgets/whatsapp_button.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/pages/sticker_editor_page.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/pages/video_preparation_page.dart';
 import 'package:stikerz/ui/features/video_picker/presentation/pages/video_picker_page.dart';
 
 class PackDetailPage extends ConsumerStatefulWidget {
@@ -179,47 +181,55 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
             MaterialPageRoute(builder: (_) => const VideoPickerPage()),
           ).then((videoPath) {
             if (videoPath == null || !mounted) return;
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => StickerEditorPage(
-                  packId: widget.packId,
-                  slotIndex: index,
-                  sourceType: 'local',
-                  videoPath: videoPath,
-                ),
-              ),
+            _openEditorWhenReady(
+              videoPath: videoPath,
+              slotIndex: index,
+              sourceType: 'local',
             );
           });
         },
         onTikTokUrl: (videoUrl) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => StickerEditorPage(
-                packId: widget.packId,
-                slotIndex: index,
-                sourceType: 'tiktok',
-                videoPath: videoUrl,
-              ),
-            ),
+          _openEditorWhenReady(
+            videoPath: videoUrl,
+            slotIndex: index,
+            sourceType: 'tiktok',
           );
         },
         onInstagramUrl: (videoUrl) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => StickerEditorPage(
-                packId: widget.packId,
-                slotIndex: index,
-                sourceType: 'instagram',
-                videoPath: videoUrl,
-              ),
-            ),
+          _openEditorWhenReady(
+            videoPath: videoUrl,
+            slotIndex: index,
+            sourceType: 'instagram',
           );
         },
       ),
     );
+  }
+
+  void _openEditorWhenReady({
+    required String videoPath,
+    required int slotIndex,
+    required String sourceType,
+  }) {
+    final route = VideoPreparationService.isRemoteVideoSource(videoPath)
+        ? MaterialPageRoute(
+            builder: (_) => VideoPreparationPage(
+              packId: widget.packId,
+              slotIndex: slotIndex,
+              sourceType: sourceType,
+              videoPath: videoPath,
+            ),
+          )
+        : MaterialPageRoute(
+            builder: (_) => StickerEditorPage(
+              packId: widget.packId,
+              slotIndex: slotIndex,
+              sourceType: sourceType,
+              videoPath: videoPath,
+            ),
+          );
+
+    Navigator.push(context, route);
   }
 
   void _showPackOptions(StickerPackModel pack) {
@@ -307,16 +317,10 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
           final videoUrl = currentPending.resolvedVideoUrl!;
           final int slotIndex = empty;
           ref.read(pendingShareProvider.notifier).state = null;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => StickerEditorPage(
-                packId: widget.packId,
-                slotIndex: slotIndex,
-                sourceType: currentPending.source,
-                videoPath: videoUrl,
-              ),
-            ),
+          _openEditorWhenReady(
+            videoPath: videoUrl,
+            slotIndex: slotIndex,
+            sourceType: currentPending.source,
           );
         });
 
