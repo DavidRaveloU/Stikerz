@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
@@ -33,8 +34,12 @@ class WhatsAppStickerService {
     final sortedStickers = List<StickerModel>.from(pack.stickers)
       ..sort((a, b) => a.slotIndex.compareTo(b.slotIndex));
 
+    debugPrint(
+      '🆔 Enviando pack "${pack.name}" con identifier=${pack.identifier}',
+    );
+
     final payload = {
-      'identifier': 'pack_${pack.id}',
+      'identifier': pack.identifier,
       'name': pack.name,
       'publisher': pack.author,
       'trayImagePath': trayPath,

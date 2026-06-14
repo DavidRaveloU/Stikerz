@@ -21,6 +21,8 @@ class EditorVideoArea extends StatelessWidget {
   final Function(Offset offset, double width) onCropChanged;
   final VoidCallback onTogglePlay;
   final bool isPlaying;
+  final bool isMuted;
+  final VoidCallback onToggleMute;
 
   const EditorVideoArea({
     super.key,
@@ -35,6 +37,8 @@ class EditorVideoArea extends StatelessWidget {
     required this.onCropChanged,
     required this.onTogglePlay,
     required this.isPlaying,
+    required this.isMuted,
+    required this.onToggleMute,
   });
 
   @override
@@ -169,6 +173,29 @@ class EditorVideoArea extends StatelessWidget {
                       isPlaying
                           ? Icons.pause_rounded
                           : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: context.responsiveSize(22, tabletSize: 24),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: context.responsiveSize(16, tabletSize: 20),
+                right: context.responsiveSize(66, tabletSize: 72),
+                child: GestureDetector(
+                  onTap: onToggleMute,
+                  child: Container(
+                    width: context.responsiveSize(42, tabletSize: 46),
+                    height: context.responsiveSize(42, tabletSize: 46),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Icon(
+                      isMuted
+                          ? Icons.volume_off_rounded
+                          : Icons.volume_up_rounded,
                       color: Colors.white,
                       size: context.responsiveSize(22, tabletSize: 24),
                     ),

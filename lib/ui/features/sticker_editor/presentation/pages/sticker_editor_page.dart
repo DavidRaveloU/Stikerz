@@ -54,6 +54,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
   bool _isGenerating = false;
   String _generationStatus = '';
   double? _generationProgress;
+  bool _isMuted = true;
 
   // Local editor state.
   AspectRatioOption _aspectRatio = AspectRatioOption.square;
@@ -129,7 +130,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
       }
 
       await _player.open(Media(path), play: false);
-
+      await _player.setVolume(_isMuted ? 0 : 100);
       bool videoInitialized = false;
 
       _player.stream.duration.first.then((dur) {
@@ -236,6 +237,11 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
       ).showSnackBar(SnackBar(content: Text(context.l10n.videoOpenError(e))));
       Navigator.pop(context);
     }
+  }
+
+  void _toggleMute() {
+    setState(() => _isMuted = !_isMuted);
+    _player.setVolume(_isMuted ? 0 : 100);
   }
 
   Future<void> _restartLoopPreviewFromStart() async {
@@ -586,7 +592,6 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
                       videoController: _videoController,
                       videoReady: _videoReady,
                       isBuffering: _isBuffering,
-                      // no thumbnail path available by default; could be provided later
                       thumbnailPath: null,
                       cropOffset: _cropOffset,
                       cropWidth: _cropWidth,
@@ -595,6 +600,8 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
                       onCropChanged: _updateCrop,
                       onTogglePlay: _togglePlay,
                       isPlaying: _isPlaying,
+                      isMuted: _isMuted,
+                      onToggleMute: _toggleMute,
                     ),
             ),
             EditorTimeline(

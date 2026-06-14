@@ -33,6 +33,7 @@ Future<void> main(List<String> args) async {
       ]);
 
       await PackRepository.init();
+      await PackRepository.instance.migrateMissingIdentifiers();
       await AppStateRepository.instance.isOnboardingCompleted();
 
       runApp(const ProviderScope(child: ShareIntentHandler()));

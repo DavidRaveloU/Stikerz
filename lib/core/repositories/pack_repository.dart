@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:isar/isar.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../data/models/app_state_model.dart';
 import '../../data/models/sticker_model.dart';
@@ -95,6 +96,7 @@ class PackRepository {
       ..name = safeName
       ..author = safeAuthor
       ..createdAt = DateTime.now()
+      ..identifier = const Uuid().v4()
       ..stickers = [];
 
     await _db.writeTxn(() => _db.stickerPackModels.put(pack));
@@ -179,5 +181,19 @@ class PackRepository {
 
   Future<StickerPackModel?> getPackById(int id) async {
     return await _db.stickerPackModels.get(id);
+  }
+
+  Future<void> migrateMissingIdentifiers() async {
+    final all = await _db.stickerPackModels.where().findAll();
+    final toFix = all.where((p) => p.identifier.isEmpty).toList();
+
+    if (toFix.isEmpty) return;
+
+    await _db.writeTxn(() async {
+      for (final pack in toFix) {
+        pack.identifier = const Uuid().v4();
+        await _db.stickerPackModels.put(pack);
+      }
+    });
   }
 }

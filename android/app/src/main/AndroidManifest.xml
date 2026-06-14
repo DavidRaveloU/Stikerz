@@ -10,6 +10,7 @@
         android:label="Stikerz"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
         tools:replace="android:name">
 
         <!-- Google Mobile Ads App ID (injected at build-time from gradle.properties) -->
