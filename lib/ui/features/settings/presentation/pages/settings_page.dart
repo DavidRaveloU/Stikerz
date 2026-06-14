@@ -110,7 +110,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           SettingsTile(
             icon: Icons.star_rate,
             title: l10n.rateApp,
-            onTap: () {},
+            onTap: () async {
+              final uri = Uri.parse(
+                'https://play.google.com/store/apps/details?id=com.davidravelo.stikerz',
+              );
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
           ),
           SettingsTile(
             icon: Icons.local_cafe,
