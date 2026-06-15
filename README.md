@@ -9,9 +9,10 @@ Whaticker lets you capture short-form videos from TikTok, Instagram, or your dev
 ## Screenshots
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/5cb1f189-6770-49be-b994-9b7fd221b444" width="30%" style="margin: 0 8px;" />
-  <img src="https://github.com/user-attachments/assets/c85ddde4-5d51-4ea9-a7d9-8bdaef592614" width="30%" style="margin: 0 8px;" />
-  <img src="https://github.com/user-attachments/assets/df1204e8-1fa5-4e01-9db5-5342b61dc6a7" width="30%" style="margin: 0 8px;" />
+  <img width="20%" style="margin: 0 8px;" alt="Screenshot 1" src="https://github.com/user-attachments/assets/14a9461f-2e1b-45cd-9d54-6d5391e08b31" />
+  <img width="20%" style="margin: 0 8px;" alt="Screenshot 2" src="https://github.com/user-attachments/assets/20d77005-b83d-42e4-8892-f5098c413d0d" />
+  <img width="20%" style="margin: 0 8px;" alt="Screenshot 3" src="https://github.com/user-attachments/assets/9a686ca1-0f14-49db-b2e3-929888458e4f" />
+  <img width="20%" style="margin: 0 8px;" alt="Screenshot 4" src="https://github.com/user-attachments/assets/439616e2-c92a-4e3a-ad74-6a96223187cd" />
 </p>
 
 
