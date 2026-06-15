@@ -588,20 +588,23 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
             Expanded(
               child: widget.skipVideoInitialization
                   ? _buildLoadingArea(context)
-                  : EditorVideoArea(
-                      videoController: _videoController,
-                      videoReady: _videoReady,
-                      isBuffering: _isBuffering,
-                      thumbnailPath: null,
-                      cropOffset: _cropOffset,
-                      cropWidth: _cropWidth,
-                      aspectRatio: _aspectRatio,
-                      videoAspect: _videoAspect,
-                      onCropChanged: _updateCrop,
-                      onTogglePlay: _togglePlay,
-                      isPlaying: _isPlaying,
-                      isMuted: _isMuted,
-                      onToggleMute: _toggleMute,
+                  : IgnorePointer(
+                      ignoring: _isGenerating,
+                      child: EditorVideoArea(
+                        videoController: _videoController,
+                        videoReady: _videoReady,
+                        isBuffering: _isBuffering,
+                        thumbnailPath: null,
+                        cropOffset: _cropOffset,
+                        cropWidth: _cropWidth,
+                        aspectRatio: _aspectRatio,
+                        videoAspect: _videoAspect,
+                        onCropChanged: _updateCrop,
+                        onTogglePlay: _togglePlay,
+                        isPlaying: _isPlaying,
+                        isMuted: _isMuted,
+                        onToggleMute: _toggleMute,
+                      ),
                     ),
             ),
             EditorTimeline(
