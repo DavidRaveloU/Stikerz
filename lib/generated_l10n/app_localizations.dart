@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Whaticker'**
+  /// **'Stikerz'**
   String get appTitle;
 
   /// No description provided for @home.
@@ -808,6 +808,18 @@ abstract class AppLocalizations {
   /// **'Import from TikTok'**
   String get importFromTikTok;
 
+  /// No description provided for @stickerTooHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker is too heavy'**
+  String get stickerTooHeavy;
+
+  /// No description provided for @needToReduce.
+  ///
+  /// In en, this message translates to:
+  /// **'Need to reduce {amount}KB more to meet the 500KB limit'**
+  String needToReduce(int amount);
+
   /// No description provided for @pasteVideoLink.
   ///
   /// In en, this message translates to:
@@ -1039,7 +1051,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Whaticker!'**
+  /// **'Welcome to Stikerz!'**
   String get onboardingWelcomeTitle;
 
   /// No description provided for @onboardingWelcomeDesc.
@@ -1093,13 +1105,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingShareDirectStep2.
   ///
   /// In en, this message translates to:
-  /// **'Use the share button and select \"Whaticker\" from the options'**
+  /// **'Use the share button and select \"Stikerz\" from the options'**
   String get onboardingShareDirectStep2;
 
   /// No description provided for @onboardingAdsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Thank you for using Whaticker!'**
+  /// **'Thank you for using Stikerz!'**
   String get onboardingAdsTitle;
 
   /// No description provided for @onboardingAdsDescription.
@@ -1191,6 +1203,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Just hit share on TikTok or IG and send it straight to our app. It takes only a couple taps — fast, preserves quality, and converts clips into animated stickers instantly.'**
   String get onboardingShareDescExtended;
+
+  /// No description provided for @onboardingLegalPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you agree to our '**
+  String get onboardingLegalPrefix;
+
+  /// No description provided for @onboardingLegalAnd.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get onboardingLegalAnd;
+
+  /// No description provided for @onboardingLegalSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'.'**
+  String get onboardingLegalSuffix;
+
+  /// No description provided for @permissionRequiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery access required'**
+  String get permissionRequiredTitle;
+
+  /// No description provided for @permissionRequiredDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You previously denied access to your videos. To import videos from your gallery, you need to enable permission manually.'**
+  String get permissionRequiredDesc;
+
+  /// No description provided for @openSettingsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get openSettingsButton;
+
+  /// No description provided for @permissionStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap \'Open settings\' below'**
+  String get permissionStep1;
+
+  /// No description provided for @permissionStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Find \'Permissions\' and tap \'Photos & videos\' or \'Media\''**
+  String get permissionStep2;
+
+  /// No description provided for @permissionStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Select \'Allow\' or \'Allow all\''**
+  String get permissionStep3;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @changeLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change language'**
+  String get changeLanguage;
+
+  /// No description provided for @useDeviceLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Use device language'**
+  String get useDeviceLanguage;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageSpanish.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get languageSpanish;
+
+  /// No description provided for @languagePortuguese.
+  ///
+  /// In en, this message translates to:
+  /// **'Portuguese'**
+  String get languagePortuguese;
+
+  /// No description provided for @termsAndConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Conditions'**
+  String get termsAndConditions;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @rateApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate app'**
+  String get rateApp;
+
+  /// No description provided for @reportBug.
+  ///
+  /// In en, this message translates to:
+  /// **'Report bug'**
+  String get reportBug;
+
+  /// No description provided for @aboutDeveloper.
+  ///
+  /// In en, this message translates to:
+  /// **'About Developer'**
+  String get aboutDeveloper;
+
+  /// No description provided for @aboutRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead Developer & Designer'**
+  String get aboutRole;
+
+  /// No description provided for @aboutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating fluid and beautiful digital experiences for the world.'**
+  String get aboutDescription;
+
+  /// No description provided for @versionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get versionLabel;
+
+  /// No description provided for @bugReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug Report'**
+  String get bugReport;
+
+  /// No description provided for @deviceInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Information'**
+  String get deviceInfo;
+
+  /// No description provided for @describeProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the problem'**
+  String get describeProblem;
+
+  /// No description provided for @describeProblemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe your problem or provide feedback'**
+  String get describeProblemHint;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @emailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'yourname@example.com'**
+  String get emailHint;
+
+  /// No description provided for @sendFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Feedback'**
+  String get sendFeedback;
+
+  /// No description provided for @alternatively.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternatively'**
+  String get alternatively;
+
+  /// No description provided for @sendEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Email'**
+  String get sendEmail;
+
+  /// No description provided for @feedbackSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you! Your feedback has been sent.'**
+  String get feedbackSent;
+
+  /// No description provided for @externalServiceDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to the external service. It may be temporarily down; please try again later.'**
+  String get externalServiceDown;
+
+  /// No description provided for @externalServiceTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Request timed out. Please try again shortly.'**
+  String get externalServiceTimeout;
+
+  /// No description provided for @externalServiceInvalidResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid response from external service.'**
+  String get externalServiceInvalidResponse;
+
+  /// No description provided for @externalServiceNotVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'The link is not a video. Please choose a valid video.'**
+  String get externalServiceNotVideo;
+
+  /// No description provided for @externalServiceVideoNotPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not retrieve the video. Please ensure it is public.'**
+  String get externalServiceVideoNotPublic;
+
+  /// No description provided for @videoPreparationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing video'**
+  String get videoPreparationTitle;
+
+  /// No description provided for @videoPreparationDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Video processing depends on your internet connection.'**
+  String get videoPreparationDefault;
+
+  /// No description provided for @videoPreparationSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'We are still preparing the video. If it takes longer, your connection may be slow.'**
+  String get videoPreparationSlow;
+
+  /// No description provided for @videoPreparationVerySlow.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection looks slow. We are still trying to prepare the video.'**
+  String get videoPreparationVerySlow;
+
+  /// No description provided for @videoPreparationTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'This is taking longer than usual. A weak connection can increase the wait time.'**
+  String get videoPreparationTooLong;
+
+  /// No description provided for @videoPreparationRetrying.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost. Retrying ({attempt}/{maxAttempts})...'**
+  String videoPreparationRetrying(int attempt, int maxAttempts);
 }
 
 class _AppLocalizationsDelegate

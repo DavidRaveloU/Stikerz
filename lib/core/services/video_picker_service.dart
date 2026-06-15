@@ -1,9 +1,9 @@
 import 'package:photo_manager/photo_manager.dart';
 
-/// Servicio responsable de la selección y carga de videos desde la galería del dispositivo.
+/// Service responsible for selecting and loading videos from the device gallery.
 class VideoPickerService {
-  /// Solicita permisos para acceder únicamente a videos.
-  /// Retorna el estado real del permiso en Android/iOS.
+  /// Requests permission to access videos only.
+  /// Returns the actual permission state on Android/iOS.
   static Future<PermissionState> requestPermission() async {
     return await PhotoManager.requestPermissionExtend(
       requestOption: const PermissionRequestOption(
@@ -15,16 +15,16 @@ class VideoPickerService {
     );
   }
 
-  /// Abre el selector nativo de fotos limitado solo a videos.
+  /// Presents the native photo picker limited to videos only.
   static Future<void> presentLimitedPicker() async {
     await PhotoManager.presentLimited(type: RequestType.video);
   }
 
-  /// Carga una página de videos desde la galería, ordenados por fecha de creación descendente
-  /// (los más recientes primero).
+  /// Loads one page of videos from the gallery, ordered by creation date descending
+  /// (most recent first).
   ///
-  /// [page]     - Página actual (0-based)
-  /// [pageSize] - Cantidad de videos por página
+  /// [page]     - Current page (0-based)
+  /// [pageSize] - Number of videos per page
   static Future<List<AssetEntity>> loadVideos({
     int page = 0,
     int pageSize = 80,

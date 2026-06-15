@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,7 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "com.davidravelo.whaticker"
+    val keystoreProperties = Properties()
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    val hasReleaseKeystore = keystorePropertiesFile.exists()
+
+    if (hasReleaseKeystore) {
+        keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+    }
+
+    namespace = "com.davidravelo.stikerz"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -23,9 +33,9 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.davidravelo.whaticker"
+        applicationId = "com.davidravelo.stikerz"
         minSdk = flutter.minSdkVersion
-        targetSdk = 36
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         
@@ -34,14 +44,32 @@ android {
         resValue("string", "admob_app_id", admobAppId)
     }
 
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                val storeFilePath = keystoreProperties["storeFile"] as String
+                val storePasswordValue = keystoreProperties["storePassword"] as String
+                val keyAliasValue = keystoreProperties["keyAlias"] as String
+                val keyPasswordValue = keystoreProperties["keyPassword"] as String
+
+                storeFile = file(storeFilePath)
+                storePassword = storePasswordValue
+                keyAlias = keyAliasValue
+                keyPassword = keyPasswordValue
+            }
+        }
+    }
+
     buildTypes {
         release {
             // evitar que rompa plugins
             isMinifyEnabled = false
             isShrinkResources = false
-
-            // (lo dejamos como lo tienes)
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }

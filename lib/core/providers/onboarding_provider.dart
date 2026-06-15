@@ -1,20 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whaticker/core/repositories/app_state_repository.dart';
+import 'package:stikerz/core/repositories/app_state_repository.dart';
 
-/// Provider para saber si el onboarding fue completado
+/// Provider that exposes whether onboarding has been completed.
 final onboardingCompletedProvider = FutureProvider<bool>((ref) async {
   final repository = AppStateRepository.instance;
   return await repository.isOnboardingCompleted();
 });
 
-/// Provider notificador para cambiar el estado de onboarding
+/// Notifier provider to change onboarding state.
 final onboardingNotifierProvider =
     StateNotifierProvider<OnboardingNotifier, bool>((ref) {
-      return OnboardingNotifier();
-    });
+  return OnboardingNotifier();
+});
 
 class OnboardingNotifier extends StateNotifier<bool> {
-  OnboardingNotifier() : super(false) {
+  OnboardingNotifier()
+    : super(AppStateRepository.instance.cachedOnboardingCompleted ?? false) {
     _initialize();
   }
 

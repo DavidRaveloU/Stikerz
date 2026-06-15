@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/core/repositories/pack_repository.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/repositories/pack_repository.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class RenamePackModal extends StatefulWidget {
   final String currentName;
@@ -67,7 +68,12 @@ class _RenamePackModalState extends State<RenamePackModal> {
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: EdgeInsets.fromLTRB(
+          context.responsiveSize(20, tabletSize: 24),
+          context.responsiveSize(12, tabletSize: 14),
+          context.responsiveSize(20, tabletSize: 24),
+          context.responsiveSize(32, tabletSize: 36),
+        ),
         child: Form(
           key: _formKey,
           child: Column(
@@ -76,7 +82,7 @@ class _RenamePackModalState extends State<RenamePackModal> {
             children: [
               Center(
                 child: Container(
-                  width: 36,
+                  width: context.responsiveSize(36, tabletSize: 40),
                   height: 4,
                   decoration: BoxDecoration(
                     color: AppColors.border,
@@ -84,24 +90,26 @@ class _RenamePackModalState extends State<RenamePackModal> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: context.responsiveSize(20, tabletSize: 24)),
               Text(
                 context.l10n.renamePackTitle,
-                style: const TextStyle(
+                style: context.responsiveTextStyle(
+                  mobileSize: 20,
+                  tabletSize: 22,
                   color: AppColors.textPrimary,
-                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: context.responsiveSize(20, tabletSize: 24)),
 
               _buildField(
                 label: context.l10n.packNameLabel,
                 controller: _nameCtrl,
                 hint: context.l10n.packNamePlaceholder,
                 onChanged: (_) {
-                  if (_nameInlineError != null)
+                  if (_nameInlineError != null) {
                     setState(() => _nameInlineError = null);
+                  }
                 },
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
@@ -110,7 +118,7 @@ class _RenamePackModalState extends State<RenamePackModal> {
                   return _nameInlineError;
                 },
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: context.responsiveSize(14, tabletSize: 16)),
 
               _buildField(
                 label: context.l10n.authorNameLabel,
@@ -120,18 +128,22 @@ class _RenamePackModalState extends State<RenamePackModal> {
                     ? context.l10n.emptyFieldError
                     : null,
               ),
-              const SizedBox(height: 22),
+              SizedBox(height: context.responsiveSize(22, tabletSize: 24)),
 
+              // Use vertical padding instead of fixed height for better
+              // accessibility with larger system font sizes.
               SizedBox(
                 width: double.infinity,
                 child: GestureDetector(
                   onTap: _loading ? null : _submit,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    height: 52,
+                    padding: EdgeInsets.symmetric(
+                      vertical: context.responsiveSize(16, tabletSize: 18),
+                    ),
                     decoration: BoxDecoration(
                       color: _loading
-                          ? AppColors.accent.withOpacity(0.6)
+                          ? AppColors.accent.withValues(alpha: 0.6)
                           : AppColors.accent,
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -147,9 +159,10 @@ class _RenamePackModalState extends State<RenamePackModal> {
                           )
                         : Text(
                             context.l10n.saveChangesButton,
-                            style: const TextStyle(
+                            style: context.responsiveTextStyle(
+                              mobileSize: 15,
+                              tabletSize: 16,
                               color: AppColors.background,
-                              fontSize: 15,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -175,27 +188,36 @@ class _RenamePackModalState extends State<RenamePackModal> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 11,
-            letterSpacing: 1.5,
+          style: context.responsiveTextStyle(
+            mobileSize: 11,
+            tabletSize: 12,
             color: AppColors.textMuted,
+            letterSpacing: 1.5,
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: context.responsiveSize(6, tabletSize: 8)),
         TextFormField(
           controller: controller,
           onChanged: onChanged,
           validator: validator,
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+          style: context.responsiveTextStyle(
+            mobileSize: 14,
+            tabletSize: 15,
+            color: AppColors.textPrimary,
+          ),
           cursorColor: AppColors.accent,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.textMuted),
+            hintStyle: context.responsiveTextStyle(
+              mobileSize: 14,
+              tabletSize: 15,
+              color: AppColors.textMuted,
+            ),
             filled: true,
             fillColor: AppColors.background,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 13,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: context.responsiveSize(14, tabletSize: 16),
+              vertical: context.responsiveSize(13, tabletSize: 14),
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -207,7 +229,9 @@ class _RenamePackModalState extends State<RenamePackModal> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.accent.withOpacity(0.6)),
+              borderSide: BorderSide(
+                color: AppColors.accent.withValues(alpha: 0.6),
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

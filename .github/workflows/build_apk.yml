@@ -1,15 +1,15 @@
-name: Build and Release APK
+name: Build and Release Android
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       target_branch:
         description: 'Target branch for this build (use "main" for production IDs)'
         required: false
-        default: 'main'
+        default: "main"
 
 permissions:
   contents: write
@@ -18,7 +18,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,7 +58,42 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Run Flutter build APK (prod vs test)
+      - name: Create release key files (if secrets are available)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [[ -n "${KEYSTORE_BASE64}" && -n "${KEYSTORE_PASSWORD}" && -n "${KEY_ALIAS}" && -n "${KEY_PASSWORD}" ]]; then
+            echo "${KEYSTORE_BASE64}" | base64 --decode > android/upload-keystore.jks
+            cat > android/key.properties <<EOF
+          storeFile=upload-keystore.jks
+          storePassword=${KEYSTORE_PASSWORD}
+          keyAlias=${KEY_ALIAS}
+          keyPassword=${KEY_PASSWORD}
+          EOF
+            echo "✓ Release signing files created"
+          else
+            echo "ℹ️ Release signing secrets not found. Build will use debug signing fallback."
+          fi
+
+      - name: Run Flutter build AAB (prod vs test)
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.target_branch }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" && "${TARGET_BRANCH}" == "main" ]] || [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            flutter build appbundle --release \
+              --dart-define=ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID }} \
+              --dart-define=ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID }}
+          else
+            flutter build appbundle --release \
+              --dart-define=ADMOB_BANNER_ID=ca-app-pub-3940256099942544/6300978111 \
+              --dart-define=ADMOB_INTERSTITIAL_ID=ca-app-pub-3940256099942544/1033173712
+          fi
+
+      - name: Run Flutter build APK (optional QA artifact)
         env:
           TARGET_BRANCH: ${{ github.event.inputs.target_branch }}
           EVENT_NAME: ${{ github.event_name }}
@@ -73,17 +108,25 @@ jobs:
               --dart-define=ADMOB_INTERSTITIAL_ID=ca-app-pub-3940256099942544/1033173712
           fi
 
+      - name: Upload AAB as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stikerz-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: whaticker-apk
+          name: stikerz-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Create Release and upload APK
+      - name: Create Release and upload AAB/APK
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: |
+            build/app/outputs/bundle/release/app-release.aab
+            build/app/outputs/flutter-apk/app-release.apk
           draft: false
           prerelease: false
         env:
@@ -91,10 +134,12 @@ jobs:
 
       - name: Print build summary
         run: |
-          echo "✓ APK built successfully"
+          echo "✓ AAB built successfully"
+          echo "✓ Location: build/app/outputs/bundle/release/app-release.aab"
+          echo "✓ APK QA artifact built successfully"
           echo "✓ Location: build/app/outputs/flutter-apk/app-release.apk"
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            echo "✓ Release created and APK uploaded"
+            echo "✓ Release created and AAB/APK uploaded"
           else
-            echo "ℹ️ APK available as artifact (push to tag or create Release manually)"
+            echo "ℹ️ AAB/APK available as artifacts (push to tag or create Release manually)"
           fi

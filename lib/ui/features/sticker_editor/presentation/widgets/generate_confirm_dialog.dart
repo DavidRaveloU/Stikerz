@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 import 'aspect_ratio_selector.dart';
 
@@ -27,10 +28,11 @@ class GenerateConfirmDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
         context.l10n.generateStickerTitle,
-        style: TextStyle(
+        style: context.responsiveTextStyle(
+          mobileSize: 17,
+          tabletSize: 18,
           color: AppColors.textPrimary,
           fontWeight: FontWeight.w800,
-          fontSize: 17,
         ),
       ),
       content: Column(
@@ -55,14 +57,20 @@ class GenerateConfirmDialog extends StatelessWidget {
           onPressed: onCancel,
           child: Text(
             context.l10n.cancel,
-            style: const TextStyle(color: AppColors.textSecondary),
+            style: context.responsiveTextStyle(
+              mobileSize: 14,
+              tabletSize: 15,
+              color: AppColors.textSecondary,
+            ),
           ),
         ),
         TextButton(
           onPressed: onConfirm,
           child: Text(
             context.l10n.generateButton,
-            style: const TextStyle(
+            style: context.responsiveTextStyle(
+              mobileSize: 14,
+              tabletSize: 15,
               color: AppColors.accent,
               fontWeight: FontWeight.w700,
             ),
@@ -88,19 +96,24 @@ class _ConfirmRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: context.responsiveSize(4, tabletSize: 6)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+            style: context.responsiveTextStyle(
+              mobileSize: 13,
+              tabletSize: 14,
+              color: AppColors.textMuted,
+            ),
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: context.responsiveTextStyle(
+              mobileSize: 13,
+              tabletSize: 14,
               color: AppColors.textPrimary,
-              fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
           ),

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:whaticker/core/repositories/pack_repository.dart';
-import 'package:whaticker/data/models/sticker_pack_model.dart';
+import 'package:stikerz/core/repositories/pack_repository.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
 
-/// Provider que expone el stream del paquete actual por ID
+/// Exposes the current pack stream by pack ID.
 final packDetailProvider = StreamProvider.family<StickerPackModel?, int>((
   ref,
   packId,
@@ -10,5 +10,5 @@ final packDetailProvider = StreamProvider.family<StickerPackModel?, int>((
   return PackRepository.instance.watchPack(packId);
 });
 
-/// Provider para el tab seleccionado (0 = Stickers, 1 = Info)
+/// Holds the selected tab index (0 = stickers, 1 = info).
 final packDetailTabProvider = StateProvider<int>((ref) => 0);

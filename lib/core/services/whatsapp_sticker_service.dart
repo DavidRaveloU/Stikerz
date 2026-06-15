@@ -1,10 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
-import 'package:whaticker/data/models/sticker_model.dart';
-import 'package:whaticker/data/models/sticker_pack_model.dart';
+import 'package:stikerz/data/models/sticker_model.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
 
 class WhatsAppStickerException implements Exception {
   final String message;
@@ -15,16 +16,16 @@ class WhatsAppStickerException implements Exception {
 }
 
 class WhatsAppStickerService {
-  static const MethodChannel _channel = MethodChannel('whaticker/whatsapp');
+  static const MethodChannel _channel = MethodChannel('stikerz/whatsapp');
 
-  /// Envía un paquete de stickers a WhatsApp
+  /// Sends a sticker pack to WhatsApp.
   static Future<void> sendPack(StickerPackModel pack) async {
     if (!pack.hasCover) {
-      throw const WhatsAppStickerException('El pack necesita una portada.');
+      throw const WhatsAppStickerException('The pack requires a cover image.');
     }
     if (pack.stickers.length < 3) {
       throw const WhatsAppStickerException(
-        'WhatsApp requiere al menos 3 stickers por paquete.',
+        'WhatsApp requires at least 3 stickers per pack.',
       );
     }
 
@@ -33,8 +34,12 @@ class WhatsAppStickerService {
     final sortedStickers = List<StickerModel>.from(pack.stickers)
       ..sort((a, b) => a.slotIndex.compareTo(b.slotIndex));
 
+    debugPrint(
+      '🆔 Enviando pack "${pack.name}" con identifier=${pack.identifier}',
+    );
+
     final payload = {
-      'identifier': 'pack_${pack.id}',
+      'identifier': pack.identifier,
       'name': pack.name,
       'publisher': pack.author,
       'trayImagePath': trayPath,
@@ -57,26 +62,24 @@ class WhatsAppStickerService {
 
       if (success != true) {
         throw const WhatsAppStickerException(
-          'No se pudo abrir WhatsApp para importar el paquete.',
+          'Unable to open WhatsApp to import the pack.',
         );
       }
     } on PlatformException catch (e) {
       throw WhatsAppStickerException(
-        e.message ?? 'Error nativo al comunicarse con WhatsApp.',
+        e.message ?? 'Native error communicating with WhatsApp.',
       );
     }
   }
 
-  /// Genera la imagen de portada (tray) requerida por WhatsApp
+  /// Generates the tray image required by WhatsApp.
   static Future<String> _generateTrayImage(
     int packId,
     String sourcePath,
   ) async {
     final srcFile = File(sourcePath);
     if (!await srcFile.exists()) {
-      throw const WhatsAppStickerException(
-        'No se encontró la portada del pack.',
-      );
+      throw const WhatsAppStickerException('Pack cover image not found.');
     }
 
     final bytes = await srcFile.readAsBytes();
@@ -84,11 +87,11 @@ class WhatsAppStickerService {
 
     if (image == null) {
       throw const WhatsAppStickerException(
-        'No se pudo procesar la imagen de portada.',
+        'Unable to process the cover image.',
       );
     }
 
-    // Crear imagen cuadrada centrada
+    // Create a centered square crop from the source image.
     final side = image.width < image.height ? image.width : image.height;
     final cropped = img.copyCrop(
       image,
@@ -105,7 +108,7 @@ class WhatsAppStickerService {
       interpolation: img.Interpolation.average,
     );
 
-    // Guardar en directorio dedicado
+    // Save to a dedicated tray directory.
     final docsDir = await getApplicationDocumentsDirectory();
     final trayDir = Directory(
       '${docsDir.path}${Platform.pathSeparator}wa_tray',

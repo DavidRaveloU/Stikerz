@@ -12,6 +12,7 @@ class StickerPackModel {
   late String author;
   String? coverImagePath;
   late DateTime createdAt;
+  late String identifier;
 
   List<StickerModel> stickers = [];
 

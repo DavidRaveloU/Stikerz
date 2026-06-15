@@ -1,12 +1,12 @@
-import 'package:whaticker/data/models/sticker_pack_model.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
 
 import 'sticker.dart';
 
-/// Entidad limpia para usar en UI y lógica de negocio
 class StickerPack {
   final int? id;
   final String name;
   final String author;
+  final String identifier;
   final String? coverImagePath;
   final DateTime createdAt;
   final List<Sticker> stickers;
@@ -15,6 +15,7 @@ class StickerPack {
     this.id,
     required this.name,
     required this.author,
+    required this.identifier,
     this.coverImagePath,
     required this.createdAt,
     required this.stickers,
@@ -37,6 +38,7 @@ class StickerPack {
     int? id,
     String? name,
     String? author,
+    String? identifier,
     String? coverImagePath,
     DateTime? createdAt,
     List<Sticker>? stickers,
@@ -45,6 +47,7 @@ class StickerPack {
       id: id ?? this.id,
       name: name ?? this.name,
       author: author ?? this.author,
+      identifier: identifier ?? this.identifier,
       coverImagePath: coverImagePath ?? this.coverImagePath,
       createdAt: createdAt ?? this.createdAt,
       stickers: stickers ?? List.unmodifiable(this.stickers),
@@ -56,6 +59,7 @@ class StickerPack {
       id: model.id,
       name: model.name,
       author: model.author,
+      identifier: model.identifier,
       coverImagePath: model.coverImagePath,
       createdAt: model.createdAt,
       stickers: model.stickers.map((s) => Sticker.fromModel(s)).toList(),

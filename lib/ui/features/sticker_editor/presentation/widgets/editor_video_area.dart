@@ -1,14 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/crop_box.dart';
-import 'package:whaticker/ui/features/sticker_editor/presentation/widgets/crop_overlay.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_box.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_overlay.dart';
 
 class EditorVideoArea extends StatelessWidget {
-  final VideoController videoController;
+  final VideoController? videoController;
   final bool videoReady;
+  final bool isBuffering;
+  final String? thumbnailPath;
   final Offset cropOffset;
   final double cropWidth;
   final AspectRatioOption aspectRatio;
@@ -16,11 +21,15 @@ class EditorVideoArea extends StatelessWidget {
   final Function(Offset offset, double width) onCropChanged;
   final VoidCallback onTogglePlay;
   final bool isPlaying;
+  final bool isMuted;
+  final VoidCallback onToggleMute;
 
   const EditorVideoArea({
     super.key,
-    required this.videoController,
+    this.videoController,
     required this.videoReady,
+    this.isBuffering = false,
+    this.thumbnailPath,
     required this.cropOffset,
     required this.cropWidth,
     required this.aspectRatio,
@@ -28,6 +37,8 @@ class EditorVideoArea extends StatelessWidget {
     required this.onCropChanged,
     required this.onTogglePlay,
     required this.isPlaying,
+    required this.isMuted,
+    required this.onToggleMute,
   });
 
   @override
@@ -43,55 +54,92 @@ class EditorVideoArea extends StatelessWidget {
           color: Colors.black,
           child: Stack(
             children: [
-              // Video Player
-              if (videoReady)
+              if (videoReady && videoController != null)
                 Positioned.fill(
                   child: Video(
-                    controller: videoController,
+                    controller: videoController!,
                     controls: NoVideoControls,
                     fit: BoxFit.contain,
                   ),
                 )
               else
-                // Loading mejorado para Instagram
+                // Show thumbnail if available so user sees immediate feedback.
                 Container(
                   color: Colors.black,
                   child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        const SizedBox(
-                          width: 36,
-                          height: 36,
-                          child: CircularProgressIndicator(
-                            color: AppColors.accent,
-                            strokeWidth: 3.5,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          context.l10n.loadingVideo,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          context.l10n.instagramLoadingNote,
-                          style: const TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 13,
-                          ),
-                          textAlign: TextAlign.center,
+                        if (thumbnailPath != null)
+                          Positioned.fill(
+                            child: thumbnailPath!.startsWith('http')
+                                ? Image.network(
+                                    thumbnailPath!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.file(
+                                    File(thumbnailPath!),
+                                    fit: BoxFit.cover,
+                                  ),
+                          )
+                        else
+                          const SizedBox(),
+
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: context.responsiveSize(36, tabletSize: 40),
+                              height: context.responsiveSize(
+                                36,
+                                tabletSize: 40,
+                              ),
+                              child: CircularProgressIndicator(
+                                color: AppColors.accent,
+                                strokeWidth: 3.5,
+                              ),
+                            ),
+                            SizedBox(
+                              height: context.responsiveSize(
+                                12,
+                                tabletSize: 14,
+                              ),
+                            ),
+                            Text(
+                              isBuffering
+                                  ? 'Conexión lenta — reintentando…'
+                                  : _getLoadingText(context),
+                              style: context.responsiveTextStyle(
+                                mobileSize: 16,
+                                tabletSize: 18,
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (!isBuffering) ...[
+                              SizedBox(
+                                height: context.responsiveSize(
+                                  6,
+                                  tabletSize: 8,
+                                ),
+                              ),
+                              Text(
+                                _getLoadingNote(context),
+                                style: context.responsiveTextStyle(
+                                  mobileSize: 13,
+                                  tabletSize: 14,
+                                  color: AppColors.textMuted,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ),
 
-              // Overlay de crop
               CropOverlay(
                 cropOffset: cropOffset,
                 cropSize: _getCropSize(cropWidth, aspectRatio, videoAspect),
@@ -99,7 +147,6 @@ class EditorVideoArea extends StatelessWidget {
                 videoRect: videoRect,
               ),
 
-              // Crop Box interactivo
               CropBox(
                 offset: cropOffset,
                 cropWidth: cropWidth,
@@ -109,15 +156,14 @@ class EditorVideoArea extends StatelessWidget {
                 onChanged: onCropChanged,
               ),
 
-              // Botón Play/Pause
               Positioned(
-                top: 16,
-                right: 16,
+                top: context.responsiveSize(16, tabletSize: 20),
+                right: context.responsiveSize(16, tabletSize: 20),
                 child: GestureDetector(
                   onTap: onTogglePlay,
                   child: Container(
-                    width: 42,
-                    height: 42,
+                    width: context.responsiveSize(42, tabletSize: 46),
+                    height: context.responsiveSize(42, tabletSize: 46),
                     decoration: BoxDecoration(
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(12),
@@ -128,7 +174,30 @@ class EditorVideoArea extends StatelessWidget {
                           ? Icons.pause_rounded
                           : Icons.play_arrow_rounded,
                       color: Colors.white,
-                      size: 22,
+                      size: context.responsiveSize(22, tabletSize: 24),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: context.responsiveSize(16, tabletSize: 20),
+                right: context.responsiveSize(66, tabletSize: 72),
+                child: GestureDetector(
+                  onTap: onToggleMute,
+                  child: Container(
+                    width: context.responsiveSize(42, tabletSize: 46),
+                    height: context.responsiveSize(42, tabletSize: 46),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Icon(
+                      isMuted
+                          ? Icons.volume_off_rounded
+                          : Icons.volume_up_rounded,
+                      color: Colors.white,
+                      size: context.responsiveSize(22, tabletSize: 24),
                     ),
                   ),
                 ),
@@ -143,6 +212,22 @@ class EditorVideoArea extends StatelessWidget {
   Size _getCropSize(double width, AspectRatioOption ratio, double videoAspect) {
     final height = (width * videoAspect) / ratio.ratio;
     return Size(width, height);
+  }
+
+  String _getLoadingText(BuildContext context) {
+    try {
+      return context.l10n.loadingVideo;
+    } catch (_) {
+      return 'Loading video...';
+    }
+  }
+
+  String _getLoadingNote(BuildContext context) {
+    try {
+      return context.l10n.instagramLoadingNote;
+    } catch (_) {
+      return 'This may take a few seconds';
+    }
   }
 
   Rect _calculateVideoRect(Size areaSize, double videoAspect) {

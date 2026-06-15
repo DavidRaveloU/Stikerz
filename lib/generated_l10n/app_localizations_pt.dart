@@ -414,6 +414,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get importFromTikTok => 'Importar do TikTok';
 
   @override
+  String get stickerTooHeavy => 'O adesivo está muito pesado';
+
+  @override
+  String needToReduce(int amount) {
+    return 'Reduza mais ${amount}KB para cumprir o limite de 500KB';
+  }
+
+  @override
   String get pasteVideoLink => 'Cole um link de vídeo';
 
   @override
@@ -595,10 +603,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get onboardingContentLabel => 'SEU CONTEÚDO, ANIMADO';
 
   @override
-  String get onboardingFromSocialTitlePrimary => 'From Social';
+  String get onboardingFromSocialTitlePrimary => 'Do social';
 
   @override
-  String get onboardingFromSocialTitleAccent => 'to Stickers';
+  String get onboardingFromSocialTitleAccent => 'para stickers';
 
   @override
   String get onboardingFromSocialDesc =>
@@ -608,12 +616,159 @@ class AppLocalizationsPt extends AppLocalizations {
   String get onboardingShareLabel => 'COMPARTILHE DIRETAMENTE';
 
   @override
-  String get onboardingShareTitlePrimary => 'Direct';
+  String get onboardingShareTitlePrimary => 'Direto';
 
   @override
-  String get onboardingShareTitleAccent => 'Share';
+  String get onboardingShareTitleAccent => 'Compartilhar';
 
   @override
   String get onboardingShareDescExtended =>
       'Basta tocar em compartilhar no TikTok ou IG e enviar diretamente para nosso app. São apenas alguns toques — rápido, preserva a qualidade e converte clipes em adesivos animados instantaneamente.';
+
+  @override
+  String get onboardingLegalPrefix => 'Ao continuar, você concorda com nossos ';
+
+  @override
+  String get onboardingLegalAnd => ' e com nossa ';
+
+  @override
+  String get onboardingLegalSuffix => '.';
+
+  @override
+  String get permissionRequiredTitle => 'Acesso à galeria necessário';
+
+  @override
+  String get permissionRequiredDesc =>
+      'Anteriormente você negou acesso aos seus vídeos. Para importar vídeos da sua galeria, você precisa habilitar a permissão manualmente.';
+
+  @override
+  String get openSettingsButton => 'Abrir configurações';
+
+  @override
+  String get permissionStep1 => 'Toque em \'Abrir configurações\' abaixo';
+
+  @override
+  String get permissionStep2 =>
+      'Encontre \'Permissões\' e toque em \'Fotos e vídeos\' ou \'Mídia\'';
+
+  @override
+  String get permissionStep3 => 'Selecione \'Permitir\' ou \'Permitir todos\'';
+
+  @override
+  String get settingsTitle => 'Configurações';
+
+  @override
+  String get changeLanguage => 'Mudar idioma';
+
+  @override
+  String get useDeviceLanguage => 'Usar o idioma do dispositivo';
+
+  @override
+  String get languageEnglish => 'Inglês';
+
+  @override
+  String get languageSpanish => 'Espanhol';
+
+  @override
+  String get languagePortuguese => 'Português';
+
+  @override
+  String get termsAndConditions => 'Termos e Condições';
+
+  @override
+  String get privacyPolicy => 'Política de Privacidade';
+
+  @override
+  String get rateApp => 'Avaliar app';
+
+  @override
+  String get reportBug => 'Reportar bug';
+
+  @override
+  String get aboutDeveloper => 'Sobre o desenvolvedor';
+
+  @override
+  String get aboutRole => 'Desenvolvedor e Designer Principal';
+
+  @override
+  String get aboutDescription =>
+      'Criando experiências digitais fluidas e bonitas para o mundo.';
+
+  @override
+  String get versionLabel => 'Versão';
+
+  @override
+  String get bugReport => 'Relatório de erro';
+
+  @override
+  String get deviceInfo => 'Informações do dispositivo';
+
+  @override
+  String get describeProblem => 'Descreva o problema';
+
+  @override
+  String get describeProblemHint =>
+      'Descreva seu problema ou forneça comentários';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get emailHint => 'seu.email@exemplo.com';
+
+  @override
+  String get sendFeedback => 'Enviar comentários';
+
+  @override
+  String get alternatively => 'Alternativamente';
+
+  @override
+  String get sendEmail => 'Enviar email';
+
+  @override
+  String get feedbackSent => 'Obrigado! Seus comentários foram enviados.';
+
+  @override
+  String get externalServiceDown =>
+      'Não foi possível conectar ao serviço externo. Pode estar temporariamente fora do ar; tente novamente mais tarde.';
+
+  @override
+  String get externalServiceTimeout =>
+      'Tempo de espera esgotado. Tente novamente em instantes.';
+
+  @override
+  String get externalServiceInvalidResponse =>
+      'Resposta inválida do serviço externo.';
+
+  @override
+  String get externalServiceNotVideo =>
+      'O link não é um vídeo. Escolha um vídeo válido.';
+
+  @override
+  String get externalServiceVideoNotPublic =>
+      'Não foi possível obter o vídeo. Verifique se está público.';
+
+  @override
+  String get videoPreparationTitle => 'Processando vídeo';
+
+  @override
+  String get videoPreparationDefault =>
+      'O processamento do vídeo depende da sua conexão com a internet.';
+
+  @override
+  String get videoPreparationSlow =>
+      'Ainda estamos preparando o vídeo. Se demorar, sua conexão pode estar lenta.';
+
+  @override
+  String get videoPreparationVerySlow =>
+      'A conexão parece lenta. Seguimos tentando preparar o vídeo.';
+
+  @override
+  String get videoPreparationTooLong =>
+      'Isso está demorando mais do que o normal. Uma conexão fraca pode aumentar a espera.';
+
+  @override
+  String videoPreparationRetrying(int attempt, int maxAttempts) {
+    return 'A conexão caiu. Tentando novamente ($attempt/$maxAttempts)...';
+  }
 }

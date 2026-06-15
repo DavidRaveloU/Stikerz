@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
 
 class VideoPickerTopBar extends StatelessWidget {
   final VoidCallback onBack;
@@ -12,16 +13,21 @@ class VideoPickerTopBar extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        padding: EdgeInsets.fromLTRB(
+          context.responsiveSize(16, tabletSize: 20),
+          context.responsiveSize(12, tabletSize: 14),
+          context.responsiveSize(16, tabletSize: 20),
+          context.responsiveSize(12, tabletSize: 14),
+        ),
         child: Row(
           children: [
             GestureDetector(
               onTap: onBack,
               child: Container(
-                width: 36,
-                height: 36,
+                width: context.responsiveSize(36, tabletSize: 40),
+                height: context.responsiveSize(36, tabletSize: 40),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.border),
                 ),
@@ -32,24 +38,26 @@ class VideoPickerTopBar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: context.responsiveSize(12, tabletSize: 14)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     context.l10n.selectedVideoLabel,
-                    style: const TextStyle(
+                    style: context.responsiveTextStyle(
+                      mobileSize: 16,
+                      tabletSize: 18,
                       color: AppColors.textPrimary,
-                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
                     context.l10n.selectVideoHint,
-                    style: const TextStyle(
+                    style: context.responsiveTextStyle(
+                      mobileSize: 11,
+                      tabletSize: 12,
                       color: AppColors.textMuted,
-                      fontSize: 11,
                     ),
                   ),
                 ],

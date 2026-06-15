@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:whaticker/core/services/video_picker_service.dart';
+import 'package:stikerz/core/services/video_picker_service.dart';
 
 final videoPickerPermissionProvider = FutureProvider<PermissionState>((
   ref,

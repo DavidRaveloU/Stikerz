@@ -35,21 +35,21 @@ class _OverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black.withOpacity(0.55);
+    final paint = Paint()..color = Colors.black.withValues(alpha: 0.55);
     final path = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
       ..addRect(cropRect)
       ..fillType = PathFillType.evenOdd;
     canvas.drawPath(path, paint);
 
-    // Bordes blancos del crop
+    // Draw crop outline.
     final borderPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawRect(cropRect, borderPaint);
 
-    // Grid interno
+    // Draw 3x3 composition grid.
     final gridPaint = Paint()
       ..color = Colors.white24
       ..strokeWidth = 0.5;
@@ -57,18 +57,26 @@ class _OverlayPainter extends CustomPainter {
     for (int i = 1; i < 3; i++) {
       final x = cropRect.left + (cropRect.width / 3) * i;
       final y = cropRect.top + (cropRect.height / 3) * i;
-      canvas.drawLine(Offset(x, cropRect.top), Offset(x, cropRect.bottom), gridPaint);
-      canvas.drawLine(Offset(cropRect.left, y), Offset(cropRect.right, y), gridPaint);
+      canvas.drawLine(
+        Offset(x, cropRect.top),
+        Offset(x, cropRect.bottom),
+        gridPaint,
+      );
+      canvas.drawLine(
+        Offset(cropRect.left, y),
+        Offset(cropRect.right, y),
+        gridPaint,
+      );
     }
 
-    // Esquinas resaltadas
+    // Highlight crop corners.
     final cornerPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
 
-    const cLen = 16.0;
+    final cLen = size.shortestSide < 360 ? 14.0 : 16.0;
     final corners = [
       cropRect.topLeft,
       cropRect.topRight,

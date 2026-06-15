@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/core/constants/app_colors.dart';
-import 'package:whaticker/core/extensions/localization_extension.dart';
-import 'package:whaticker/data/models/sticker_pack_model.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/responsive_text.dart';
+import 'package:stikerz/data/models/sticker_pack_model.dart';
 
 class PackInfo extends StatelessWidget {
   final StickerPackModel pack;
@@ -57,26 +58,47 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      margin: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.symmetric(
+        vertical: context.responsiveSize(14, tabletSize: 16),
+        horizontal: context.responsiveSize(16, tabletSize: 18),
+      ),
+      margin: EdgeInsets.only(
+        bottom: context.responsiveSize(8, tabletSize: 10),
+      ),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+          Expanded(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: context.responsiveTextStyle(
+                mobileSize: 13,
+                tabletSize: 14,
+                color: AppColors.textMuted,
+              ),
+            ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              color: valueColor ?? AppColors.textPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+          SizedBox(width: context.responsiveSize(8)),
+          Flexible(
+            flex: 0,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: 0, maxWidth: 160),
+              child: Text(
+                value,
+                textAlign: TextAlign.right,
+                overflow: TextOverflow.ellipsis,
+                style: context.responsiveTextStyle(
+                  mobileSize: 13,
+                  tabletSize: 14,
+                  color: valueColor ?? AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],

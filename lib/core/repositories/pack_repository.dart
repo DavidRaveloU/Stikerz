@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:isar/isar.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../data/models/app_state_model.dart';
 import '../../data/models/sticker_model.dart';
@@ -26,17 +27,17 @@ class PackRepository {
 
   PackRepository._();
 
-  /// Inicializa Isar (debe llamarse una sola vez en main.dart)
+  /// Initialize Isar (should be called once from main.dart)
   static Future<void> init() async {
     if (_isar != null && _isar!.isOpen) return;
 
     try {
-      final dir = Directory('/data/user/0/com.davidravelo.whaticker/files');
+      final dir = Directory('/data/user/0/com.davidravelo.stikerz/files');
 
       _isar = await Isar.open(
         [StickerPackModelSchema, AppStateModelSchema],
         directory: dir.path,
-        name: 'whaticker_db',
+        name: 'stikerz_db',
       );
     } catch (e) {
       rethrow;
@@ -48,7 +49,7 @@ class PackRepository {
   Isar get _db {
     if (_isar == null || !_isar!.isOpen) {
       throw Exception(
-        'PackRepository no está inicializado. Llama a PackRepository.init() primero.',
+        'PackRepository is not initialized. Call PackRepository.init() first.',
       );
     }
     return _isar!;
@@ -58,7 +59,7 @@ class PackRepository {
     return name.trim().toLowerCase();
   }
 
-  // ── Lectura Reactiva ─────────────────────────────────────────────────────
+  // ── Reactive reads ─────────────────────────────────────────────────────
 
   Stream<List<StickerPackModel>> watchAllPacks() {
     return _db.stickerPackModels.where().sortByCreatedAtDesc().watch(
@@ -70,7 +71,7 @@ class PackRepository {
     return _db.stickerPackModels.watchObject(id, fireImmediately: true);
   }
 
-  // ── CRUD Básico ─────────────────────────────────────────────────────────
+  // ── Basic CRUD ─────────────────────────────────────────────────────────
 
   Future<StickerPackModel> createPack({
     required String name,
@@ -87,7 +88,7 @@ class PackRepository {
 
     if (duplicate) {
       throw const DuplicatePackNameException(
-        'Ya existe un paquete con ese nombre.',
+        'A pack with that name already exists.',
       );
     }
 
@@ -95,6 +96,7 @@ class PackRepository {
       ..name = safeName
       ..author = safeAuthor
       ..createdAt = DateTime.now()
+      ..identifier = const Uuid().v4()
       ..stickers = [];
 
     await _db.writeTxn(() => _db.stickerPackModels.put(pack));
@@ -117,7 +119,7 @@ class PackRepository {
 
     if (duplicate) {
       throw const DuplicatePackNameException(
-        'Ya existe un paquete con ese nombre.',
+        'A pack with that name already exists.',
       );
     }
 
@@ -179,5 +181,19 @@ class PackRepository {
 
   Future<StickerPackModel?> getPackById(int id) async {
     return await _db.stickerPackModels.get(id);
+  }
+
+  Future<void> migrateMissingIdentifiers() async {
+    final all = await _db.stickerPackModels.where().findAll();
+    final toFix = all.where((p) => p.identifier.isEmpty).toList();
+
+    if (toFix.isEmpty) return;
+
+    await _db.writeTxn(() async {
+      for (final pack in toFix) {
+        pack.identifier = const Uuid().v4();
+        await _db.stickerPackModels.put(pack);
+      }
+    });
   }
 }

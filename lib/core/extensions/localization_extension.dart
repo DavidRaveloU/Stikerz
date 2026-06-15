@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:whaticker/generated_l10n/app_localizations.dart';
+import 'package:stikerz/generated_l10n/app_localizations.dart';
 
-/// Extension para acceder fácilmente a las traducciones desde BuildContext
+/// Extension to easily access localized strings from BuildContext
 extension AppLocalizationsX on BuildContext {
   AppLocalizations get l10n => AppLocalizations.of(this);
 }

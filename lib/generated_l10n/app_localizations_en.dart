@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Whaticker';
+  String get appTitle => 'Stikerz';
 
   @override
   String get home => 'Home';
@@ -413,6 +413,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importFromTikTok => 'Import from TikTok';
 
   @override
+  String get stickerTooHeavy => 'Sticker is too heavy';
+
+  @override
+  String needToReduce(int amount) {
+    return 'Need to reduce ${amount}KB more to meet the 500KB limit';
+  }
+
+  @override
   String get pasteVideoLink => 'Paste a video link';
 
   @override
@@ -528,7 +536,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resolvingSharedVideo => 'Resolving shared video...';
 
   @override
-  String get onboardingWelcomeTitle => 'Welcome to Whaticker!';
+  String get onboardingWelcomeTitle => 'Welcome to Stikerz!';
 
   @override
   String get onboardingWelcomeDesc =>
@@ -561,10 +569,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingShareDirectStep2 =>
-      'Use the share button and select \"Whaticker\" from the options';
+      'Use the share button and select \"Stikerz\" from the options';
 
   @override
-  String get onboardingAdsTitle => 'Thank you for using Whaticker!';
+  String get onboardingAdsTitle => 'Thank you for using Stikerz!';
 
   @override
   String get onboardingAdsDescription =>
@@ -613,4 +621,150 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingShareDescExtended =>
       'Just hit share on TikTok or IG and send it straight to our app. It takes only a couple taps — fast, preserves quality, and converts clips into animated stickers instantly.';
+
+  @override
+  String get onboardingLegalPrefix => 'By continuing, you agree to our ';
+
+  @override
+  String get onboardingLegalAnd => ' and ';
+
+  @override
+  String get onboardingLegalSuffix => '.';
+
+  @override
+  String get permissionRequiredTitle => 'Gallery access required';
+
+  @override
+  String get permissionRequiredDesc =>
+      'You previously denied access to your videos. To import videos from your gallery, you need to enable permission manually.';
+
+  @override
+  String get openSettingsButton => 'Open settings';
+
+  @override
+  String get permissionStep1 => 'Tap \'Open settings\' below';
+
+  @override
+  String get permissionStep2 =>
+      'Find \'Permissions\' and tap \'Photos & videos\' or \'Media\'';
+
+  @override
+  String get permissionStep3 => 'Select \'Allow\' or \'Allow all\'';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get changeLanguage => 'Change language';
+
+  @override
+  String get useDeviceLanguage => 'Use device language';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageSpanish => 'Spanish';
+
+  @override
+  String get languagePortuguese => 'Portuguese';
+
+  @override
+  String get termsAndConditions => 'Terms & Conditions';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get rateApp => 'Rate app';
+
+  @override
+  String get reportBug => 'Report bug';
+
+  @override
+  String get aboutDeveloper => 'About Developer';
+
+  @override
+  String get aboutRole => 'Lead Developer & Designer';
+
+  @override
+  String get aboutDescription =>
+      'Creating fluid and beautiful digital experiences for the world.';
+
+  @override
+  String get versionLabel => 'Version';
+
+  @override
+  String get bugReport => 'Bug Report';
+
+  @override
+  String get deviceInfo => 'Device Information';
+
+  @override
+  String get describeProblem => 'Describe the problem';
+
+  @override
+  String get describeProblemHint => 'Describe your problem or provide feedback';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get emailHint => 'yourname@example.com';
+
+  @override
+  String get sendFeedback => 'Send Feedback';
+
+  @override
+  String get alternatively => 'Alternatively';
+
+  @override
+  String get sendEmail => 'Send Email';
+
+  @override
+  String get feedbackSent => 'Thank you! Your feedback has been sent.';
+
+  @override
+  String get externalServiceDown =>
+      'Could not connect to the external service. It may be temporarily down; please try again later.';
+
+  @override
+  String get externalServiceTimeout =>
+      'Request timed out. Please try again shortly.';
+
+  @override
+  String get externalServiceInvalidResponse =>
+      'Invalid response from external service.';
+
+  @override
+  String get externalServiceNotVideo =>
+      'The link is not a video. Please choose a valid video.';
+
+  @override
+  String get externalServiceVideoNotPublic =>
+      'Could not retrieve the video. Please ensure it is public.';
+
+  @override
+  String get videoPreparationTitle => 'Processing video';
+
+  @override
+  String get videoPreparationDefault =>
+      'Video processing depends on your internet connection.';
+
+  @override
+  String get videoPreparationSlow =>
+      'We are still preparing the video. If it takes longer, your connection may be slow.';
+
+  @override
+  String get videoPreparationVerySlow =>
+      'The connection looks slow. We are still trying to prepare the video.';
+
+  @override
+  String get videoPreparationTooLong =>
+      'This is taking longer than usual. A weak connection can increase the wait time.';
+
+  @override
+  String videoPreparationRetrying(int attempt, int maxAttempts) {
+    return 'Connection lost. Retrying ($attempt/$maxAttempts)...';
+  }
 }

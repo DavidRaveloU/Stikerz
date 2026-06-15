@@ -6,7 +6,7 @@ part 'sticker_model.g.dart';
 class StickerModel {
   int slotIndex;
   String webpPath;
-  String sourceType; // 'tiktok' | 'local'
+  String sourceType;
   DateTime? createdAt;
 
   StickerModel({

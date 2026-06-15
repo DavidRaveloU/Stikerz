@@ -1,10 +1,9 @@
-import 'package:whaticker/data/models/sticker_model.dart';
+import 'package:stikerz/data/models/sticker_model.dart';
 
-/// Entidad limpia para usar en la UI y lógica de negocio
 class Sticker {
   final int slotIndex;
   final String webpPath;
-  final String sourceType; // 'tiktok' | 'local'
+  final String sourceType;
   final DateTime? createdAt;
 
   const Sticker({
@@ -28,7 +27,6 @@ class Sticker {
     );
   }
 
-  // Conversión desde el modelo de Isar
   factory Sticker.fromModel(StickerModel model) {
     return Sticker(
       slotIndex: model.slotIndex,
@@ -38,7 +36,6 @@ class Sticker {
     );
   }
 
-  // Conversión hacia el modelo de Isar
   StickerModel toModel() {
     return StickerModel(
       slotIndex: slotIndex,
