@@ -6,18 +6,11 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../config/ads_config.dart';
 
 /// Centralized service to manage Google Mobile Ads (Banner + Interstitial)
-///
-/// AdMob policy considerations:
-/// - Do not programmatically click ads
-/// - Do not hide ads
-/// - Do not use test IDs in production builds
-/// - Respect ad load and dispose lifecycle
 class AdsService {
   static String get _bannerAdUnitId => AdsConfig.bannerAdUnitId;
   static String get _interstitialAdUnitId => AdsConfig.interstitialAdUnitId;
   static const Duration _interstitialCooldown = Duration(seconds: 45);
 
-  // Singleton instance.
   static final AdsService _instance = AdsService._internal();
 
   factory AdsService() {
@@ -26,44 +19,54 @@ class AdsService {
 
   AdsService._internal();
 
-  // Internal state.
   BannerAd? _bannerAd;
   InterstitialAd? _interstitialAd;
   bool _isBannerLoaded = false;
   bool _isInterstitialLoaded = false;
   DateTime? _lastInterstitialShownAt;
+  Completer<void>? _bannerLoadCompleter;
+  bool _isBannerLoading = false;
 
-  // Public state accessors.
   BannerAd? get bannerAd => _isBannerLoaded ? _bannerAd : null;
   bool get isBannerLoaded => _isBannerLoaded;
   bool get isInterstitialLoaded => _isInterstitialLoaded;
 
-  /// Initializes the Google Mobile Ads SDK.
+  /// Initializes the Google Mobile Ads SDK and preloads banner.
   Future<void> initialize() async {
     if (!AdsConfig.adsEnabled) {
-      if (kDebugMode) {
-        debugPrint('Ads disabled: skipping MobileAds initialization');
-      }
+      if (kDebugMode) debugPrint('Ads disabled');
       return;
     }
 
     try {
       await MobileAds.instance.initialize();
-      if (kDebugMode) debugPrint('MobileAds initialized successfully');
+      if (kDebugMode) debugPrint('MobileAds initialized');
+      // Preload banner immediately
+      await loadBannerAd();
+      // Preload interstitial
+      loadInterstitialAd();
     } catch (e) {
       if (kDebugMode) debugPrint('Error initializing MobileAds: $e');
     }
   }
 
-  /// Loads a banner ad.
+  /// Loads a banner ad (only one instance ever exists).
   Future<void> loadBannerAd() async {
-    if (!AdsConfig.adsEnabled) {
-      _bannerAd = null;
-      _isBannerLoaded = false;
-      return;
+    if (!AdsConfig.adsEnabled || _isBannerLoading) return;
+
+    _isBannerLoading = true;
+
+    if (_bannerLoadCompleter != null && !_bannerLoadCompleter!.isCompleted) {
+      _isBannerLoading = false;
+      return _bannerLoadCompleter!.future;
     }
 
-    final loadedCompleter = Completer<void>();
+    _bannerLoadCompleter = Completer<void>();
+
+    // Dispose previous banner if exists
+    await _bannerAd?.dispose();
+    _bannerAd = null;
+    _isBannerLoaded = false;
 
     _bannerAd = BannerAd(
       adUnitId: _bannerAdUnitId,
@@ -73,8 +76,9 @@ class AdsService {
         onAdLoaded: (ad) {
           if (kDebugMode) debugPrint('✓ Banner Ad loaded');
           _isBannerLoaded = true;
-          if (!loadedCompleter.isCompleted) {
-            loadedCompleter.complete();
+          _isBannerLoading = false;
+          if (!_bannerLoadCompleter!.isCompleted) {
+            _bannerLoadCompleter!.complete();
           }
         },
         onAdFailedToLoad: (ad, error) {
@@ -82,12 +86,19 @@ class AdsService {
           ad.dispose();
           _bannerAd = null;
           _isBannerLoaded = false;
-          if (!loadedCompleter.isCompleted) {
-            loadedCompleter.complete();
+          _isBannerLoading = false;
+          if (!_bannerLoadCompleter!.isCompleted) {
+            _bannerLoadCompleter!.complete();
           }
+          // Retry after 10 seconds
+          Future.delayed(const Duration(seconds: 10), () {
+            if (!_isBannerLoaded) {
+              loadBannerAd();
+            }
+          });
         },
         onAdOpened: (ad) {
-          if (kDebugMode) debugPrint('→ Banner Ad opened (user clicked)');
+          if (kDebugMode) debugPrint('→ Banner Ad opened');
         },
         onAdClosed: (ad) {
           if (kDebugMode) debugPrint('← Banner Ad closed');
@@ -99,24 +110,16 @@ class AdsService {
     );
 
     _bannerAd!.load();
-    await loadedCompleter.future;
+    return _bannerLoadCompleter!.future;
   }
 
-  /// Reset the current banner to avoid reusing the same AdWidget instance
-  /// when restarting the share flow.
+  /// Reset the current banner (keeps the same instance, just reloads if needed)
   Future<void> resetBannerAd() async {
-    if (!AdsConfig.adsEnabled) {
-      _bannerAd = null;
-      _isBannerLoaded = false;
-      return;
-    }
-
-    await _bannerAd?.dispose();
-    _bannerAd = null;
-    _isBannerLoaded = false;
+    if (!AdsConfig.adsEnabled) return;
+    await loadBannerAd();
   }
 
-  /// Load interstitial ad (only loads; does not show automatically)
+  /// Load interstitial ad
   void loadInterstitialAd({VoidCallback? onLoaded}) {
     if (!AdsConfig.adsEnabled) {
       _interstitialAd = null;
@@ -136,36 +139,31 @@ class AdsService {
           onLoaded?.call();
         },
         onAdFailedToLoad: (error) {
-          if (kDebugMode) {
+          if (kDebugMode)
             debugPrint('✗ Interstitial Ad failed: ${error.message}');
-          }
           _isInterstitialLoaded = false;
         },
       ),
     );
   }
 
-  /// Shows an interstitial ad with safety checks.
+  /// Shows an interstitial ad
   Future<void> showInterstitialAd({VoidCallback? onDismissed}) async {
     if (!AdsConfig.adsEnabled) {
-      if (kDebugMode) debugPrint('Ads disabled: skipping interstitial');
       onDismissed?.call();
       return;
     }
 
     final now = DateTime.now();
-    final lastShown = _lastInterstitialShownAt;
-    if (lastShown != null &&
-        now.difference(lastShown) < _interstitialCooldown) {
-      if (kDebugMode) {
-        debugPrint('ℹ️ Interstitial in cooldown, not showing yet');
-      }
+    if (_lastInterstitialShownAt != null &&
+        now.difference(_lastInterstitialShownAt!) < _interstitialCooldown) {
+      if (kDebugMode) debugPrint('ℹ️ Interstitial in cooldown');
       onDismissed?.call();
       return;
     }
 
     if (!_isInterstitialLoaded || _interstitialAd == null) {
-      if (kDebugMode) debugPrint('⚠️ Interstitial Ad is not ready. Loading...');
+      if (kDebugMode) debugPrint('⚠️ Interstitial Ad not ready');
       loadInterstitialAd();
       onDismissed?.call();
       return;
@@ -178,27 +176,23 @@ class AdsService {
           _lastInterstitialShownAt = DateTime.now();
         },
         onAdDismissedFullScreenContent: (ad) {
-          if (kDebugMode) debugPrint('👈 Interstitial Ad dismissed by user');
+          if (kDebugMode) debugPrint('👈 Interstitial Ad dismissed');
           ad.dispose();
           _interstitialAd = null;
           _isInterstitialLoaded = false;
           onDismissed?.call();
-          // Preload the next ad for future displays.
           loadInterstitialAd();
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
-          if (kDebugMode) {
+          if (kDebugMode)
             debugPrint('✗ Error showing Interstitial: ${error.message}');
-          }
           ad.dispose();
           _interstitialAd = null;
           _isInterstitialLoaded = false;
           onDismissed?.call();
         },
         onAdClicked: (ad) {
-          if (kDebugMode) {
-            debugPrint('🛛️ Interstitial Ad clicked');
-          }
+          if (kDebugMode) debugPrint('🛛️ Interstitial Ad clicked');
         },
       );
 
@@ -209,21 +203,14 @@ class AdsService {
     }
   }
 
-  /// Disposes ad resources and resets local state.
+  /// Disposes ad resources
   Future<void> dispose() async {
-    if (!AdsConfig.adsEnabled) {
-      _bannerAd = null;
-      _interstitialAd = null;
-      _isBannerLoaded = false;
-      _isInterstitialLoaded = false;
-      return;
-    }
-
     await _bannerAd?.dispose();
     await _interstitialAd?.dispose();
     _bannerAd = null;
     _interstitialAd = null;
     _isBannerLoaded = false;
     _isInterstitialLoaded = false;
+    _isBannerLoading = false;
   }
 }

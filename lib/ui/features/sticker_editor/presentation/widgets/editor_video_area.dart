@@ -7,9 +7,10 @@ import 'package:stikerz/core/extensions/localization_extension.dart';
 import 'package:stikerz/core/utils/responsive_text.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_box.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_magnifier.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_overlay.dart';
 
-class EditorVideoArea extends StatelessWidget {
+class EditorVideoArea extends StatefulWidget {
   final VideoController? videoController;
   final bool videoReady;
   final bool isBuffering;
@@ -23,6 +24,7 @@ class EditorVideoArea extends StatelessWidget {
   final bool isPlaying;
   final bool isMuted;
   final VoidCallback onToggleMute;
+  final VoidCallback? onOpenFullscreenCrop;
 
   const EditorVideoArea({
     super.key,
@@ -39,14 +41,24 @@ class EditorVideoArea extends StatelessWidget {
     required this.isPlaying,
     required this.isMuted,
     required this.onToggleMute,
+    this.onOpenFullscreenCrop,
   });
+
+  @override
+  State<EditorVideoArea> createState() => _EditorVideoAreaState();
+}
+
+class _EditorVideoAreaState extends State<EditorVideoArea> {
+  Offset? _magnifierFocalPoint;
+  bool _isResizing = false;
+  ResizeHandle? _activeHandle;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final areaSize = Size(constraints.maxWidth, constraints.maxHeight);
-        final videoRect = _calculateVideoRect(areaSize, videoAspect);
+        final videoRect = _calculateVideoRect(areaSize, widget.videoAspect);
 
         return Container(
           width: areaSize.width,
@@ -54,37 +66,35 @@ class EditorVideoArea extends StatelessWidget {
           color: Colors.black,
           child: Stack(
             children: [
-              if (videoReady && videoController != null)
+              if (widget.videoReady && widget.videoController != null)
                 Positioned.fill(
                   child: Video(
-                    controller: videoController!,
+                    controller: widget.videoController!,
                     controls: NoVideoControls,
                     fit: BoxFit.contain,
                   ),
                 )
               else
-                // Show thumbnail if available so user sees immediate feedback.
                 Container(
                   color: Colors.black,
                   child: Center(
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        if (thumbnailPath != null)
+                        if (widget.thumbnailPath != null)
                           Positioned.fill(
-                            child: thumbnailPath!.startsWith('http')
+                            child: widget.thumbnailPath!.startsWith('http')
                                 ? Image.network(
-                                    thumbnailPath!,
+                                    widget.thumbnailPath!,
                                     fit: BoxFit.cover,
                                   )
                                 : Image.file(
-                                    File(thumbnailPath!),
+                                    File(widget.thumbnailPath!),
                                     fit: BoxFit.cover,
                                   ),
                           )
                         else
                           const SizedBox(),
-
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -106,7 +116,7 @@ class EditorVideoArea extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              isBuffering
+                              widget.isBuffering
                                   ? 'Conexión lenta — reintentando…'
                                   : _getLoadingText(context),
                               style: context.responsiveTextStyle(
@@ -116,7 +126,7 @@ class EditorVideoArea extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            if (!isBuffering) ...[
+                            if (!widget.isBuffering) ...[
                               SizedBox(
                                 height: context.responsiveSize(
                                   6,
@@ -141,26 +151,72 @@ class EditorVideoArea extends StatelessWidget {
                 ),
 
               CropOverlay(
-                cropOffset: cropOffset,
-                cropSize: _getCropSize(cropWidth, aspectRatio, videoAspect),
+                cropOffset: widget.cropOffset,
+                cropSize: _getCropSize(
+                  widget.cropWidth,
+                  widget.aspectRatio,
+                  widget.videoAspect,
+                ),
                 areaSize: areaSize,
                 videoRect: videoRect,
               ),
 
               CropBox(
-                offset: cropOffset,
-                cropWidth: cropWidth,
-                aspectRatio: aspectRatio,
-                videoAspect: videoAspect,
+                offset: widget.cropOffset,
+                cropWidth: widget.cropWidth,
+                aspectRatio: widget.aspectRatio,
+                videoAspect: widget.videoAspect,
                 videoRect: videoRect,
-                onChanged: onCropChanged,
+                onChanged: widget.onCropChanged,
+                onDragStart: () {
+                  setState(() {
+                    _isResizing = false;
+                    _magnifierFocalPoint = null;
+                    _activeHandle = null;
+                  });
+                },
+                onResizeStart: () {
+                  setState(() {
+                    _isResizing = true;
+                  });
+                },
+                onResizeHandleChanged: (handle) {
+                  setState(() {
+                    _activeHandle = handle;
+                  });
+                },
+                onDragUpdate: (point) {
+                  if (_isResizing) {
+                    setState(() => _magnifierFocalPoint = point);
+                  }
+                },
+                onDragEnd: () {
+                  setState(() {
+                    _magnifierFocalPoint = null;
+                    _isResizing = false;
+                    _activeHandle = null;
+                  });
+                },
               ),
+
+              if (_magnifierFocalPoint != null &&
+                  _isResizing &&
+                  _activeHandle != null &&
+                  widget.videoReady &&
+                  widget.videoController != null)
+                CropMagnifier(
+                  videoController: widget.videoController!,
+                  focalPoint: _magnifierFocalPoint!,
+                  videoRect: videoRect,
+                  areaSize: areaSize,
+                  activeHandle: _activeHandle!,
+                ),
 
               Positioned(
                 top: context.responsiveSize(16, tabletSize: 20),
                 right: context.responsiveSize(16, tabletSize: 20),
                 child: GestureDetector(
-                  onTap: onTogglePlay,
+                  onTap: widget.onTogglePlay,
                   child: Container(
                     width: context.responsiveSize(42, tabletSize: 46),
                     height: context.responsiveSize(42, tabletSize: 46),
@@ -170,7 +226,7 @@ class EditorVideoArea extends StatelessWidget {
                       border: Border.all(color: Colors.white24),
                     ),
                     child: Icon(
-                      isPlaying
+                      widget.isPlaying
                           ? Icons.pause_rounded
                           : Icons.play_arrow_rounded,
                       color: Colors.white,
@@ -183,7 +239,7 @@ class EditorVideoArea extends StatelessWidget {
                 top: context.responsiveSize(16, tabletSize: 20),
                 right: context.responsiveSize(66, tabletSize: 72),
                 child: GestureDetector(
-                  onTap: onToggleMute,
+                  onTap: widget.onToggleMute,
                   child: Container(
                     width: context.responsiveSize(42, tabletSize: 46),
                     height: context.responsiveSize(42, tabletSize: 46),
@@ -193,7 +249,7 @@ class EditorVideoArea extends StatelessWidget {
                       border: Border.all(color: Colors.white24),
                     ),
                     child: Icon(
-                      isMuted
+                      widget.isMuted
                           ? Icons.volume_off_rounded
                           : Icons.volume_up_rounded,
                       color: Colors.white,
@@ -202,6 +258,28 @@ class EditorVideoArea extends StatelessWidget {
                   ),
                 ),
               ),
+              if (widget.onOpenFullscreenCrop != null)
+                Positioned(
+                  top: context.responsiveSize(16, tabletSize: 20),
+                  right: context.responsiveSize(116, tabletSize: 124),
+                  child: GestureDetector(
+                    onTap: widget.onOpenFullscreenCrop,
+                    child: Container(
+                      width: context.responsiveSize(42, tabletSize: 46),
+                      height: context.responsiveSize(42, tabletSize: 46),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Icon(
+                        Icons.fullscreen_rounded,
+                        color: Colors.white,
+                        size: context.responsiveSize(22, tabletSize: 24),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         );

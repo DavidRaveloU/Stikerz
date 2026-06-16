@@ -18,6 +18,7 @@ import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_c
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_timeline.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_top_bar.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/editor_video_area.dart';
+import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/fullscreen_crop_page.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/generate_confirm_dialog.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/generation_failure_modal.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/video_prefetcher.dart';
@@ -369,6 +370,29 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
     });
   }
 
+  Future<void> _openFullscreenCrop() async {
+    final result = await Navigator.of(context).push<(Offset, double)>(
+      MaterialPageRoute(
+        builder: (_) => FullscreenCropPage(
+          videoController: _videoController,
+          initialOffset: _cropOffset,
+          initialCropWidth: _cropWidth,
+          aspectRatio: _aspectRatio,
+          videoAspect: _videoAspect,
+        ),
+        fullscreenDialog: true,
+      ),
+    );
+
+    if (result == null || !mounted) return;
+
+    final n = _normalizeCrop(result.$1, result.$2, _aspectRatio);
+    setState(() {
+      _cropOffset = n.$1;
+      _cropWidth = n.$2;
+    });
+  }
+
   void _showGenerateConfirm() {
     showDialog(
       context: context,
@@ -604,6 +628,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
                         isPlaying: _isPlaying,
                         isMuted: _isMuted,
                         onToggleMute: _toggleMute,
+                        onOpenFullscreenCrop: _openFullscreenCrop,
                       ),
                     ),
             ),

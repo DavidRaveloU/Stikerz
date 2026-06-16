@@ -1,25 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:stikerz/core/config/ads_config.dart';
 import 'package:stikerz/core/services/ads_service.dart';
 
-/// Provider that exposes a singleton `AdsService` instance.
 final adsServiceProvider = Provider<AdsService>((ref) {
   return AdsService();
 });
 
-/// Provider to load the banner ad during startup.
-final bannerAdProvider = FutureProvider<void>((ref) async {
+/// Provider that initializes ads (call this once at app startup)
+final initializeAdsProvider = FutureProvider<void>((ref) async {
   if (!AdsConfig.adsEnabled) return;
-
   final adsService = ref.watch(adsServiceProvider);
-  await adsService.resetBannerAd();
-  await adsService.loadBannerAd();
+  await adsService.initialize();
 });
 
-/// Provider to preload the interstitial ad.
+/// Provider that exposes the preloaded banner ad
+final bannerAdProvider = Provider<BannerAd?>((ref) {
+  return ref.watch(adsServiceProvider).bannerAd;
+});
+
+/// Provider that exposes whether banner is loaded
+final isBannerLoadedProvider = Provider<bool>((ref) {
+  return ref.watch(adsServiceProvider).isBannerLoaded;
+});
+
+/// Provider to preload the interstitial ad
 final interstitialAdProvider = FutureProvider<void>((ref) async {
   if (!AdsConfig.adsEnabled) return;
-
   final adsService = ref.watch(adsServiceProvider);
   adsService.loadInterstitialAd();
 });
