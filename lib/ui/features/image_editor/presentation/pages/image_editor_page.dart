@@ -120,7 +120,7 @@ class _ImageEditorPageState extends State<ImageEditorPage>
   }
 
   void _openFullscreenEditor() async {
-    final result = await Navigator.of(context).push<(Offset, double)>(
+    final result = await Navigator.of(context).push<dynamic>(
       MaterialPageRoute(
         builder: (_) => _FullscreenImageCropPage(
           imagePath: widget.imagePath,
@@ -133,12 +133,25 @@ class _ImageEditorPageState extends State<ImageEditorPage>
         fullscreenDialog: true,
       ),
     );
+
     if (result == null || !mounted) return;
-    final n = _normalizeCrop(result.$1, result.$2);
-    setState(() {
-      _cropOffset = n.$1;
-      _cropWidth = n.$2;
-    });
+
+    if (result is List<ui.Offset>) {
+      setState(() {
+        _freeFormPoints = result;
+        _selectedCrop = CropType.freeForm;
+      });
+      return;
+    }
+
+    if (result is (Offset, double)) {
+      final n = _normalizeCrop(result.$1, result.$2);
+      setState(() {
+        _cropOffset = n.$1;
+        _cropWidth = n.$2;
+      });
+      return;
+    }
   }
 
   Future<void> _generateSticker() async {
@@ -162,6 +175,7 @@ class _ImageEditorPageState extends State<ImageEditorPage>
           normH = _cropHeight;
           useCircularMask = false;
           freeFormPoints = null;
+          break;
         case CropType.circle:
           normX = _cropOffset.dx;
           normY = _cropOffset.dy;
@@ -169,12 +183,14 @@ class _ImageEditorPageState extends State<ImageEditorPage>
           normH = _cropHeight;
           useCircularMask = true;
           freeFormPoints = null;
+          break;
         case CropType.freeForm:
           if (_freeFormPoints.length < 3) {
-            if (mounted)
+            if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Trace a shape first.')),
               );
+            }
             setState(() => _isGenerating = false);
             return;
           }
@@ -184,11 +200,13 @@ class _ImageEditorPageState extends State<ImageEditorPage>
           normH = 1.0;
           useCircularMask = false;
           freeFormPoints = _freeFormPoints;
+          break;
         case CropType.smart:
-          if (mounted)
+          if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(context.l10n.cropTypeSmartComingSoon)),
             );
+          }
           setState(() => _isGenerating = false);
           return;
       }
@@ -205,11 +223,12 @@ class _ImageEditorPageState extends State<ImageEditorPage>
         freeFormPoints: freeFormPoints,
         rotationDegrees: 0.0,
         onStatus: (s, p) {
-          if (mounted)
+          if (mounted) {
             setState(() {
               _generationStatus = s;
               _generationProgress = p;
             });
+          }
         },
       );
 
@@ -223,25 +242,28 @@ class _ImageEditorPageState extends State<ImageEditorPage>
         );
         if (mounted) await _popWithAd();
       } else {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result.error ?? 'Could not create sticker.'),
             ),
           );
+        }
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('${context.l10n.error}: $e')));
+      }
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isGenerating = false;
           _generationStatus = '';
           _generationProgress = null;
         });
+      }
     }
   }
 
@@ -425,12 +447,21 @@ class _ImageEditorPageState extends State<ImageEditorPage>
             },
             onPanUpdate: (details) {
               setState(() {
-                _magnifierFocalPoint = details.localPosition;
+                _magnifierFocalPoint = ui.Offset(
+                  details.localPosition.dx.clamp(0.0, imageRect.width),
+                  details.localPosition.dy.clamp(0.0, imageRect.height),
+                );
                 if (_isDrawing) {
                   _freeFormPoints.add(
                     ui.Offset(
-                      details.localPosition.dx / imageRect.width,
-                      details.localPosition.dy / imageRect.height,
+                      (details.localPosition.dx / imageRect.width).clamp(
+                        0.0,
+                        1.0,
+                      ),
+                      (details.localPosition.dy / imageRect.height).clamp(
+                        0.0,
+                        1.0,
+                      ),
                     ),
                   );
                 }
@@ -477,12 +508,16 @@ class _ImageEditorPageState extends State<ImageEditorPage>
         if (_isDrawing &&
             _magnifierFocalPoint != null &&
             _freeFormPoints.length > 5)
-          _buildMagnifier(imageRect, areaSize),
+          _buildMagnifier(imageRect, areaSize, _freeFormPoints),
       ],
     );
   }
 
-  Widget _buildMagnifier(Rect imageRect, Size areaSize) {
+  Widget _buildMagnifier(
+    Rect imageRect,
+    Size areaSize,
+    List<ui.Offset> tracePoints,
+  ) {
     if (_magnifierFocalPoint == null || imageRect.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -552,6 +587,16 @@ class _ImageEditorPageState extends State<ImageEditorPage>
                     width: diameter,
                     height: 1,
                     color: AppColors.accent.withValues(alpha: 0.8),
+                  ),
+                ),
+                CustomPaint(
+                  size: Size(diameter, diameter),
+                  painter: _MagnifierTracePainter(
+                    points: tracePoints,
+                    imageRect: imageRect,
+                    focalPoint: fp,
+                    zoomFactor: zoomFactor,
+                    magnifierSize: diameter,
                   ),
                 ),
               ],
@@ -845,20 +890,24 @@ class _ImageCropBoxState extends State<_ImageCropBox> {
               noy =
                   widget.offset.dy +
                   (widget.cropWidth - nw) * (_height / widget.cropWidth);
+              break;
             case 2:
               nw = (widget.cropWidth + deltaX).clamp(0.15, 1.0);
               nox = widget.offset.dx;
               noy =
                   widget.offset.dy -
                   (nw - widget.cropWidth) * (_height / widget.cropWidth);
+              break;
             case 3:
               nw = (widget.cropWidth - deltaX).clamp(0.15, 1.0);
               nox = widget.offset.dx + (widget.cropWidth - nw);
               noy = widget.offset.dy;
+              break;
             case 4:
               nw = (widget.cropWidth + deltaX).clamp(0.15, 1.0);
               nox = widget.offset.dx;
               noy = widget.offset.dy;
+              break;
           }
           final mx = (1.0 - nw).clamp(0.0, 1.0);
           final my = (1.0 - _height).clamp(0.0, 1.0);
@@ -986,6 +1035,8 @@ class _FreeFormCropPainter extends CustomPainter {
   bool shouldRepaint(covariant _FreeFormCropPainter o) => o.points != points;
 }
 
+// ═══════════════════ FullscreenImageCropPage ═══════════════════
+
 class _FullscreenImageCropPage extends StatefulWidget {
   final String imagePath;
   final Offset initialOffset;
@@ -1011,12 +1062,14 @@ class _FullscreenImageCropPage extends StatefulWidget {
 class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
   late Offset _cropOffset;
   late double _cropWidth;
+  late List<ui.Offset> _freeFormPoints;
 
   @override
   void initState() {
     super.initState();
     _cropOffset = widget.initialOffset;
     _cropWidth = widget.initialCropWidth;
+    _freeFormPoints = List.from(widget.freeFormPoints);
   }
 
   double get _height => (_cropWidth * widget.imageAspect) / 1.0;
@@ -1055,6 +1108,14 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
           );
   }
 
+  void _saveAndClose() {
+    if (widget.cropType == CropType.freeForm) {
+      Navigator.of(context).pop(_freeFormPoints);
+    } else {
+      Navigator.of(context).pop((_cropOffset, _cropWidth));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isFreeForm = widget.cropType == CropType.freeForm;
@@ -1075,8 +1136,7 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     GestureDetector(
-                      onTap: () =>
-                          Navigator.pop(context, (_cropOffset, _cropWidth)),
+                      onTap: _saveAndClose,
                       child: Container(
                         width: 36,
                         height: 36,
@@ -1118,6 +1178,12 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
                         imagePath: widget.imagePath,
                         imageRect: vr,
                         areaSize: area,
+                        freeFormPoints: _freeFormPoints,
+                        onPointsChanged: (points) {
+                          setState(() {
+                            _freeFormPoints = points;
+                          });
+                        },
                       );
                     }
 
@@ -1167,11 +1233,15 @@ class _FullscreenFreeFormArea extends StatefulWidget {
   final String imagePath;
   final Rect imageRect;
   final Size areaSize;
+  final List<ui.Offset> freeFormPoints;
+  final void Function(List<ui.Offset>) onPointsChanged;
 
   const _FullscreenFreeFormArea({
     required this.imagePath,
     required this.imageRect,
     required this.areaSize,
+    required this.freeFormPoints,
+    required this.onPointsChanged,
   });
 
   @override
@@ -1180,9 +1250,14 @@ class _FullscreenFreeFormArea extends StatefulWidget {
 }
 
 class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
-  List<ui.Offset> _points = [];
-  bool _isDrawing = false;
+  late List<ui.Offset> _points;
   ui.Offset? _magnifierFocalPoint;
+
+  @override
+  void initState() {
+    super.initState();
+    _points = List.from(widget.freeFormPoints);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1199,7 +1274,6 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
           child: GestureDetector(
             onPanStart: (details) {
               setState(() {
-                _isDrawing = true;
                 _magnifierFocalPoint = details.localPosition;
                 _points = [
                   ui.Offset(
@@ -1207,23 +1281,31 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
                     details.localPosition.dy / imageRect.height,
                   ),
                 ];
+                widget.onPointsChanged(_points);
               });
             },
             onPanUpdate: (details) {
               setState(() {
-                _magnifierFocalPoint = details.localPosition;
-                if (_isDrawing) {
-                  _points.add(
-                    ui.Offset(
-                      details.localPosition.dx / imageRect.width,
-                      details.localPosition.dy / imageRect.height,
+                _magnifierFocalPoint = ui.Offset(
+                  details.localPosition.dx.clamp(0.0, imageRect.width),
+                  details.localPosition.dy.clamp(0.0, imageRect.height),
+                );
+                _points.add(
+                  ui.Offset(
+                    (details.localPosition.dx / imageRect.width).clamp(
+                      0.0,
+                      1.0,
                     ),
-                  );
-                }
+                    (details.localPosition.dy / imageRect.height).clamp(
+                      0.0,
+                      1.0,
+                    ),
+                  ),
+                );
+                widget.onPointsChanged(_points);
               });
             },
             onPanEnd: (_) => setState(() {
-              _isDrawing = false;
               _magnifierFocalPoint = null;
             }),
             child: CustomPaint(
@@ -1241,7 +1323,7 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
             ),
           ),
         ),
-        if (_points.isEmpty && !_isDrawing)
+        if (_points.isEmpty)
           Positioned.fill(
             child: Center(
               child: Container(
@@ -1260,7 +1342,7 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
               ),
             ),
           ),
-        if (_isDrawing && _magnifierFocalPoint != null && _points.length > 5)
+        if (_magnifierFocalPoint != null && _points.length > 5)
           _buildMagnifier(imageRect),
       ],
     );
@@ -1332,6 +1414,16 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
                     color: AppColors.accent.withValues(alpha: 0.8),
                   ),
                 ),
+                CustomPaint(
+                  size: Size(d, d),
+                  painter: _MagnifierTracePainter(
+                    points: _points,
+                    imageRect: imageRect,
+                    focalPoint: fp,
+                    zoomFactor: z,
+                    magnifierSize: d,
+                  ),
+                ),
               ],
             ),
           ),
@@ -1339,4 +1431,81 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
       ),
     );
   }
+}
+
+class _MagnifierTracePainter extends CustomPainter {
+  final List<ui.Offset> points; // normalizados 0-1
+  final Rect imageRect;
+  final ui.Offset focalPoint; // local al imageRect
+  final double zoomFactor;
+  final double magnifierSize;
+
+  _MagnifierTracePainter({
+    required this.points,
+    required this.imageRect,
+    required this.focalPoint,
+    required this.zoomFactor,
+    required this.magnifierSize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.length < 2) return;
+
+    // Centro del magnifier en coordenadas de pintado
+    final double cx = magnifierSize / 2;
+    final double cy = magnifierSize / 2;
+
+    // Offset de la imagen zoomeada dentro del magnifier
+    final double imgLeft =
+        cx - (focalPoint.dx / imageRect.width) * imageRect.width * zoomFactor;
+    final double imgTop =
+        cy - (focalPoint.dy / imageRect.height) * imageRect.height * zoomFactor;
+
+    // Convertir cada punto normalizado → coordenadas dentro del magnifier
+    ui.Offset toMag(ui.Offset p) {
+      final double px = imgLeft + p.dx * imageRect.width * zoomFactor;
+      final double py = imgTop + p.dy * imageRect.height * zoomFactor;
+      return ui.Offset(px, py);
+    }
+
+    final path = Path();
+    path.moveTo(toMag(points.first).dx, toMag(points.first).dy);
+    for (var i = 1; i < points.length; i++) {
+      final m = toMag(points[i]);
+      path.lineTo(m.dx, m.dy);
+    }
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = AppColors.accent.withValues(alpha: 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+
+    // Punto inicial destacado para que el usuario sepa dónde cerrar
+    final startM = toMag(points.first);
+    canvas.drawCircle(
+      startM,
+      5.0,
+      Paint()
+        ..color = AppColors.accent
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(
+      startM,
+      5.0,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _MagnifierTracePainter o) =>
+      o.points != points || o.focalPoint != focalPoint;
 }
