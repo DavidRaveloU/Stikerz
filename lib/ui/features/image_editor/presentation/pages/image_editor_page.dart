@@ -12,7 +12,6 @@ import 'package:stikerz/core/services/ads_service.dart';
 import 'package:stikerz/core/services/static_sticker_generation_service.dart';
 import 'package:stikerz/core/utils/responsive_text.dart';
 
-/// Enum for the available crop types for static image stickers.
 enum CropType { square, circle, freeForm, smart }
 
 class ImageEditorPage extends StatefulWidget {
@@ -39,16 +38,12 @@ class _ImageEditorPageState extends State<ImageEditorPage>
   double? _generationProgress;
   bool _imageLoaded = false;
 
-  // Crop state (normalized 0-1)
   Offset _cropOffset = const Offset(0.08, 0.10);
   double _cropWidth = 0.76;
   double _imageAspect = 1.0;
 
-  // Free-form crop state (normalized 0-1)
   List<ui.Offset> _freeFormPoints = [];
   bool _isDrawing = false;
-
-  // Magnifier state
   ui.Offset? _magnifierFocalPoint;
 
   @override
@@ -77,8 +72,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
   }
 
   double get _effectiveAspect => _imageAspect > 0 ? _imageAspect : 1.0;
-
-  // ── Normalize crop ──
 
   (Offset, double) _normalizeCrop(Offset rawOffset, double rawWidth) {
     const aspectRatio = 1.0;
@@ -110,8 +103,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
   }
 
   double get _cropHeight => (_cropWidth * _effectiveAspect) / 1.0;
-
-  // ── Image display rect calculation ──
 
   Rect _calculateImageRect(Size areaSize) {
     if (areaSize.width <= 0 || areaSize.height <= 0) return Rect.zero;
@@ -149,8 +140,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
       _cropWidth = n.$2;
     });
   }
-
-  // ── Generate sticker ──
 
   Future<void> _generateSticker() async {
     if (_isGenerating) return;
@@ -263,8 +252,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
       },
     );
   }
-
-  // ═══════════════════ BUILD ═══════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -410,16 +397,10 @@ class _ImageEditorPageState extends State<ImageEditorPage>
     );
   }
 
-  // ── Free-form area ──
-  // FIX: el GestureDetector está dentro de Positioned.fromRect(imageRect),
-  // así que las coordenadas locales YA son relativas al imageRect.
-  // El painter también recibe puntos locales directamente → sin doble offset.
-
   Widget _buildFreeFormArea(Size areaSize, Rect imageRect) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Image
         Positioned.fromRect(
           rect: imageRect,
           child: ClipRRect(
@@ -427,7 +408,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
             child: Image.file(File(widget.imagePath), fit: BoxFit.contain),
           ),
         ),
-        // Drawing overlay – coordenadas locales = relativas a imageRect
         Positioned.fromRect(
           rect: imageRect,
           child: GestureDetector(
@@ -435,7 +415,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
               setState(() {
                 _isDrawing = true;
                 _magnifierFocalPoint = details.localPosition;
-                // Normalizar respecto al tamaño de imageRect
                 _freeFormPoints = [
                   ui.Offset(
                     details.localPosition.dx / imageRect.width,
@@ -463,7 +442,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
             }),
             child: CustomPaint(
               size: Size(imageRect.width, imageRect.height),
-              // FIX: los puntos que recibe el painter son locales (sin sumar imageRect.left/top)
               painter: _FreeFormCropPainter(
                 points: _freeFormPoints
                     .map(
@@ -477,7 +455,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
             ),
           ),
         ),
-        // Instructions
         if (_freeFormPoints.isEmpty && !_isDrawing)
           Positioned.fill(
             child: Center(
@@ -497,7 +474,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
               ),
             ),
           ),
-        // Magnifier – usa coordenadas absolutas en el Stack padre (areaSize)
         if (_isDrawing &&
             _magnifierFocalPoint != null &&
             _freeFormPoints.length > 5)
@@ -505,11 +481,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
       ],
     );
   }
-
-  // ── Magnifier ──
-  // FIX: _magnifierFocalPoint es local al imageRect (relativo a su top-left).
-  // Para posicionar el magnifier en el Stack (que tiene areaSize),
-  // hay que sumar imageRect.left/top al calcular mx/my.
 
   Widget _buildMagnifier(Rect imageRect, Size areaSize) {
     if (_magnifierFocalPoint == null || imageRect.isEmpty) {
@@ -520,10 +491,8 @@ class _ImageEditorPageState extends State<ImageEditorPage>
     const double zoomFactor = 2.5;
     const double margin = 16.0;
 
-    // fp es local al imageRect
     final Offset fp = _magnifierFocalPoint!;
 
-    // Posición absoluta en el Stack (areaSize)
     final double absX = imageRect.left + fp.dx;
     final double absY = imageRect.top + fp.dy;
 
@@ -536,7 +505,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
       areaSize.height - diameter - margin,
     );
 
-    // Fracción normalizada dentro de la imagen
     final double fx = (fp.dx / imageRect.width).clamp(0.0, 1.0);
     final double fy = (fp.dy / imageRect.height).clamp(0.0, 1.0);
 
@@ -593,8 +561,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
       ),
     );
   }
-
-  // ── Square/Circle area ──
 
   Widget _buildSquareCircleArea(Size areaSize, Rect imageRect) {
     final left = imageRect.left + (_cropOffset.dx * imageRect.width);
@@ -679,8 +645,6 @@ class _ImageEditorPageState extends State<ImageEditorPage>
   }
 }
 
-// ═══════════════════ ToolButton ═══════════════════
-
 class _ToolButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -733,8 +697,6 @@ class _ToolButton extends StatelessWidget {
     );
   }
 }
-
-// ═══════════════════ ImageCropBox ═══════════════════
 
 class _ImageCropBox extends StatefulWidget {
   final Offset offset;
@@ -928,8 +890,6 @@ class _ImageCropBoxState extends State<_ImageCropBox> {
   }
 }
 
-// ═══════════════════ DimOverlayPainter ═══════════════════
-
 class _DimOverlayPainter extends CustomPainter {
   final Rect cropRect;
   final bool isCircle;
@@ -997,9 +957,6 @@ class _DimOverlayPainter extends CustomPainter {
       o.cropRect != cropRect || o.isCircle != isCircle;
 }
 
-// ═══════════════════ FreeFormCropPainter ═══════════════════
-// Recibe puntos ya en coordenadas locales del canvas (sin offset extra)
-
 class _FreeFormCropPainter extends CustomPainter {
   final List<ui.Offset> points;
   _FreeFormCropPainter({required this.points});
@@ -1020,6 +977,7 @@ class _FreeFormCropPainter extends CustomPainter {
     for (var i = 1; i < points.length; i++) {
       path.lineTo(points[i].dx, points[i].dy);
     }
+    path.close();
     canvas.drawPath(path, fp);
     canvas.drawPath(path, pp);
   }
@@ -1027,8 +985,6 @@ class _FreeFormCropPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _FreeFormCropPainter o) => o.points != points;
 }
-
-// ═══════════════════ FullscreenImageCropPage ═══════════════════
 
 class _FullscreenImageCropPage extends StatefulWidget {
   final String imagePath;
@@ -1158,7 +1114,6 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
                     final vr = _calcRect(area);
 
                     if (isFreeForm) {
-                      // FIX: pasamos areaSize para que el magnifier no use context.size
                       return _FullscreenFreeFormArea(
                         imagePath: widget.imagePath,
                         imageRect: vr,
@@ -1208,13 +1163,10 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
   }
 }
 
-// ═══════════════════ FullscreenFreeFormArea ═══════════════════
-// FIX: recibe areaSize por parámetro en lugar de usar context.size (que crashea en build)
-
 class _FullscreenFreeFormArea extends StatefulWidget {
   final String imagePath;
   final Rect imageRect;
-  final Size areaSize; // <-- nuevo parámetro
+  final Size areaSize;
 
   const _FullscreenFreeFormArea({
     required this.imagePath,
@@ -1230,7 +1182,7 @@ class _FullscreenFreeFormArea extends StatefulWidget {
 class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
   List<ui.Offset> _points = [];
   bool _isDrawing = false;
-  ui.Offset? _magnifierFocalPoint; // local al imageRect
+  ui.Offset? _magnifierFocalPoint;
 
   @override
   Widget build(BuildContext context) {
@@ -1242,8 +1194,6 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
           rect: imageRect,
           child: Image.file(File(widget.imagePath), fit: BoxFit.contain),
         ),
-        // FIX: mismo patrón que la vista normal: GestureDetector dentro de
-        // Positioned.fromRect → coordenadas locales relativas a imageRect
         Positioned.fromRect(
           rect: imageRect,
           child: GestureDetector(
@@ -1278,7 +1228,6 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
             }),
             child: CustomPaint(
               size: Size(imageRect.width, imageRect.height),
-              // FIX: puntos locales, sin sumar imageRect.left/top
               painter: _FreeFormCropPainter(
                 points: _points
                     .map(
@@ -1326,14 +1275,11 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
     const double z = 2.5;
     const double m = 16.0;
 
-    // fp es local al imageRect
     final Offset fp = _magnifierFocalPoint!;
 
-    // Posición absoluta en el Stack (que tiene widget.areaSize)
     final double absX = imageRect.left + fp.dx;
     final double absY = imageRect.top + fp.dy;
 
-    // FIX: usar widget.areaSize en lugar de context.size
     final double mx = absX.clamp(d / 2 + m, widget.areaSize.width - d / 2 - m);
     final double my = (absY - d - m).clamp(m, widget.areaSize.height - d - m);
 

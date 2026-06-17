@@ -34,7 +34,6 @@ class StaticStickerGenerationService {
     final baseName =
         'slot_${slotIndex}_${DateTime.now().millisecondsSinceEpoch}';
 
-    // Step 1: Read and decode the image
     final inputBytes = await File(inputImagePath).readAsBytes();
     final original = img.decodeImage(inputBytes);
     if (original == null) {
@@ -44,28 +43,34 @@ class StaticStickerGenerationService {
       );
     }
 
-    onStatus?.call('Applying crop...', 0.2);
+    img.Image processed;
 
-    // Step 2: Apply crop
-    var cropped = _applyCrop(
-      original,
-      normalizedCropX,
-      normalizedCropY,
-      normalizedCropWidth,
-      normalizedCropHeight,
-    );
-
-    if (cropped == null) {
-      return const StickerGenerationResult(
-        success: false,
-        error: 'Could not crop image.',
+    // Si es free-form, aplicar máscara directamente sobre la imagen original
+    if (freeFormPoints != null && freeFormPoints.isNotEmpty) {
+      onStatus?.call('Applying free-form mask...', 0.2);
+      processed = _applyFreeFormMask(original, freeFormPoints);
+    } else {
+      onStatus?.call('Applying crop...', 0.2);
+      var cropped = _applyCrop(
+        original,
+        normalizedCropX,
+        normalizedCropY,
+        normalizedCropWidth,
+        normalizedCropHeight,
       );
+
+      if (cropped == null) {
+        return const StickerGenerationResult(
+          success: false,
+          error: 'Could not crop image.',
+        );
+      }
+      processed = cropped;
     }
 
     onStatus?.call('Resizing to sticker format...', 0.4);
 
-    // Step 3: Make square and resize
-    final square = _makeSquare(cropped);
+    final square = _makeSquare(processed);
     final resized = img.copyResize(
       square,
       width: 512,
@@ -73,25 +78,24 @@ class StaticStickerGenerationService {
       interpolation: img.Interpolation.average,
     );
 
-    onStatus?.call('Applying mask...', 0.6);
+    onStatus?.call('Applying circular mask...', 0.6);
 
-    // Step 4: Apply mask
     img.Image masked = resized;
     if (useCircularMask) {
       masked = _applyCircularMask(resized);
-    } else if (freeFormPoints != null && freeFormPoints.isNotEmpty) {
-      masked = _applyFreeFormMask(resized, freeFormPoints);
     }
 
-    // Step 5: Save temporary PNG
+    // Step: Guardar como PNG con transparencia
     onStatus?.call('Preparing for conversion...', 0.7);
 
     final tempPngPath =
         '${outputDir.path}${Platform.pathSeparator}${baseName}_temp.png';
     final tempPngFile = File(tempPngPath);
-    await tempPngFile.writeAsBytes(img.encodePng(masked));
 
-    // Step 6: Create fake video from PNG (1 second)
+    // Usar encodePng con la imagen que ya tiene canal alfa
+    final pngBytes = img.encodePng(masked);
+    await tempPngFile.writeAsBytes(pngBytes);
+
     onStatus?.call('Creating fake video...', 0.75);
 
     final fakeVideoPath = await _createFakeVideo(
@@ -101,7 +105,6 @@ class StaticStickerGenerationService {
     );
 
     if (fakeVideoPath == null) {
-      // Clean up temp PNG if video creation failed
       if (await tempPngFile.exists()) {
         await tempPngFile.delete();
       }
@@ -111,7 +114,6 @@ class StaticStickerGenerationService {
       );
     }
 
-    // Step 7: Reuse the existing sticker generation pipeline
     onStatus?.call('Generating animated WebP...', 0.8);
 
     final result = await StickerGenerationService.generate(
@@ -136,7 +138,6 @@ class StaticStickerGenerationService {
       },
     );
 
-    // Step 8: Clean up temporary files
     if (await tempPngFile.exists()) {
       await tempPngFile.delete();
     }
@@ -146,11 +147,48 @@ class StaticStickerGenerationService {
       await fakeVideoFile.delete();
     }
 
-    // Step 9: Return the result from the video pipeline
     if (result.success && result.path != null) {
       onStatus?.call('Sticker created.', 1.0);
     } else if (!result.success) {
       onStatus?.call('Failed to create sticker.', 1.0);
+    }
+
+    return result;
+  }
+
+  static bool _isPointInsidePolygon(
+    List<ui.Offset> vertices,
+    double x,
+    double y,
+  ) {
+    bool inside = false;
+    final n = vertices.length;
+    for (int i = 0, j = n - 1; i < n; j = i++) {
+      final vi = vertices[i];
+      final vj = vertices[j];
+      final intersect =
+          ((vi.dy > y) != (vj.dy > y)) &&
+          (x < (vj.dx - vi.dx) * (y - vi.dy) / (vj.dy - vi.dy) + vi.dx);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  static img.Image _applyFreeFormMask(img.Image source, List<Offset> points) {
+    if (points.isEmpty || points.length < 3) return source;
+
+    final pixelPoints = points.map((p) {
+      return ui.Offset(p.dx * source.width, p.dy * source.height);
+    }).toList();
+
+    final result = img.Image.from(source);
+
+    for (var y = 0; y < source.height; y++) {
+      for (var x = 0; x < source.width; x++) {
+        if (!_isPointInsidePolygon(pixelPoints, x.toDouble(), y.toDouble())) {
+          result.setPixelRgba(x, y, 0, 0, 0, 0);
+        }
+      }
     }
 
     return result;
@@ -163,7 +201,7 @@ class StaticStickerGenerationService {
   }) async {
     final videoPath = '$outputDir${Platform.pathSeparator}${baseName}_fake.mp4';
 
-    // Use libx264 with alpha channel support
+    // Usar el mismo enfoque que el servicio de video: formato rgba y fondo transparente
     final command =
         '-y '
         '-loop 1 '
@@ -189,15 +227,18 @@ class StaticStickerGenerationService {
         }
       }
 
-      // Fallback: try with PNG codec (more reliable for alpha)
+      // Fallback: MOV con codec PNG
+      final fallbackVideoPath =
+          '$outputDir${Platform.pathSeparator}${baseName}_fake.mov';
       final fallbackCommand =
           '-y '
           '-loop 1 '
           '-i ${_q(pngPath)} '
           '-c:v png '
+          '-pix_fmt rgba '
           '-t 1 '
-          '-vf "scale=512:512:flags=lanczos,format=rgba" '
-          '${_q(videoPath)}';
+          '-vf "scale=512:512:flags=lanczos" '
+          '${_q(fallbackVideoPath)}';
 
       if (kDebugMode) {
         debugPrint('[StaticSticker] Fallback video command: $fallbackCommand');
@@ -207,9 +248,9 @@ class StaticStickerGenerationService {
       final fallbackReturnCode = await fallbackSession.getReturnCode();
 
       if (ReturnCode.isSuccess(fallbackReturnCode)) {
-        final file = File(videoPath);
+        final file = File(fallbackVideoPath);
         if (await file.exists()) {
-          return videoPath;
+          return fallbackVideoPath;
         }
       }
 
@@ -269,55 +310,6 @@ class StaticStickerGenerationService {
       }
     }
     return result;
-  }
-
-  static img.Image _applyFreeFormMask(img.Image source, List<Offset> points) {
-    if (points.isEmpty) return source;
-
-    final pixelPoints = points.map((p) {
-      return ui.Offset(p.dx * source.width, p.dy * source.height);
-    }).toList();
-
-    final mask = List.generate(
-      source.height,
-      (_) => List.filled(source.width, false),
-    );
-
-    for (var y = 0; y < source.height; y++) {
-      var inside = false;
-      for (var x = 0; x < source.width; x++) {
-        if (_isEdge(pixelPoints, x, y)) {
-          inside = !inside;
-        }
-        mask[y][x] = inside;
-      }
-    }
-
-    final result = img.Image.from(source);
-    for (var y = 0; y < source.height; y++) {
-      for (var x = 0; x < source.width; x++) {
-        if (!mask[y][x]) {
-          result.setPixelRgba(x, y, 0, 0, 0, 0);
-        }
-      }
-    }
-    return result;
-  }
-
-  static bool _isEdge(List<ui.Offset> vertices, int px, int py) {
-    var intersections = 0;
-    for (var i = 0; i < vertices.length; i++) {
-      final v1 = vertices[i];
-      final v2 = vertices[(i + 1) % vertices.length];
-
-      if ((v1.dy <= py && v2.dy > py) || (v2.dy <= py && v1.dy > py)) {
-        final t = (py - v1.dy) / (v2.dy - v1.dy);
-        if (px < v1.dx + t * (v2.dx - v1.dx)) {
-          intersections++;
-        }
-      }
-    }
-    return intersections % 2 == 1;
   }
 
   static Future<Directory> _ensureOutputDir(int packId) async {
