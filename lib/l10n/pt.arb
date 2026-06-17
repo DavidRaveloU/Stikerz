@@ -244,5 +244,15 @@
       "attempt": { "type": "int" },
       "maxAttempts": { "type": "int" }
       }
-    }
+    },
+  "staticImage": "Imagem estática",
+  "staticImageDescription": "Da sua galeria",
+  "imageEditorTitle": "Editor de Imagem",
+  "cropTypeRectangle": "Retângulo",
+  "cropTypeCircle": "Círculo",
+  "cropTypeFreeForm": "Traço livre",
+  "cropTypeSmart": "Recorte inteligente",
+  "cropTypeSmartComingSoon": "Recorte inteligente (Em breve)",
+  "generateStaticSticker": "Gerar Adesivo",
+  "processingImage": "Processando imagem..."
   }

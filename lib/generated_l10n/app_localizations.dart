@@ -1467,6 +1467,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connection lost. Retrying ({attempt}/{maxAttempts})...'**
   String videoPreparationRetrying(int attempt, int maxAttempts);
+
+  /// No description provided for @staticImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Static Image'**
+  String get staticImage;
+
+  /// No description provided for @staticImageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'From your gallery'**
+  String get staticImageDescription;
+
+  /// No description provided for @imageEditorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Editor'**
+  String get imageEditorTitle;
+
+  /// No description provided for @cropTypeRectangle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rectangle'**
+  String get cropTypeRectangle;
+
+  /// No description provided for @cropTypeCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle'**
+  String get cropTypeCircle;
+
+  /// No description provided for @cropTypeFreeForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Form'**
+  String get cropTypeFreeForm;
+
+  /// No description provided for @cropTypeSmart.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Cutout'**
+  String get cropTypeSmart;
+
+  /// No description provided for @cropTypeSmartComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Cutout (Coming Soon)'**
+  String get cropTypeSmartComingSoon;
+
+  /// No description provided for @generateStaticSticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Sticker'**
+  String get generateStaticSticker;
+
+  /// No description provided for @processingImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing image...'**
+  String get processingImage;
 }
 
 class _AppLocalizationsDelegate

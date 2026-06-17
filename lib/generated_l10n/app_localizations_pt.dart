@@ -771,4 +771,34 @@ class AppLocalizationsPt extends AppLocalizations {
   String videoPreparationRetrying(int attempt, int maxAttempts) {
     return 'A conexão caiu. Tentando novamente ($attempt/$maxAttempts)...';
   }
+
+  @override
+  String get staticImage => 'Imagem estática';
+
+  @override
+  String get staticImageDescription => 'Da sua galeria';
+
+  @override
+  String get imageEditorTitle => 'Editor de Imagem';
+
+  @override
+  String get cropTypeRectangle => 'Retângulo';
+
+  @override
+  String get cropTypeCircle => 'Círculo';
+
+  @override
+  String get cropTypeFreeForm => 'Traço livre';
+
+  @override
+  String get cropTypeSmart => 'Recorte inteligente';
+
+  @override
+  String get cropTypeSmartComingSoon => 'Recorte inteligente (Em breve)';
+
+  @override
+  String get generateStaticSticker => 'Gerar Adesivo';
+
+  @override
+  String get processingImage => 'Processando imagem...';
 }

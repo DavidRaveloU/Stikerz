@@ -9,12 +9,14 @@ import 'package:stikerz/core/utils/responsive_text.dart';
 
 class AddStickerSheet extends StatefulWidget {
   final VoidCallback onLocal;
+  final VoidCallback onImage;
   final Function(String videoUrl) onTikTokUrl;
   final Function(String videoUrl) onInstagramUrl;
 
   const AddStickerSheet({
     super.key,
     required this.onLocal,
+    required this.onImage,
     required this.onTikTokUrl,
     required this.onInstagramUrl,
   });
@@ -228,6 +230,19 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
                 iconBorder: AppColors.border,
                 title: context.l10n.localVideo,
                 subtitle: context.l10n.fromGallery,
+              ),
+              SizedBox(height: context.responsiveSize(8, tabletSize: 10)),
+              _ImportOption(
+                onTap: widget.onImage,
+                icon: const Icon(
+                  Icons.photo_rounded,
+                  color: Color(0xFF34C759),
+                  size: 20,
+                ),
+                iconBg: const Color(0xFF34C759).withValues(alpha: 0.08),
+                iconBorder: const Color(0xFF34C759).withValues(alpha: 0.2),
+                title: context.l10n.staticImage,
+                subtitle: context.l10n.staticImageDescription,
               ),
               SizedBox(height: context.responsiveSize(24, tabletSize: 28)),
             ] else ...[

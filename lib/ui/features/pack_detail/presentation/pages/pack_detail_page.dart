@@ -17,6 +17,7 @@ import 'package:stikerz/core/utils/error_localization.dart';
 import 'package:stikerz/core/utils/responsive_text.dart';
 import 'package:stikerz/data/models/sticker_model.dart';
 import 'package:stikerz/data/models/sticker_pack_model.dart';
+import 'package:stikerz/ui/features/image_editor/presentation/pages/image_editor_page.dart';
 import 'package:stikerz/ui/features/pack_detail/presentation/providers/pack_detail_provider.dart';
 import 'package:stikerz/ui/features/pack_detail/presentation/widgets/add_sticker_sheet.dart';
 import 'package:stikerz/ui/features/pack_detail/presentation/widgets/pack_detail_hero.dart';
@@ -187,6 +188,24 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
               sourceType: 'local',
             );
           });
+        },
+        onImage: () async {
+          Navigator.pop(context);
+          final picked = await _imagePicker.pickImage(
+            source: ImageSource.gallery,
+            imageQuality: 95,
+          );
+          if (picked == null || !mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ImageEditorPage(
+                packId: widget.packId,
+                slotIndex: index,
+                imagePath: picked.path,
+              ),
+            ),
+          );
         },
         onTikTokUrl: (videoUrl) {
           _openEditorWhenReady(

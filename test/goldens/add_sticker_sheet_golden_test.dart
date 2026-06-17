@@ -11,6 +11,7 @@ void main() {
     subdirectory: 'pack_detail',
     builder: (_) => AddStickerSheet(
       onLocal: () {},
+      onImage: () {},
       onTikTokUrl: (_) {},
       onInstagramUrl: (_) {},
     ),

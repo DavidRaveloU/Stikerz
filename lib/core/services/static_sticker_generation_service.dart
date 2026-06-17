@@ -1,0 +1,348 @@
+import 'dart:io';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/return_code.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+import 'package:stikerz/core/services/sticker_generation_service.dart';
+
+class StaticStickerGenerationService {
+  static bool _checkedWebpRuntime = false;
+
+  static Future<StickerGenerationResult> generate({
+    required String inputImagePath,
+    required int packId,
+    required int slotIndex,
+    required double normalizedCropX,
+    required double normalizedCropY,
+    required double normalizedCropWidth,
+    required double normalizedCropHeight,
+    required bool useCircularMask,
+    required List<Offset>? freeFormPoints,
+    double rotationDegrees = 0.0,
+    void Function(String status, double? progress)? onStatus,
+  }) async {
+    onStatus?.call('Processing image...', 0.05);
+
+    await _validateWebpRuntime();
+
+    final outputDir = await _ensureOutputDir(packId);
+    final baseName =
+        'slot_${slotIndex}_${DateTime.now().millisecondsSinceEpoch}';
+
+    // Step 1: Read and decode the image
+    final inputBytes = await File(inputImagePath).readAsBytes();
+    final original = img.decodeImage(inputBytes);
+    if (original == null) {
+      return const StickerGenerationResult(
+        success: false,
+        error: 'Could not decode image.',
+      );
+    }
+
+    onStatus?.call('Applying crop...', 0.2);
+
+    // Step 2: Apply crop
+    var cropped = _applyCrop(
+      original,
+      normalizedCropX,
+      normalizedCropY,
+      normalizedCropWidth,
+      normalizedCropHeight,
+    );
+
+    if (cropped == null) {
+      return const StickerGenerationResult(
+        success: false,
+        error: 'Could not crop image.',
+      );
+    }
+
+    onStatus?.call('Resizing to sticker format...', 0.4);
+
+    // Step 3: Make square and resize
+    final square = _makeSquare(cropped);
+    final resized = img.copyResize(
+      square,
+      width: 512,
+      height: 512,
+      interpolation: img.Interpolation.average,
+    );
+
+    onStatus?.call('Applying mask...', 0.6);
+
+    // Step 4: Apply mask
+    img.Image masked = resized;
+    if (useCircularMask) {
+      masked = _applyCircularMask(resized);
+    } else if (freeFormPoints != null && freeFormPoints.isNotEmpty) {
+      masked = _applyFreeFormMask(resized, freeFormPoints);
+    }
+
+    // Step 5: Save temporary PNG
+    onStatus?.call('Preparing for conversion...', 0.7);
+
+    final tempPngPath =
+        '${outputDir.path}${Platform.pathSeparator}${baseName}_temp.png';
+    final tempPngFile = File(tempPngPath);
+    await tempPngFile.writeAsBytes(img.encodePng(masked));
+
+    // Step 6: Create fake video from PNG (1 second)
+    onStatus?.call('Creating fake video...', 0.75);
+
+    final fakeVideoPath = await _createFakeVideo(
+      pngPath: tempPngPath,
+      outputDir: outputDir.path,
+      baseName: baseName,
+    );
+
+    if (fakeVideoPath == null) {
+      // Clean up temp PNG if video creation failed
+      if (await tempPngFile.exists()) {
+        await tempPngFile.delete();
+      }
+      return const StickerGenerationResult(
+        success: false,
+        error: 'Failed to create fake video.',
+      );
+    }
+
+    // Step 7: Reuse the existing sticker generation pipeline
+    onStatus?.call('Generating animated WebP...', 0.8);
+
+    final result = await StickerGenerationService.generate(
+      StickerGenerationRequest(
+        inputPath: fakeVideoPath,
+        packId: packId,
+        slotIndex: slotIndex,
+        startSec: 0.0,
+        durationSec: 1.0,
+        cropX: 0.0,
+        cropY: 0.0,
+        cropWidth: 1.0,
+        cropHeight: 1.0,
+        requiresInternet: false,
+        aspectRatioLabel: '1:1',
+      ),
+      onStatus: (status, progress) {
+        if (onStatus != null) {
+          final adjustedProgress = 0.8 + (progress ?? 0.0) * 0.2;
+          onStatus('Creating animated sticker...', adjustedProgress);
+        }
+      },
+    );
+
+    // Step 8: Clean up temporary files
+    if (await tempPngFile.exists()) {
+      await tempPngFile.delete();
+    }
+
+    final fakeVideoFile = File(fakeVideoPath);
+    if (await fakeVideoFile.exists()) {
+      await fakeVideoFile.delete();
+    }
+
+    // Step 9: Return the result from the video pipeline
+    if (result.success && result.path != null) {
+      onStatus?.call('Sticker created.', 1.0);
+    } else if (!result.success) {
+      onStatus?.call('Failed to create sticker.', 1.0);
+    }
+
+    return result;
+  }
+
+  static Future<String?> _createFakeVideo({
+    required String pngPath,
+    required String outputDir,
+    required String baseName,
+  }) async {
+    final videoPath = '$outputDir${Platform.pathSeparator}${baseName}_fake.mp4';
+
+    // Use libx264 with alpha channel support
+    final command =
+        '-y '
+        '-loop 1 '
+        '-i ${_q(pngPath)} '
+        '-c:v libx264 '
+        '-pix_fmt yuva420p '
+        '-t 1 '
+        '-vf "scale=512:512:flags=lanczos,format=rgba" '
+        '${_q(videoPath)}';
+
+    if (kDebugMode) {
+      debugPrint('[StaticSticker] Creating fake video: $command');
+    }
+
+    try {
+      final session = await FFmpegKit.execute(command);
+      final returnCode = await session.getReturnCode();
+
+      if (ReturnCode.isSuccess(returnCode)) {
+        final file = File(videoPath);
+        if (await file.exists()) {
+          return videoPath;
+        }
+      }
+
+      // Fallback: try with PNG codec (more reliable for alpha)
+      final fallbackCommand =
+          '-y '
+          '-loop 1 '
+          '-i ${_q(pngPath)} '
+          '-c:v png '
+          '-t 1 '
+          '-vf "scale=512:512:flags=lanczos,format=rgba" '
+          '${_q(videoPath)}';
+
+      if (kDebugMode) {
+        debugPrint('[StaticSticker] Fallback video command: $fallbackCommand');
+      }
+
+      final fallbackSession = await FFmpegKit.execute(fallbackCommand);
+      final fallbackReturnCode = await fallbackSession.getReturnCode();
+
+      if (ReturnCode.isSuccess(fallbackReturnCode)) {
+        final file = File(videoPath);
+        if (await file.exists()) {
+          return videoPath;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[StaticSticker] Error creating fake video: $e');
+      }
+      return null;
+    }
+  }
+
+  static img.Image? _applyCrop(
+    img.Image source,
+    double normX,
+    double normY,
+    double normW,
+    double normH,
+  ) {
+    final x = (normX * source.width).round().clamp(0, source.width - 1);
+    final y = (normY * source.height).round().clamp(0, source.height - 1);
+    final w = (normW * source.width).round().clamp(1, source.width - x);
+    final h = (normH * source.height).round().clamp(1, source.height - y);
+
+    return img.copyCrop(source, x: x, y: y, width: w, height: h);
+  }
+
+  static img.Image _makeSquare(img.Image source) {
+    final side = math.max(source.width, source.height);
+    final result = img.Image(width: side, height: side);
+
+    final offsetX = (side - source.width) ~/ 2;
+    final offsetY = (side - source.height) ~/ 2;
+
+    for (var y = 0; y < source.height; y++) {
+      for (var x = 0; x < source.width; x++) {
+        final pixel = source.getPixel(x, y);
+        result.setPixel(offsetX + x, offsetY + y, pixel);
+      }
+    }
+    return result;
+  }
+
+  static img.Image _applyCircularMask(img.Image source) {
+    final centerX = source.width / 2;
+    final centerY = source.height / 2;
+    final radius = math.min(centerX, centerY);
+
+    final result = img.Image.from(source);
+    for (var y = 0; y < source.height; y++) {
+      for (var x = 0; x < source.width; x++) {
+        final dx = x - centerX;
+        final dy = y - centerY;
+        if ((dx * dx + dy * dy) > radius * radius) {
+          result.setPixelRgba(x, y, 0, 0, 0, 0);
+        }
+      }
+    }
+    return result;
+  }
+
+  static img.Image _applyFreeFormMask(img.Image source, List<Offset> points) {
+    if (points.isEmpty) return source;
+
+    final pixelPoints = points.map((p) {
+      return ui.Offset(p.dx * source.width, p.dy * source.height);
+    }).toList();
+
+    final mask = List.generate(
+      source.height,
+      (_) => List.filled(source.width, false),
+    );
+
+    for (var y = 0; y < source.height; y++) {
+      var inside = false;
+      for (var x = 0; x < source.width; x++) {
+        if (_isEdge(pixelPoints, x, y)) {
+          inside = !inside;
+        }
+        mask[y][x] = inside;
+      }
+    }
+
+    final result = img.Image.from(source);
+    for (var y = 0; y < source.height; y++) {
+      for (var x = 0; x < source.width; x++) {
+        if (!mask[y][x]) {
+          result.setPixelRgba(x, y, 0, 0, 0, 0);
+        }
+      }
+    }
+    return result;
+  }
+
+  static bool _isEdge(List<ui.Offset> vertices, int px, int py) {
+    var intersections = 0;
+    for (var i = 0; i < vertices.length; i++) {
+      final v1 = vertices[i];
+      final v2 = vertices[(i + 1) % vertices.length];
+
+      if ((v1.dy <= py && v2.dy > py) || (v2.dy <= py && v1.dy > py)) {
+        final t = (py - v1.dy) / (v2.dy - v1.dy);
+        if (px < v1.dx + t * (v2.dx - v1.dx)) {
+          intersections++;
+        }
+      }
+    }
+    return intersections % 2 == 1;
+  }
+
+  static Future<Directory> _ensureOutputDir(int packId) async {
+    final docs = await getApplicationDocumentsDirectory();
+    final dir = Directory(
+      '${docs.path}${Platform.pathSeparator}stickers${Platform.pathSeparator}pack_$packId',
+    );
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir;
+  }
+
+  static String _q(String path) => '"${path.replaceAll('"', r'\"')}"';
+
+  static Future<void> _validateWebpRuntime() async {
+    if (_checkedWebpRuntime) return;
+
+    final session = await FFmpegKit.execute('-hide_banner -encoders');
+    final output = (await session.getOutput()) ?? '';
+
+    if (!output.contains('libwebp')) {
+      throw const StickerGenerationException('FFmpeg does not support WebP.');
+    }
+
+    _checkedWebpRuntime = true;
+  }
+}

@@ -28,8 +28,13 @@ const StickerModelSchema = Schema(
       name: r'sourceType',
       type: IsarType.string,
     ),
-    r'webpPath': PropertySchema(
+    r'stickerType': PropertySchema(
       id: 3,
+      name: r'stickerType',
+      type: IsarType.string,
+    ),
+    r'webpPath': PropertySchema(
+      id: 4,
       name: r'webpPath',
       type: IsarType.string,
     )
@@ -47,6 +52,7 @@ int _stickerModelEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.sourceType.length * 3;
+  bytesCount += 3 + object.stickerType.length * 3;
   bytesCount += 3 + object.webpPath.length * 3;
   return bytesCount;
 }
@@ -60,7 +66,8 @@ void _stickerModelSerialize(
   writer.writeDateTime(offsets[0], object.createdAt);
   writer.writeLong(offsets[1], object.slotIndex);
   writer.writeString(offsets[2], object.sourceType);
-  writer.writeString(offsets[3], object.webpPath);
+  writer.writeString(offsets[3], object.stickerType);
+  writer.writeString(offsets[4], object.webpPath);
 }
 
 StickerModel _stickerModelDeserialize(
@@ -73,7 +80,8 @@ StickerModel _stickerModelDeserialize(
     createdAt: reader.readDateTimeOrNull(offsets[0]),
     slotIndex: reader.readLongOrNull(offsets[1]) ?? 0,
     sourceType: reader.readStringOrNull(offsets[2]) ?? 'local',
-    webpPath: reader.readStringOrNull(offsets[3]) ?? '',
+    stickerType: reader.readStringOrNull(offsets[3]) ?? 'animated',
+    webpPath: reader.readStringOrNull(offsets[4]) ?? '',
   );
   return object;
 }
@@ -92,6 +100,8 @@ P _stickerModelDeserializeProp<P>(
     case 2:
       return (reader.readStringOrNull(offset) ?? 'local') as P;
     case 3:
+      return (reader.readStringOrNull(offset) ?? 'animated') as P;
+    case 4:
       return (reader.readStringOrNull(offset) ?? '') as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -361,6 +371,142 @@ extension StickerModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'sourceType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stickerType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'stickerType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'stickerType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'stickerType',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'stickerType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'stickerType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'stickerType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'stickerType',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stickerType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<StickerModel, StickerModel, QAfterFilterCondition>
+      stickerTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'stickerType',
         value: '',
       ));
     });
