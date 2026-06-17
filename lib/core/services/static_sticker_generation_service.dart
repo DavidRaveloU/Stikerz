@@ -92,7 +92,6 @@ class StaticStickerGenerationService {
         '${outputDir.path}${Platform.pathSeparator}${baseName}_temp.png';
     final tempPngFile = File(tempPngPath);
 
-    // Usar encodePng con la imagen que ya tiene canal alfa
     final pngBytes = img.encodePng(masked);
     await tempPngFile.writeAsBytes(pngBytes);
 
@@ -181,12 +180,33 @@ class StaticStickerGenerationService {
       return ui.Offset(p.dx * source.width, p.dy * source.height);
     }).toList();
 
-    final result = img.Image.from(source);
+    // Crear imagen RGBA con fondo transparente
+    final result = img.Image(
+      width: source.width,
+      height: source.height,
+      numChannels: 4,
+    );
 
+    // Inicializar todo como transparente (0,0,0,0)
     for (var y = 0; y < source.height; y++) {
       for (var x = 0; x < source.width; x++) {
-        if (!_isPointInsidePolygon(pixelPoints, x.toDouble(), y.toDouble())) {
-          result.setPixelRgba(x, y, 0, 0, 0, 0);
+        result.setPixelRgba(x, y, 0, 0, 0, 0);
+      }
+    }
+
+    // Copiar píxeles dentro del polígono
+    for (var y = 0; y < source.height; y++) {
+      for (var x = 0; x < source.width; x++) {
+        if (_isPointInsidePolygon(pixelPoints, x.toDouble(), y.toDouble())) {
+          final pixel = source.getPixel(x, y);
+          result.setPixelRgba(
+            x,
+            y,
+            pixel.r.toInt(),
+            pixel.g.toInt(),
+            pixel.b.toInt(),
+            pixel.a.toInt(),
+          );
         }
       }
     }
@@ -199,17 +219,17 @@ class StaticStickerGenerationService {
     required String outputDir,
     required String baseName,
   }) async {
-    final videoPath = '$outputDir${Platform.pathSeparator}${baseName}_fake.mp4';
+    // Usar MOV con codec PNG que preserva transparencia perfectamente
+    final videoPath = '$outputDir${Platform.pathSeparator}${baseName}_fake.mov';
 
-    // Usar el mismo enfoque que el servicio de video: formato rgba y fondo transparente
     final command =
         '-y '
         '-loop 1 '
         '-i ${_q(pngPath)} '
-        '-c:v libx264 '
-        '-pix_fmt yuva420p '
+        '-c:v png '
+        '-pix_fmt rgba '
         '-t 1 '
-        '-vf "scale=512:512:flags=lanczos,format=rgba" '
+        '-vf "scale=512:512:flags=lanczos" '
         '${_q(videoPath)}';
 
     if (kDebugMode) {
@@ -227,17 +247,17 @@ class StaticStickerGenerationService {
         }
       }
 
-      // Fallback: MOV con codec PNG
+      // Fallback: MP4 con alfa
       final fallbackVideoPath =
-          '$outputDir${Platform.pathSeparator}${baseName}_fake.mov';
+          '$outputDir${Platform.pathSeparator}${baseName}_fake.mp4';
       final fallbackCommand =
           '-y '
           '-loop 1 '
           '-i ${_q(pngPath)} '
-          '-c:v png '
-          '-pix_fmt rgba '
+          '-c:v libx264 '
+          '-pix_fmt yuva420p '
           '-t 1 '
-          '-vf "scale=512:512:flags=lanczos" '
+          '-vf "scale=512:512:flags=lanczos,format=rgba" '
           '${_q(fallbackVideoPath)}';
 
       if (kDebugMode) {
@@ -280,15 +300,42 @@ class StaticStickerGenerationService {
 
   static img.Image _makeSquare(img.Image source) {
     final side = math.max(source.width, source.height);
-    final result = img.Image(width: side, height: side);
+    // Crear imagen con canal alfa y fondo transparente
+    final result = img.Image(width: side, height: side, numChannels: 4);
+
+    // Inicializar con fondo transparente (0,0,0,0)
+    for (var y = 0; y < side; y++) {
+      for (var x = 0; x < side; x++) {
+        result.setPixelRgba(x, y, 0, 0, 0, 0);
+      }
+    }
 
     final offsetX = (side - source.width) ~/ 2;
     final offsetY = (side - source.height) ~/ 2;
 
+    // Copiar píxeles de la fuente
     for (var y = 0; y < source.height; y++) {
       for (var x = 0; x < source.width; x++) {
         final pixel = source.getPixel(x, y);
-        result.setPixel(offsetX + x, offsetY + y, pixel);
+        if (source.hasAlpha) {
+          result.setPixelRgba(
+            offsetX + x,
+            offsetY + y,
+            pixel.r.toInt(),
+            pixel.g.toInt(),
+            pixel.b.toInt(),
+            pixel.a.toInt(),
+          );
+        } else {
+          result.setPixelRgba(
+            offsetX + x,
+            offsetY + y,
+            pixel.r.toInt(),
+            pixel.g.toInt(),
+            pixel.b.toInt(),
+            255,
+          );
+        }
       }
     }
     return result;
@@ -299,16 +346,50 @@ class StaticStickerGenerationService {
     final centerY = source.height / 2;
     final radius = math.min(centerX, centerY);
 
-    final result = img.Image.from(source);
+    // Crear imagen RGBA con fondo transparente
+    final result = img.Image(
+      width: source.width,
+      height: source.height,
+      numChannels: 4,
+    );
+
+    // Inicializar con fondo transparente
+    for (var y = 0; y < source.height; y++) {
+      for (var x = 0; x < source.width; x++) {
+        result.setPixelRgba(x, y, 0, 0, 0, 0);
+      }
+    }
+
+    // Copiar píxeles dentro del círculo
     for (var y = 0; y < source.height; y++) {
       for (var x = 0; x < source.width; x++) {
         final dx = x - centerX;
         final dy = y - centerY;
-        if ((dx * dx + dy * dy) > radius * radius) {
-          result.setPixelRgba(x, y, 0, 0, 0, 0);
+        if ((dx * dx + dy * dy) <= radius * radius) {
+          final pixel = source.getPixel(x, y);
+          if (source.hasAlpha) {
+            result.setPixelRgba(
+              x,
+              y,
+              pixel.r.toInt(),
+              pixel.g.toInt(),
+              pixel.b.toInt(),
+              pixel.a.toInt(),
+            );
+          } else {
+            result.setPixelRgba(
+              x,
+              y,
+              pixel.r.toInt(),
+              pixel.g.toInt(),
+              pixel.b.toInt(),
+              255,
+            );
+          }
         }
       }
     }
+
     return result;
   }
 
