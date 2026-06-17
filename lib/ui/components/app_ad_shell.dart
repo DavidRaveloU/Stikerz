@@ -25,14 +25,7 @@ class _AppAdShellState extends ConsumerState<AppAdShell> {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-    final hasModal = ModalRoute.of(context)?.isCurrent != true;
     final shareResetToken = ref.watch(shareFlowResetProvider);
-    final bannerAd = ref.watch(bannerAdProvider);
-    final isBannerLoaded = ref.watch(isBannerLoadedProvider);
-
-    // Ocultar banner si: teclado abierto O hay un modal encima
-    final shouldHideBanner = keyboardOpen || hasModal;
 
     if (!AdsConfig.adsEnabled) {
       return Scaffold(body: widget.child);
@@ -40,43 +33,78 @@ class _AppAdShellState extends ConsumerState<AppAdShell> {
 
     return Scaffold(
       body: widget.child,
-      bottomNavigationBar: shouldHideBanner
-          ? null
-          : _GlobalBannerAdSlot(
-              key: ValueKey<int>(shareResetToken),
-              bannerAd: bannerAd,
-              isLoaded: isBannerLoaded,
-            ),
+      bottomNavigationBar: _LocalBannerAdSlot(
+        key: ValueKey<int>(shareResetToken),
+      ),
     );
   }
 }
 
-class _GlobalBannerAdSlot extends StatefulWidget {
-  final BannerAd? bannerAd;
-  final bool isLoaded;
-
-  const _GlobalBannerAdSlot({
-    super.key,
-    required this.bannerAd,
-    required this.isLoaded,
-  });
+class _LocalBannerAdSlot extends StatefulWidget {
+  const _LocalBannerAdSlot({super.key});
 
   @override
-  State<_GlobalBannerAdSlot> createState() => _GlobalBannerAdSlotState();
+  State<_LocalBannerAdSlot> createState() => _LocalBannerAdSlotState();
 }
 
-class _GlobalBannerAdSlotState extends State<_GlobalBannerAdSlot> {
+class _LocalBannerAdSlotState extends State<_LocalBannerAdSlot> {
+  BannerAd? _bannerAd;
+  bool _isLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBannerAd();
+  }
+
+  Future<void> _loadBannerAd() async {
+    final bannerAd = BannerAd(
+      adUnitId: AdsConfig.bannerAdUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (!mounted) {
+            ad.dispose();
+            return;
+          }
+          setState(() {
+            _bannerAd = ad as BannerAd;
+            _isLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          if (!mounted) return;
+          setState(() {
+            _bannerAd = null;
+            _isLoaded = false;
+          });
+        },
+      ),
+    );
+
+    _bannerAd = bannerAd;
+    await bannerAd.load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (!widget.isLoaded || widget.bannerAd == null) {
+    if (!_isLoaded || _bannerAd == null) {
       return const SizedBox(height: 50);
     }
 
     return SafeArea(
       child: SizedBox(
-        width: widget.bannerAd!.size.width.toDouble(),
-        height: widget.bannerAd!.size.height.toDouble(),
-        child: AdWidget(ad: widget.bannerAd!),
+        width: _bannerAd!.size.width.toDouble(),
+        height: _bannerAd!.size.height.toDouble(),
+        child: AdWidget(ad: _bannerAd!),
       ),
     );
   }
