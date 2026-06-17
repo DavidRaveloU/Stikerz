@@ -45,9 +45,9 @@ class StaticStickerGenerationService {
 
     img.Image processed;
 
-    // Si es free-form, aplicar máscara directamente sobre la imagen original
     if (freeFormPoints != null && freeFormPoints.isNotEmpty) {
       onStatus?.call('Applying free-form mask...', 0.2);
+      // _applyFreeFormMask ya devuelve la imagen recortada, centrada y lista
       processed = _applyFreeFormMask(original, freeFormPoints);
     } else {
       onStatus?.call('Applying crop...', 0.2);
@@ -85,7 +85,6 @@ class StaticStickerGenerationService {
       masked = _applyCircularMask(resized);
     }
 
-    // Step: Guardar como PNG con transparencia
     onStatus?.call('Preparing for conversion...', 0.7);
 
     final tempPngPath =
@@ -173,6 +172,10 @@ class StaticStickerGenerationService {
     return inside;
   }
 
+  /// Aplica la máscara free-form, calcula el bounding box de los píxeles
+  /// opacos resultantes, recorta a ese bounding box y devuelve esa imagen.
+  /// El pipeline posterior (_makeSquare → copyResize 512×512) se encarga de
+  /// centrarla y escalarla al máximo respetando la relación de aspecto.
   static img.Image _applyFreeFormMask(img.Image source, List<Offset> points) {
     if (points.isEmpty || points.length < 3) return source;
 
@@ -180,17 +183,17 @@ class StaticStickerGenerationService {
       return ui.Offset(p.dx * source.width, p.dy * source.height);
     }).toList();
 
-    // Crear imagen RGBA con fondo transparente
-    final result = img.Image(
+    // ── 1. Aplicar máscara sobre imagen de tamaño original ──
+    final masked = img.Image(
       width: source.width,
       height: source.height,
       numChannels: 4,
     );
 
-    // Inicializar todo como transparente (0,0,0,0)
+    // Inicializar todo como transparente
     for (var y = 0; y < source.height; y++) {
       for (var x = 0; x < source.width; x++) {
-        result.setPixelRgba(x, y, 0, 0, 0, 0);
+        masked.setPixelRgba(x, y, 0, 0, 0, 0);
       }
     }
 
@@ -199,7 +202,7 @@ class StaticStickerGenerationService {
       for (var x = 0; x < source.width; x++) {
         if (_isPointInsidePolygon(pixelPoints, x.toDouble(), y.toDouble())) {
           final pixel = source.getPixel(x, y);
-          result.setPixelRgba(
+          masked.setPixelRgba(
             x,
             y,
             pixel.r.toInt(),
@@ -211,7 +214,34 @@ class StaticStickerGenerationService {
       }
     }
 
-    return result;
+    // ── 2. Calcular bounding box de los píxeles opacos ──
+    int minX = source.width;
+    int minY = source.height;
+    int maxX = 0;
+    int maxY = 0;
+
+    for (var y = 0; y < masked.height; y++) {
+      for (var x = 0; x < masked.width; x++) {
+        final pixel = masked.getPixel(x, y);
+        if (pixel.a.toInt() > 0) {
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+
+    // Si no hay ningún píxel opaco, devolver la imagen enmascarada tal cual
+    if (minX > maxX || minY > maxY) return masked;
+
+    final bboxW = maxX - minX + 1;
+    final bboxH = maxY - minY + 1;
+
+    // ── 3. Recortar al bounding box ──
+    // Esto es lo que _makeSquare + copyResize recibirán:
+    // una imagen ajustada al contenido real, que luego se centra y escala.
+    return img.copyCrop(masked, x: minX, y: minY, width: bboxW, height: bboxH);
   }
 
   static Future<String?> _createFakeVideo({
@@ -219,7 +249,6 @@ class StaticStickerGenerationService {
     required String outputDir,
     required String baseName,
   }) async {
-    // Usar MOV con codec PNG que preserva transparencia perfectamente
     final videoPath = '$outputDir${Platform.pathSeparator}${baseName}_fake.mov';
 
     final command =
@@ -300,10 +329,8 @@ class StaticStickerGenerationService {
 
   static img.Image _makeSquare(img.Image source) {
     final side = math.max(source.width, source.height);
-    // Crear imagen con canal alfa y fondo transparente
     final result = img.Image(width: side, height: side, numChannels: 4);
 
-    // Inicializar con fondo transparente (0,0,0,0)
     for (var y = 0; y < side; y++) {
       for (var x = 0; x < side; x++) {
         result.setPixelRgba(x, y, 0, 0, 0, 0);
@@ -313,7 +340,6 @@ class StaticStickerGenerationService {
     final offsetX = (side - source.width) ~/ 2;
     final offsetY = (side - source.height) ~/ 2;
 
-    // Copiar píxeles de la fuente
     for (var y = 0; y < source.height; y++) {
       for (var x = 0; x < source.width; x++) {
         final pixel = source.getPixel(x, y);
@@ -346,21 +372,18 @@ class StaticStickerGenerationService {
     final centerY = source.height / 2;
     final radius = math.min(centerX, centerY);
 
-    // Crear imagen RGBA con fondo transparente
     final result = img.Image(
       width: source.width,
       height: source.height,
       numChannels: 4,
     );
 
-    // Inicializar con fondo transparente
     for (var y = 0; y < source.height; y++) {
       for (var x = 0; x < source.width; x++) {
         result.setPixelRgba(x, y, 0, 0, 0, 0);
       }
     }
 
-    // Copiar píxeles dentro del círculo
     for (var y = 0; y < source.height; y++) {
       for (var x = 0; x < source.width; x++) {
         final dx = x - centerX;
