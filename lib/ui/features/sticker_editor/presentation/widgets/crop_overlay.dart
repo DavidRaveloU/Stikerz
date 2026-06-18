@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stikerz/core/constants/app_colors.dart';
 
 class CropOverlay extends StatelessWidget {
   final Offset cropOffset;
@@ -35,21 +36,26 @@ class _OverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black.withValues(alpha: 0.55);
+    // Fondo oscuro con recorte
+    final fill = Paint()
+      ..color = Colors.black.withValues(alpha: 0.55)
+      ..style = PaintingStyle.fill;
     final path = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
       ..addRect(cropRect)
       ..fillType = PathFillType.evenOdd;
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, fill);
 
-    // Draw crop outline.
-    final borderPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawRect(cropRect, borderPaint);
+    // Borde del recuadro con color accent
+    canvas.drawRect(
+      cropRect,
+      Paint()
+        ..color = AppColors.accent
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
 
-    // Draw 3x3 composition grid.
+    // Líneas de la cuadrícula 3x3
     final gridPaint = Paint()
       ..color = Colors.white24
       ..strokeWidth = 0.5;
@@ -66,37 +72,6 @@ class _OverlayPainter extends CustomPainter {
         Offset(cropRect.left, y),
         Offset(cropRect.right, y),
         gridPaint,
-      );
-    }
-
-    // Highlight crop corners.
-    final cornerPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    final cLen = size.shortestSide < 360 ? 14.0 : 16.0;
-    final corners = [
-      cropRect.topLeft,
-      cropRect.topRight,
-      cropRect.bottomLeft,
-      cropRect.bottomRight,
-    ];
-
-    for (final corner in corners) {
-      final isLeft = corner.dx == cropRect.left;
-      final isTop = corner.dy == cropRect.top;
-
-      canvas.drawLine(
-        corner,
-        corner + Offset(isLeft ? cLen : -cLen, 0),
-        cornerPaint,
-      );
-      canvas.drawLine(
-        corner,
-        corner + Offset(0, isTop ? cLen : -cLen),
-        cornerPaint,
       );
     }
   }

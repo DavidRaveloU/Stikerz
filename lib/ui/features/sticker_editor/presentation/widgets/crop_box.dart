@@ -37,10 +37,8 @@ class CropBox extends StatefulWidget {
 }
 
 class _CropBoxState extends State<CropBox> {
-  Offset? _startOffset;
-  Offset? _startFocalPoint;
-  double? _startWidth;
-  bool? _isScaling;
+  Offset? _dragStartOffset;
+  Offset? _dragStartFocalPoint;
 
   double get _height =>
       (widget.cropWidth * widget.videoAspect) / widget.aspectRatio.ratio;
@@ -53,91 +51,79 @@ class _CropBoxState extends State<CropBox> {
     final w = widget.cropWidth * vr.width;
     final h = _height * vr.height;
 
-    return Positioned(
-      left: left,
-      top: top,
-      width: w,
-      height: h,
-      child: GestureDetector(
-        onScaleStart: (details) {
-          _startOffset = widget.offset;
-          _startWidth = widget.cropWidth;
-          _startFocalPoint = details.focalPoint;
-          _isScaling = details.pointerCount >= 2;
-          widget.onDragStart?.call();
-        },
-        onScaleUpdate: (details) {
-          if (vr.width <= 0 || vr.height <= 0) return;
+    // Sin Positioned.fromRect envolviendo: este Stack se coloca directo
+    // dentro del Stack de EditorVideoArea, igual que _ImageCropBox.
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // ── Zona central de arrastre ─────────────────────────────────────
+        Positioned(
+          left: left,
+          top: top,
+          width: w,
+          height: h,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onScaleStart: (details) {
+              if (details.pointerCount != 1) return;
+              _dragStartOffset = widget.offset;
+              _dragStartFocalPoint = details.focalPoint;
+              widget.onDragStart?.call();
+            },
+            onScaleUpdate: (details) {
+              if (details.pointerCount != 1) return;
+              if (_dragStartOffset == null || _dragStartFocalPoint == null) {
+                return;
+              }
+              if (vr.width <= 0 || vr.height <= 0) return;
 
-          if (_isScaling == false) {
-            final startOffset = _startOffset ?? widget.offset;
-            final startFocal = _startFocalPoint ?? details.focalPoint;
-            final delta = details.focalPoint - startFocal;
-            final newOffset = Offset(
-              startOffset.dx + delta.dx / vr.width,
-              startOffset.dy + delta.dy / vr.height,
-            );
-            widget.onChanged(newOffset, widget.cropWidth);
-            widget.onDragUpdate?.call(details.localFocalPoint);
-          } else {
-            const sensitivity = 0.2;
-            final startWidth = _startWidth ?? widget.cropWidth;
-            final adjustedScale = 1 + (details.scale - 1) * sensitivity;
-            final newWidth = startWidth * adjustedScale;
-            widget.onChanged(widget.offset, newWidth);
-            widget.onDragUpdate?.call(details.localFocalPoint);
-          }
-        },
-        onScaleEnd: (_) {
-          _startOffset = null;
-          _startWidth = null;
-          _startFocalPoint = null;
-          _isScaling = null;
-          widget.onDragEnd?.call();
-        },
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(color: Colors.transparent),
-            _buildHandle(
-              position: Offset(0, 0),
-              handle: ResizeHandle.topLeft,
-              vr: vr,
-              cropLeft: left,
-              cropTop: top,
-              cropW: w,
-              cropH: h,
-            ),
-            _buildHandle(
-              position: Offset(w, 0),
-              handle: ResizeHandle.topRight,
-              vr: vr,
-              cropLeft: left,
-              cropTop: top,
-              cropW: w,
-              cropH: h,
-            ),
-            _buildHandle(
-              position: Offset(0, h),
-              handle: ResizeHandle.bottomLeft,
-              vr: vr,
-              cropLeft: left,
-              cropTop: top,
-              cropW: w,
-              cropH: h,
-            ),
-            _buildHandle(
-              position: Offset(w, h),
-              handle: ResizeHandle.bottomRight,
-              vr: vr,
-              cropLeft: left,
-              cropTop: top,
-              cropW: w,
-              cropH: h,
-            ),
-          ],
+              final delta = details.focalPoint - _dragStartFocalPoint!;
+              final newOffset = Offset(
+                _dragStartOffset!.dx + delta.dx / vr.width,
+                _dragStartOffset!.dy + delta.dy / vr.height,
+              );
+
+              final maxOffsetX = (1.0 - widget.cropWidth).clamp(0.0, 1.0);
+              final maxOffsetY = (1.0 - _height).clamp(0.0, 1.0);
+              final clampedOffset = Offset(
+                newOffset.dx.clamp(0.0, maxOffsetX),
+                newOffset.dy.clamp(0.0, maxOffsetY),
+              );
+
+              widget.onChanged(clampedOffset, widget.cropWidth);
+              widget.onDragUpdate?.call(details.localFocalPoint);
+            },
+            onScaleEnd: (_) {
+              _dragStartOffset = null;
+              _dragStartFocalPoint = null;
+              widget.onDragEnd?.call();
+            },
+            child: const SizedBox.expand(),
+          ),
         ),
-      ),
+
+        // ── Handles de esquina ───────────────────────────────────────────
+        _buildHandle(
+          position: Offset(left, top),
+          handle: ResizeHandle.topLeft,
+          vr: vr,
+        ),
+        _buildHandle(
+          position: Offset(left + w, top),
+          handle: ResizeHandle.topRight,
+          vr: vr,
+        ),
+        _buildHandle(
+          position: Offset(left, top + h),
+          handle: ResizeHandle.bottomLeft,
+          vr: vr,
+        ),
+        _buildHandle(
+          position: Offset(left + w, top + h),
+          handle: ResizeHandle.bottomRight,
+          vr: vr,
+        ),
+      ],
     );
   }
 
@@ -145,99 +131,77 @@ class _CropBoxState extends State<CropBox> {
     required Offset position,
     required ResizeHandle handle,
     required Rect vr,
-    required double cropLeft,
-    required double cropTop,
-    required double cropW,
-    required double cropH,
   }) {
     return Positioned(
       left: position.dx - 20,
       top: position.dy - 20,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onPanStart: (_) {
           widget.onResizeHandleChanged?.call(handle);
           widget.onResizeStart?.call();
-
-          final cornerPosition = _getCornerPosition(
-            handle,
-            cropLeft,
-            cropTop,
-            cropW,
-            cropH,
-          );
-          widget.onDragUpdate?.call(cornerPosition);
+          widget.onDragUpdate?.call(position);
         },
         onPanUpdate: (details) {
           if (vr.width <= 0) return;
-
           final deltaX = details.delta.dx / vr.width;
-
-          double newWidth = widget.cropWidth;
-          double newOffsetX = widget.offset.dx;
-          double newOffsetY = widget.offset.dy;
+          double nw = widget.cropWidth,
+              nox = widget.offset.dx,
+              noy = widget.offset.dy;
 
           switch (handle) {
             case ResizeHandle.topLeft:
-              // Esquina 1: fijar esquina 4 (bottomRight)
-              newWidth = (widget.cropWidth - deltaX).clamp(0.15, 1.0);
-              newOffsetX = widget.offset.dx + (widget.cropWidth - newWidth);
-              newOffsetY =
+              nw = (widget.cropWidth - deltaX).clamp(0.15, 1.0);
+              nox = widget.offset.dx + (widget.cropWidth - nw);
+              noy =
                   widget.offset.dy +
-                  (widget.cropWidth - newWidth) * (_height / widget.cropWidth);
+                  (widget.cropWidth - nw) * (_height / widget.cropWidth);
               break;
-
             case ResizeHandle.topRight:
-              // Esquina 2: fijar esquina 3 (bottomLeft)
-              newWidth = (widget.cropWidth + deltaX).clamp(0.15, 1.0);
-              newOffsetX = widget.offset.dx;
-              // La esquina inferior izquierda debe quedar fija, por lo tanto:
-              // la esquina superior derecha se mueve, el offset Y debe ajustarse hacia abajo
-              newOffsetY =
+              nw = (widget.cropWidth + deltaX).clamp(0.15, 1.0);
+              nox = widget.offset.dx;
+              noy =
                   widget.offset.dy -
-                  (newWidth - widget.cropWidth) * (_height / widget.cropWidth);
+                  (nw - widget.cropWidth) * (_height / widget.cropWidth);
               break;
-
             case ResizeHandle.bottomLeft:
-              // Esquina 3: fijar esquina 2 (topRight)
-              newWidth = (widget.cropWidth - deltaX).clamp(0.15, 1.0);
-              newOffsetX = widget.offset.dx + (widget.cropWidth - newWidth);
-              newOffsetY = widget.offset.dy;
+              nw = (widget.cropWidth - deltaX).clamp(0.15, 1.0);
+              nox = widget.offset.dx + (widget.cropWidth - nw);
+              noy = widget.offset.dy;
               break;
-
             case ResizeHandle.bottomRight:
-              // Esquina 4: fijar esquina 1 (topLeft)
-              newWidth = (widget.cropWidth + deltaX).clamp(0.15, 1.0);
-              newOffsetX = widget.offset.dx;
-              newOffsetY = widget.offset.dy;
+              nw = (widget.cropWidth + deltaX).clamp(0.15, 1.0);
+              nox = widget.offset.dx;
+              noy = widget.offset.dy;
               break;
           }
 
-          // Asegurar que el offset no se salga de los límites
-          final maxOffsetX = (1.0 - newWidth).clamp(0.0, 1.0);
+          final maxOffsetX = (1.0 - nw).clamp(0.0, 1.0);
           final maxOffsetY = (1.0 - _height).clamp(0.0, 1.0);
+          widget.onChanged(
+            Offset(nox.clamp(0.0, maxOffsetX), noy.clamp(0.0, maxOffsetY)),
+            nw,
+          );
 
-          newOffsetX = newOffsetX.clamp(0.0, maxOffsetX);
-          newOffsetY = newOffsetY.clamp(0.0, maxOffsetY);
-
-          widget.onChanged(Offset(newOffsetX, newOffsetY), newWidth);
-
-          final newCropLeft = vr.left + (newOffsetX * vr.width);
-          final newCropTop = vr.top + (newOffsetY * vr.height);
-          final newCropW = newWidth * vr.width;
-          final newCropH = _height * vr.height;
+          final newLeft = vr.left + (nox * vr.width);
+          final newTop = vr.top + (noy * vr.height);
+          final newW = nw * vr.width;
+          final newH = _height * vr.height;
 
           final cornerPosition = _getCornerPosition(
             handle,
-            newCropLeft,
-            newCropTop,
-            newCropW,
-            newCropH,
+            newLeft,
+            newTop,
+            newW,
+            newH,
           );
           widget.onDragUpdate?.call(cornerPosition);
         },
         onPanEnd: (_) {
           widget.onDragEnd?.call();
         },
+        // 60x60 de área táctil — más grande que el círculo de 24x24,
+        // así no se necesita precisión para agarrar la esquina.
         child: Container(
           width: 40,
           height: 40,
@@ -246,10 +210,10 @@ class _CropBoxState extends State<CropBox> {
           child: Container(
             width: 24,
             height: 24,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black45,
                   blurRadius: 8,

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
 import 'package:stikerz/core/constants/app_colors.dart';
 import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/providers/update_provider.dart';
 import 'package:stikerz/core/repositories/pack_repository.dart';
 import 'package:stikerz/core/services/ads_service.dart';
 import 'package:stikerz/core/services/static_sticker_generation_service.dart';
@@ -248,9 +249,29 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
   Future<void> _popWithAd() async {
     await AdsService().showInterstitialAd(
       onDismissed: () {
-        if (mounted) Navigator.pop(context, 'generated');
+        if (mounted) {
+          Navigator.pop(context, 'generated');
+          _checkForUpdateAfterAction();
+        }
       },
     );
+  }
+
+  void _checkForUpdateAfterAction() {
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        ref.read(silentUpdateCheckProvider);
+        if (ref.read(updateAvailableProvider)) {
+          ref.read(updateServiceProvider).showUpdateIfAvailable();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _checkForUpdateAfterAction();
+    super.dispose();
   }
 
   @override

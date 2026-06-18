@@ -9,6 +9,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:stikerz/core/constants/app_colors.dart';
 import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/providers/update_provider.dart';
 import 'package:stikerz/core/repositories/pack_repository.dart';
 import 'package:stikerz/core/services/ads_service.dart';
 import 'package:stikerz/core/services/sticker_generation_service.dart';
@@ -413,9 +414,25 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
   Future<void> _popWithAd() async {
     await AdsService().showInterstitialAd(
       onDismissed: () {
-        if (mounted) Navigator.pop(context, 'generated');
+        if (mounted) {
+          Navigator.pop(context, 'generated');
+          // Después de volver, verificar actualizaciones
+          _checkForUpdateAfterAction();
+        }
       },
     );
+  }
+
+  void _checkForUpdateAfterAction() {
+    // Esperar a que la navegación se complete
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        ref.read(silentUpdateCheckProvider);
+        if (ref.read(updateAvailableProvider)) {
+          ref.read(updateServiceProvider).showUpdateIfAvailable();
+        }
+      }
+    });
   }
 
   Future<void> _generateSticker() async {
@@ -491,6 +508,7 @@ class _StickerEditorPageState extends ConsumerState<StickerEditorPage>
       _positionSub?.cancel();
     }
     _playheadCtrl.dispose();
+    _checkForUpdateAfterAction();
     super.dispose();
   }
 
