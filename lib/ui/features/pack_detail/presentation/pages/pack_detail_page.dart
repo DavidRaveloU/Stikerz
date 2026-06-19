@@ -17,6 +17,7 @@ import 'package:stikerz/core/utils/error_localization.dart';
 import 'package:stikerz/core/utils/responsive_text.dart';
 import 'package:stikerz/data/models/sticker_model.dart';
 import 'package:stikerz/data/models/sticker_pack_model.dart';
+import 'package:stikerz/ui/components/native_ad_widget.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/pages/image_editor_page.dart';
 import 'package:stikerz/ui/features/pack_detail/presentation/providers/pack_detail_provider.dart';
 import 'package:stikerz/ui/features/pack_detail/presentation/widgets/add_sticker_sheet.dart';
@@ -56,7 +57,6 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
   @override
   void initState() {
     super.initState();
-    // Preload interstitial so it is ready after sticker creation.
     (widget.preloadInterstitialAd ?? AdsService().loadInterstitialAd)();
   }
 
@@ -376,6 +376,8 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
                     coverPreview: widget.heroCoverPreview,
                   ),
                 ),
+                // Native ad - SIN const
+                SliverToBoxAdapter(child: NativeAdWidget()),
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
                     context.responsiveSize(16, tabletSize: 20),

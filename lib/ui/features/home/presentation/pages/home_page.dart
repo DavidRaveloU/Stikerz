@@ -8,6 +8,7 @@ import 'package:stikerz/core/repositories/pack_repository.dart';
 import 'package:stikerz/core/utils/responsive_text.dart';
 import 'package:stikerz/data/models/sticker_pack_model.dart';
 import 'package:stikerz/ui/components/create_pack_modal.dart';
+import 'package:stikerz/ui/components/native_ad_widget.dart';
 import 'package:stikerz/ui/features/home/presentation/providers/home_provider.dart';
 import 'package:stikerz/ui/features/home/presentation/widgets/home_header.dart';
 import 'package:stikerz/ui/features/home/presentation/widgets/home_search_bar.dart';
@@ -105,139 +106,165 @@ class _HomePageState extends ConsumerState<HomePage> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const HomeHeader(),
+          child: CustomScrollView(
+            slivers: [
+              const SliverToBoxAdapter(
+                key: ValueKey('home_header'),
+                child: HomeHeader(),
+              ),
               if (pending != null)
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: context.responsiveSize(16, tabletSize: 20),
-                    vertical: context.responsiveSize(8, tabletSize: 10),
-                  ),
-                  child: Material(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
+                SliverToBoxAdapter(
+                  key: const ValueKey('pending_banner'),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.responsiveSize(16, tabletSize: 20),
+                      vertical: context.responsiveSize(8, tabletSize: 10),
+                    ),
+                    child: Material(
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              _shareBannerHint(pending, totalCount),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                _shareBannerHint(pending, totalCount),
+                              ),
                             ),
+                          );
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.all(
+                            context.responsiveSize(12, tabletSize: 14),
                           ),
-                        );
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.all(
-                          context.responsiveSize(12, tabletSize: 14),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              pending.isResolving
-                                  ? Icons.hourglass_top_rounded
-                                  : Icons.add_to_photos_rounded,
-                              color: AppColors.accent,
-                              size: context.responsiveSize(22, tabletSize: 24),
-                            ),
-                            SizedBox(
-                              width: context.responsiveSize(12, tabletSize: 14),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    _shareBannerTitle(pending, totalCount),
-                                    style: context.responsiveTextStyle(
-                                      mobileSize: 15,
-                                      tabletSize: 16,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: context.responsiveSize(
-                                      2,
-                                      tabletSize: 3,
-                                    ),
-                                  ),
-                                  Text(
-                                    _shareBannerSubtitle(pending, totalCount),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: context.responsiveTextStyle(
-                                      mobileSize: 13,
-                                      tabletSize: 14,
-                                      color: AppColors.textMuted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              width: context.responsiveSize(8, tabletSize: 10),
-                            ),
-                            if (pending.isResolving)
-                              const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                          child: Row(
+                            children: [
+                              Icon(
+                                pending.isResolving
+                                    ? Icons.hourglass_top_rounded
+                                    : Icons.add_to_photos_rounded,
+                                color: AppColors.accent,
+                                size: context.responsiveSize(
+                                  22,
+                                  tabletSize: 24,
                                 ),
-                              )
-                            else
-                              TextButton(
-                                onPressed: () {
-                                  ref
-                                          .read(pendingShareProvider.notifier)
-                                          .state =
-                                      null;
-                                },
-                                child: Text(context.l10n.discard),
                               ),
-                          ],
+                              SizedBox(
+                                width: context.responsiveSize(
+                                  12,
+                                  tabletSize: 14,
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _shareBannerTitle(pending, totalCount),
+                                      style: context.responsiveTextStyle(
+                                        mobileSize: 15,
+                                        tabletSize: 16,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: context.responsiveSize(
+                                        2,
+                                        tabletSize: 3,
+                                      ),
+                                    ),
+                                    Text(
+                                      _shareBannerSubtitle(pending, totalCount),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: context.responsiveTextStyle(
+                                        mobileSize: 13,
+                                        tabletSize: 14,
+                                        color: AppColors.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                width: context.responsiveSize(
+                                  8,
+                                  tabletSize: 10,
+                                ),
+                              ),
+                              if (pending.isResolving)
+                                const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              else
+                                TextButton(
+                                  onPressed: () {
+                                    ref
+                                            .read(pendingShareProvider.notifier)
+                                            .state =
+                                        null;
+                                  },
+                                  child: Text(context.l10n.discard),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              HomeSearchBar(
-                controller: _searchController,
-                onChanged: (value) {
-                  ref.read(homeSearchQueryProvider.notifier).state = value;
-                },
+              SliverToBoxAdapter(
+                key: const ValueKey('search_bar'),
+                child: HomeSearchBar(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    ref.read(homeSearchQueryProvider.notifier).state = value;
+                  },
+                ),
               ),
-              Expanded(
-                child: isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.accent,
+              // Native ad between search and list
+              SliverToBoxAdapter(
+                key: const ValueKey('native_ad'),
+                child: NativeAdWidget(),
+              ),
+              if (isLoading)
+                const SliverFillRemaining(
+                  key: ValueKey('loading'),
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.accent),
+                  ),
+                )
+              else if (filteredPacks.isEmpty && totalCount == 0)
+                SliverFillRemaining(
+                  key: const ValueKey('empty'),
+                  child: _buildEmptyState(context),
+                )
+              else
+                PackList(
+                  key: const ValueKey('pack_list'),
+                  packs: filteredPacks,
+                  searchQuery: ref.watch(homeSearchQueryProvider),
+                  totalCount: totalCount,
+                  onDelete: _showDeleteDialog,
+                  onPackTap: (pack) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PackDetailPage(
+                          packId: pack.id,
+                          heroTag: 'pack_cover_${pack.id}',
                         ),
-                      )
-                    : filteredPacks.isEmpty && totalCount == 0
-                    ? _buildEmptyState(context)
-                    : PackList(
-                        packs: filteredPacks,
-                        searchQuery: ref.watch(homeSearchQueryProvider),
-                        totalCount: totalCount,
-                        onDelete: _showDeleteDialog,
-                        onPackTap: (pack) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PackDetailPage(
-                                packId: pack.id,
-                                heroTag: 'pack_cover_${pack.id}',
-                              ),
-                            ),
-                          );
-                        },
                       ),
-              ),
+                    );
+                  },
+                ),
             ],
           ),
         ),
@@ -299,7 +326,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildFAB(BuildContext context) {
-    // Fixed dimensions are fine here because this control has no text.
     final fabSize = context.responsiveSize(54, tabletSize: 60);
     final iconSize = context.responsiveSize(26, tabletSize: 28);
 

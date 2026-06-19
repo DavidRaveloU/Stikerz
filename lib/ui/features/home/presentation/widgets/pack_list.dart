@@ -27,31 +27,32 @@ class PackList extends StatelessWidget {
     final bottomInset = MediaQuery.of(context).padding.bottom;
     final horizontal = context.responsiveSize(20, tabletSize: 24);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 10),
-          child: Text(
-            isFiltering
-                ? context.l10n.packsFound(packs.length, totalCount)
-                : context.l10n.packsCount(packs.length),
-            style: context.responsiveTextStyle(
-              mobileSize: 11,
-              tabletSize: 12,
-              color: AppColors.textMuted,
-              letterSpacing: 1.5,
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 10),
+            child: Text(
+              isFiltering
+                  ? context.l10n.packsFound(packs.length, totalCount)
+                  : context.l10n.packsCount(packs.length),
+              style: context.responsiveTextStyle(
+                mobileSize: 11,
+                tabletSize: 12,
+                color: AppColors.textMuted,
+                letterSpacing: 1.5,
+              ),
             ),
           ),
         ),
-        Expanded(
-          child: ListView.separated(
-            padding: EdgeInsets.fromLTRB(
-              horizontal,
-              0,
-              horizontal,
-              context.responsiveSize(100, tabletSize: 120) + bottomInset,
-            ),
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            horizontal,
+            0,
+            horizontal,
+            context.responsiveSize(100, tabletSize: 120) + bottomInset,
+          ),
+          sliver: SliverList.separated(
             itemCount: packs.length,
             separatorBuilder: (_, _) =>
                 SizedBox(height: context.responsiveSize(10, tabletSize: 12)),

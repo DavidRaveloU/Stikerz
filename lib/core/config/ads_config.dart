@@ -13,12 +13,14 @@ class AdsConfig {
   static const String _testBannerId = 'ca-app-pub-3940256099942544/6300978111';
   static const String _testInterstitialId =
       'ca-app-pub-3940256099942544/1033173712';
+  static const String _testNativeId = 'ca-app-pub-3940256099942544/2247696110';
 
   // Placeholders to avoid exposing real IDs in the repo.
   // In release builds these should be replaced via --dart-define.
   static const String _prodAppId = 'ADMOB_APP_ID_PLACEHOLDER';
   static const String _prodBannerId = 'ADMOB_BANNER_ID_PLACEHOLDER';
   static const String _prodInterstitialId = 'ADMOB_INTERSTITIAL_ID_PLACEHOLDER';
+  static const String _prodNativeId = 'ca-app-pub-4826279350222741/3843753100';
 
   // Values read from --dart-define
   static const String _envAppId = String.fromEnvironment(
@@ -33,6 +35,10 @@ class AdsConfig {
     'ADMOB_INTERSTITIAL_ID',
     defaultValue: '',
   );
+  static const String _envNativeId = String.fromEnvironment(
+    'ADMOB_NATIVE_ID',
+    defaultValue: '',
+  );
 
   static bool get useTestIds => kDebugMode;
 
@@ -43,6 +49,9 @@ class AdsConfig {
   }
 
   static String get bannerAdUnitId {
+    print('🔍 useTestIds: $useTestIds');
+    print('🔍 _envBannerId: $_envBannerId');
+    print('🔍 _envBannerId.isEmpty: ${_envBannerId.isEmpty}');
     if (useTestIds) return _testBannerId;
     if (_envBannerId.isNotEmpty) return _envBannerId;
     return _prodBannerId;
@@ -54,8 +63,14 @@ class AdsConfig {
     return _prodInterstitialId;
   }
 
+  static String get nativeAdUnitId {
+    if (useTestIds) return _testNativeId;
+    if (_envNativeId.isNotEmpty) return _envNativeId;
+    return _prodNativeId;
+  }
+
   /// Debug helper
   static String debugSummary() {
-    return 'AdsConfig(useTestIds: $useTestIds, appId: ${appId.isNotEmpty}, banner: ${bannerAdUnitId.isNotEmpty}, interstitial: ${interstitialAdUnitId.isNotEmpty})';
+    return 'AdsConfig(useTestIds: $useTestIds, appId: ${appId.isNotEmpty}, banner: ${bannerAdUnitId.isNotEmpty}, interstitial: ${interstitialAdUnitId.isNotEmpty}, native: ${nativeAdUnitId.isNotEmpty})';
   }
 }
