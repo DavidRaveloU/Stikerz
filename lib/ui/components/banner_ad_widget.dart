@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:stikerz/core/config/ads_config.dart';
+import 'package:stikerz/core/providers/purchase_provider.dart';
 import 'package:stikerz/core/utils/responsive_text.dart';
 
 /// Displays a Google Mobile Ads banner placeholder or ad widget.
 ///
 /// Keep this widget near the bottom area of a page layout so the banner has
 /// stable space and does not overlap interactive content.
-class BannerAdWidget extends StatelessWidget {
+class BannerAdWidget extends ConsumerWidget {
   final BannerAd? bannerAd;
   final bool isLoaded;
 
@@ -18,8 +20,12 @@ class BannerAdWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (!AdsConfig.adsEnabled) {
+      return const SizedBox.shrink();
+    }
+
+    if (ref.watch(isPremiumProvider)) {
       return const SizedBox.shrink();
     }
 

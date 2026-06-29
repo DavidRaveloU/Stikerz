@@ -53,6 +53,7 @@ class PackDetailPage extends ConsumerStatefulWidget {
 class _PackDetailPageState extends ConsumerState<PackDetailPage> {
   final ImagePicker _imagePicker = ImagePicker();
   String? _lastFullPackWarningKey;
+  bool _isProcessingCover = false;
 
   @override
   void initState() {
@@ -67,28 +68,34 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
     );
     if (picked == null) return;
 
-    final processedPath = await _createCenteredSquareCover(
-      inputPath: picked.path,
-      packId: widget.packId,
-    );
+    setState(() => _isProcessingCover = true);
 
-    if (processedPath == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(context.l10n.processCoverError)));
-      return;
-    }
+    try {
+      final processedPath = await _createCenteredSquareCover(
+        inputPath: picked.path,
+        packId: widget.packId,
+      );
 
-    await PackRepository.instance.updateCover(widget.packId, processedPath);
+      if (processedPath == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.processCoverError)));
+        return;
+      }
 
-    final oldCover = pack.coverImagePath;
-    if (oldCover != null &&
-        oldCover != processedPath &&
-        oldCover.contains(
-          '${Platform.pathSeparator}pack_covers${Platform.pathSeparator}',
-        )) {
-      await _safeDeleteFile(oldCover);
+      await PackRepository.instance.updateCover(widget.packId, processedPath);
+
+      final oldCover = pack.coverImagePath;
+      if (oldCover != null &&
+          oldCover != processedPath &&
+          oldCover.contains(
+            '${Platform.pathSeparator}pack_covers${Platform.pathSeparator}',
+          )) {
+        await _safeDeleteFile(oldCover);
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessingCover = false);
     }
   }
 
@@ -422,6 +429,22 @@ class _PackDetailPageState extends ConsumerState<PackDetailPage> {
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (_isProcessingCover)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(
+                          color: AppColors.accent,
                         ),
                       ],
                     ),

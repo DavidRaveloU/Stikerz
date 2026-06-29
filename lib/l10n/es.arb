@@ -254,5 +254,19 @@
   "cropTypeSmart": "Recorte inteligente",
   "cropTypeSmartComingSoon": "Recorte inteligente (Próximamente)",
   "generateStaticSticker": "Generar Sticker",
-  "processingImage": "Procesando imagen..."
+  "processingImage": "Procesando imagen...",
+
+  "removeAdsTitle": "Eliminar anuncios",
+  "oneTimePayment": "pago único",
+  "removeAdsBenefit1": "Sin banner en la pantalla principal",
+  "removeAdsBenefit2": "Sin anuncios a pantalla completa",
+  "removeAdsBenefit3": "Experiencia limpia en toda la app",
+  "buyForPrice": "Comprar por {price}",
+  "notAvailable": "No disponible",
+  "loadingPrice": "Cargando precio…",
+  "restorePurchase": "Restaurar compra",
+  "premiumActive": "Premium activo",
+  "noAdsBadge": "SIN ANUNCIOS",
+  "premiumThanks": "¡Gracias por apoyar la app! ",
+  "premiumDescription": "Disfruta de la experiencia sin interrupciones"
 }

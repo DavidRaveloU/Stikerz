@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:stikerz/core/config/ads_config.dart';
 import 'package:stikerz/core/providers/ads_provider.dart';
+import 'package:stikerz/core/providers/purchase_provider.dart';
 import 'package:stikerz/core/providers/share_provider.dart';
 
 class AppAdShell extends ConsumerStatefulWidget {
@@ -26,8 +27,9 @@ class _AppAdShellState extends ConsumerState<AppAdShell> {
   @override
   Widget build(BuildContext context) {
     final shareResetToken = ref.watch(shareFlowResetProvider);
+    final isPremium = ref.watch(isPremiumProvider);
 
-    if (!AdsConfig.adsEnabled) {
+    if (!AdsConfig.adsEnabled || isPremium) {
       return Scaffold(body: widget.child);
     }
 

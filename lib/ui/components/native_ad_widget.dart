@@ -2,23 +2,26 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:stikerz/core/config/ads_config.dart';
+import 'package:stikerz/core/providers/purchase_provider.dart';
 
-class NativeAdWidget extends StatefulWidget {
+class NativeAdWidget extends ConsumerStatefulWidget {
   static const double adHeight = 105;
 
   const NativeAdWidget({super.key});
 
   @override
-  State<NativeAdWidget> createState() => NativeAdWidgetState();
+  ConsumerState<NativeAdWidget> createState() => NativeAdWidgetState();
 }
 
-class NativeAdWidgetState extends State<NativeAdWidget>
+class NativeAdWidgetState extends ConsumerState<NativeAdWidget>
     with SingleTickerProviderStateMixin {
   NativeAd? _nativeAd;
   bool _isLoaded = false;
   bool _hasError = false;
+  bool _isPremium = false;
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
@@ -33,7 +36,20 @@ class NativeAdWidgetState extends State<NativeAdWidget>
       parent: _fadeController,
       curve: Curves.easeIn,
     );
+
     _loadAd();
+  }
+
+  void _onBecamePremium() {
+    _isPremium = true;
+    _nativeAd?.dispose();
+    _nativeAd = null;
+    _isLoaded = false;
+    _hasError = false;
+    _fadeController.reset();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -47,6 +63,11 @@ class NativeAdWidgetState extends State<NativeAdWidget>
   void _loadAd() {
     if (!AdsConfig.adsEnabled) {
       if (kDebugMode) debugPrint('Ads disabled, skipping NativeAd');
+      return;
+    }
+
+    if (ref.read(isPremiumProvider)) {
+      if (kDebugMode) debugPrint('Premium user, skipping NativeAd');
       return;
     }
 
@@ -96,6 +117,10 @@ class NativeAdWidgetState extends State<NativeAdWidget>
             ad.dispose();
             return;
           }
+          if (_isPremium) {
+            ad.dispose();
+            return;
+          }
           if (kDebugMode) debugPrint('✓ NativeAd loaded');
           setState(() {
             _nativeAd = ad as NativeAd;
@@ -106,6 +131,7 @@ class NativeAdWidgetState extends State<NativeAdWidget>
         },
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
+          if (_isPremium) return;
           if (kDebugMode) debugPrint('✗ NativeAd failed: ${error.message}');
           if (mounted) {
             setState(() {
@@ -139,7 +165,16 @@ class NativeAdWidgetState extends State<NativeAdWidget>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<bool>(isPremiumProvider, (previous, next) {
+      if (next == true && mounted) {
+        _onBecamePremium();
+      }
+    });
     if (!AdsConfig.adsEnabled) {
+      return const SizedBox.shrink();
+    }
+
+    if (ref.watch(isPremiumProvider)) {
       return const SizedBox.shrink();
     }
 

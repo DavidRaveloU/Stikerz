@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:stikerz/core/services/purchase_service.dart';
 
 import '../config/ads_config.dart';
 
@@ -45,6 +46,13 @@ class AdsService {
       return;
     }
 
+    if (PurchaseService().isPremium.value) {
+      _interstitialAd = null;
+      _isInterstitialLoaded = false;
+      onLoaded?.call();
+      return;
+    }
+
     InterstitialAd.load(
       adUnitId: _interstitialAdUnitId,
       request: const AdRequest(),
@@ -66,6 +74,11 @@ class AdsService {
 
   Future<void> showInterstitialAd({VoidCallback? onDismissed}) async {
     if (!AdsConfig.adsEnabled) {
+      onDismissed?.call();
+      return;
+    }
+
+    if (PurchaseService().isPremium.value) {
       onDismissed?.call();
       return;
     }

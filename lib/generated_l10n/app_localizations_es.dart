@@ -800,4 +800,46 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get processingImage => 'Procesando imagen...';
+
+  @override
+  String get removeAdsTitle => 'Eliminar anuncios';
+
+  @override
+  String get oneTimePayment => 'pago único';
+
+  @override
+  String get removeAdsBenefit1 => 'Sin banner en la pantalla principal';
+
+  @override
+  String get removeAdsBenefit2 => 'Sin anuncios a pantalla completa';
+
+  @override
+  String get removeAdsBenefit3 => 'Experiencia limpia en toda la app';
+
+  @override
+  String buyForPrice(Object price) {
+    return 'Comprar por $price';
+  }
+
+  @override
+  String get notAvailable => 'No disponible';
+
+  @override
+  String get loadingPrice => 'Cargando precio…';
+
+  @override
+  String get restorePurchase => 'Restaurar compra';
+
+  @override
+  String get premiumActive => 'Premium activo';
+
+  @override
+  String get noAdsBadge => 'SIN ANUNCIOS';
+
+  @override
+  String get premiumThanks => '¡Gracias por apoyar la app! ';
+
+  @override
+  String get premiumDescription =>
+      'Disfruta de la experiencia sin interrupciones';
 }

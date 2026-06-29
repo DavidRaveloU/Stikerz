@@ -10,6 +10,7 @@ import 'package:stikerz/ui/components/section_header.dart';
 import 'package:stikerz/ui/components/settings_tile.dart';
 import 'package:stikerz/ui/features/settings/presentation/widgets/bug_report_modal.dart';
 import 'package:stikerz/ui/features/settings/presentation/widgets/language_selector_modal.dart';
+import 'package:stikerz/ui/features/settings/presentation/widgets/remove_ads_tile.dart';
 import 'package:stikerz/ui/features/settings/presentation/widgets/webview_modal.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -53,6 +54,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
         children: [
+          // ── Premium / Remove Ads ── primero y destacado
+          const SizedBox(height: 8),
+          const RemoveAdsTile(),
+          const SizedBox(height: 8),
+
+          const Divider(color: AppColors.border),
           const SectionHeader('General'),
           SettingsTile(
             icon: Icons.language,
@@ -132,9 +139,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ).push(MaterialPageRoute(builder: (_) => const BugReportModal()));
             },
           ),
+
           const Divider(color: AppColors.border),
           const SectionHeader('About'),
-          // About card
           FutureBuilder<String>(
             future: _appVersionFuture,
             builder: (context, snapshot) {

@@ -12,6 +12,7 @@ import 'package:stikerz/core/constants/app_colors.dart';
 import 'package:stikerz/core/providers/settings_provider.dart';
 import 'package:stikerz/core/providers/share_provider.dart';
 import 'package:stikerz/core/providers/update_provider.dart';
+import 'package:stikerz/core/providers/purchase_provider.dart';
 import 'package:stikerz/core/repositories/app_state_repository.dart';
 import 'package:stikerz/core/repositories/pack_repository.dart';
 import 'package:stikerz/core/services/ads_service.dart';
@@ -180,6 +181,7 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ref.read(purchaseInitProvider);
     // Verificar actualizaciones al inicio normal
     _checkForUpdateOnStartup();
   }

@@ -251,5 +251,19 @@
   "cropTypeSmart": "Smart Cutout",
   "cropTypeSmartComingSoon": "Smart Cutout (Coming Soon)",
   "generateStaticSticker": "Generate Sticker",
-  "processingImage": "Processing image..."
+  "processingImage": "Processing image...",
+
+  "removeAdsTitle": "Remove ads",
+  "oneTimePayment": "one-time payment",
+  "removeAdsBenefit1": "No banner on the home screen",
+  "removeAdsBenefit2": "No full-screen ads",
+  "removeAdsBenefit3": "Clean experience throughout the app",
+  "buyForPrice": "Buy for {price}",
+  "notAvailable": "Not available",
+  "loadingPrice": "Loading price…",
+  "restorePurchase": "Restore purchase",
+  "premiumActive": "Premium active",
+  "noAdsBadge": "NO ADS",
+  "premiumThanks": "Thanks for supporting the app!",
+  "premiumDescription": "Enjoy an ad-free experience"
 }

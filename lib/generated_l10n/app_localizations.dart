@@ -1527,6 +1527,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Processing image...'**
   String get processingImage;
+
+  /// No description provided for @removeAdsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove ads'**
+  String get removeAdsTitle;
+
+  /// No description provided for @oneTimePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'one-time payment'**
+  String get oneTimePayment;
+
+  /// No description provided for @removeAdsBenefit1.
+  ///
+  /// In en, this message translates to:
+  /// **'No banner on the home screen'**
+  String get removeAdsBenefit1;
+
+  /// No description provided for @removeAdsBenefit2.
+  ///
+  /// In en, this message translates to:
+  /// **'No full-screen ads'**
+  String get removeAdsBenefit2;
+
+  /// No description provided for @removeAdsBenefit3.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean experience throughout the app'**
+  String get removeAdsBenefit3;
+
+  /// No description provided for @buyForPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy for {price}'**
+  String buyForPrice(Object price);
+
+  /// No description provided for @notAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get notAvailable;
+
+  /// No description provided for @loadingPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading price…'**
+  String get loadingPrice;
+
+  /// No description provided for @restorePurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchase'**
+  String get restorePurchase;
+
+  /// No description provided for @premiumActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium active'**
+  String get premiumActive;
+
+  /// No description provided for @noAdsBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'NO ADS'**
+  String get noAdsBadge;
+
+  /// No description provided for @premiumThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for supporting the app!'**
+  String get premiumThanks;
+
+  /// No description provided for @premiumDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoy an ad-free experience'**
+  String get premiumDescription;
 }
 
 class _AppLocalizationsDelegate

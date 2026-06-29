@@ -286,6 +286,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           SizedBox(height: context.responsiveSize(16, tabletSize: 20)),
           Text(
             context.l10n.noPacksTitle,
+            textAlign: TextAlign.center,
             style: context.responsiveTextStyle(
               mobileSize: 18,
               tabletSize: 22,
@@ -296,6 +297,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           SizedBox(height: context.responsiveSize(8, tabletSize: 10)),
           Text(
             context.l10n.noPacksDesc,
+            textAlign: TextAlign.center,
             style: context.responsiveTextStyle(
               mobileSize: 13,
               tabletSize: 14,
