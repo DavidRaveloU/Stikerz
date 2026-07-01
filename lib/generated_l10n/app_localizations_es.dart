@@ -913,4 +913,27 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get editorSlowConnectionRetrying => 'Conexión lenta — reintentando…';
+
+  @override
+  String get smartCropNoSubjectDetectedGenerate =>
+      'No se detectó ningún sujeto. Usa primero Recorte Automático.';
+
+  @override
+  String get smartCropPreviewTitle => 'Vista previa del recorte automático';
+
+  @override
+  String get smartCropDetectionFailedSnackbar =>
+      'No se pudo detectar el sujeto. Prueba con otra foto.';
+
+  @override
+  String smartCropErrorMessage(String error) {
+    return 'Error en el recorte automático: $error';
+  }
+
+  @override
+  String get smartCropDetectingSubject => 'Detectando sujeto...';
+
+  @override
+  String get smartCropNoSubjectFallbackMessage =>
+      'No se detectó ningún sujeto. Prueba con otra foto.';
 }

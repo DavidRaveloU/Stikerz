@@ -913,4 +913,27 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get editorSlowConnectionRetrying =>
       'Conexão lenta — tentando novamente…';
+
+  @override
+  String get smartCropNoSubjectDetectedGenerate =>
+      'Nenhum assunto detectado. Toque em Recorte Automático primeiro.';
+
+  @override
+  String get smartCropPreviewTitle => 'Pré-visualização do recorte automático';
+
+  @override
+  String get smartCropDetectionFailedSnackbar =>
+      'Não foi possível detectar o assunto. Tente outra foto.';
+
+  @override
+  String smartCropErrorMessage(String error) {
+    return 'Erro no recorte automático: $error';
+  }
+
+  @override
+  String get smartCropDetectingSubject => 'Detectando assunto...';
+
+  @override
+  String get smartCropNoSubjectFallbackMessage =>
+      'Nenhum assunto detectado. Tente outra foto.';
 }

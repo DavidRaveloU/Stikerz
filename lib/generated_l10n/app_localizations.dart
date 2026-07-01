@@ -1737,6 +1737,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Slow connection — retrying…'**
   String get editorSlowConnectionRetrying;
+
+  /// No description provided for @smartCropNoSubjectDetectedGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'No subject detected. Tap Smart Cutout first.'**
+  String get smartCropNoSubjectDetectedGenerate;
+
+  /// No description provided for @smartCropPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Cutout Preview'**
+  String get smartCropPreviewTitle;
+
+  /// No description provided for @smartCropDetectionFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not detect subject. Try a different photo.'**
+  String get smartCropDetectionFailedSnackbar;
+
+  /// No description provided for @smartCropErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart cutout error: {error}'**
+  String smartCropErrorMessage(String error);
+
+  /// No description provided for @smartCropDetectingSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Detecting subject...'**
+  String get smartCropDetectingSubject;
+
+  /// No description provided for @smartCropNoSubjectFallbackMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No subject detected. Try a different photo.'**
+  String get smartCropNoSubjectFallbackMessage;
 }
 
 class _AppLocalizationsDelegate

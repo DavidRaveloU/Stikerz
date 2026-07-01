@@ -909,4 +909,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editorSlowConnectionRetrying => 'Slow connection — retrying…';
+
+  @override
+  String get smartCropNoSubjectDetectedGenerate =>
+      'No subject detected. Tap Smart Cutout first.';
+
+  @override
+  String get smartCropPreviewTitle => 'Smart Cutout Preview';
+
+  @override
+  String get smartCropDetectionFailedSnackbar =>
+      'Could not detect subject. Try a different photo.';
+
+  @override
+  String smartCropErrorMessage(String error) {
+    return 'Smart cutout error: $error';
+  }
+
+  @override
+  String get smartCropDetectingSubject => 'Detecting subject...';
+
+  @override
+  String get smartCropNoSubjectFallbackMessage =>
+      'No subject detected. Try a different photo.';
 }

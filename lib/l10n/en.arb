@@ -290,5 +290,17 @@
   "settingsOpenLinkError": "Could not open link",
   "cropToolbarFullscreen": "Fullscreen",
   "freeFormTraceInstruction": "Trace the outline without lifting your finger",
-  "editorSlowConnectionRetrying": "Slow connection — retrying…"
+  "editorSlowConnectionRetrying": "Slow connection — retrying…",
+
+  "smartCropNoSubjectDetectedGenerate": "No subject detected. Tap Smart Cutout first.",
+  "smartCropPreviewTitle": "Smart Cutout Preview",
+  "smartCropDetectionFailedSnackbar": "Could not detect subject. Try a different photo.",
+  "smartCropErrorMessage": "Smart cutout error: {error}",
+  "@smartCropErrorMessage": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "smartCropDetectingSubject": "Detecting subject...",
+  "smartCropNoSubjectFallbackMessage": "No subject detected. Try a different photo."
 }

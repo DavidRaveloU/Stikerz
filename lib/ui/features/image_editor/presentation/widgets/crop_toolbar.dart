@@ -135,8 +135,8 @@ class CropToolbar extends ConsumerWidget {
         notifier.clearSmartCrop();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not detect subject. Try a different photo.'),
+            SnackBar(
+              content: Text(context.l10n.smartCropDetectionFailedSnackbar),
             ),
           );
         }
@@ -145,9 +145,11 @@ class CropToolbar extends ConsumerWidget {
       if (notifier.isCurrentSmartCropRequest(requestToken)) {
         notifier.clearSmartCrop();
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Smart cutout error: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.smartCropErrorMessage(e.toString())),
+            ),
+          );
         }
       }
     } finally {

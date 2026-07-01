@@ -293,5 +293,17 @@
   "settingsOpenLinkError": "Não foi possível abrir o link",
   "cropToolbarFullscreen": "Tela cheia",
   "freeFormTraceInstruction": "Trace o contorno sem levantar o dedo",
-  "editorSlowConnectionRetrying": "Conexão lenta — tentando novamente…"
+  "editorSlowConnectionRetrying": "Conexão lenta — tentando novamente…",
+
+  "smartCropNoSubjectDetectedGenerate": "Nenhum assunto detectado. Toque em Recorte Automático primeiro.",
+  "smartCropPreviewTitle": "Pré-visualização do recorte automático",
+  "smartCropDetectionFailedSnackbar": "Não foi possível detectar o assunto. Tente outra foto.",
+  "smartCropErrorMessage": "Erro no recorte automático: {error}",
+  "@smartCropErrorMessage": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "smartCropDetectingSubject": "Detectando assunto...",
+  "smartCropNoSubjectFallbackMessage": "Nenhum assunto detectado. Tente outra foto."
 }
