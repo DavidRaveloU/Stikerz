@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:stikerz/core/constants/app_colors.dart';
+import 'package:stikerz/core/utils/image_cache_utils.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/widgets/magnifier_trace_painter.dart';
 
 /// A magnifier widget that shows a zoomed-in view of the image at the focal point.
@@ -30,8 +31,37 @@ class MagnifierZoom extends StatelessWidget {
   Widget build(BuildContext context) {
     if (imageRect.isEmpty) return const SizedBox.shrink();
 
-    final absX = imageRect.left + focalPoint.dx;
-    final absY = imageRect.top + focalPoint.dy;
+    final tracedAnchor = tracePoints.isNotEmpty
+        ? ui.Offset(
+            (tracePoints.last.dx * imageRect.width).clamp(0.0, imageRect.width),
+            (tracePoints.last.dy * imageRect.height).clamp(
+              0.0,
+              imageRect.height,
+            ),
+          )
+        : null;
+
+    final clampedFocalPoint =
+        tracedAnchor ??
+        ui.Offset(
+          focalPoint.dx.clamp(0.0, imageRect.width),
+          focalPoint.dy.clamp(0.0, imageRect.height),
+        );
+
+    // FIX: antes se calculaban cacheWidth y cacheHeight por separado,
+    // cada uno con su propio clamp a maxPx. Con imágenes no cuadradas
+    // eso podía deformar el aspect ratio del bitmap decodificado y
+    // desfasar visualmente el contenido de la lupa respecto al dedo.
+    // Ahora se calculan juntos, preservando la proporción real.
+    final (cacheWidth, cacheHeight) = cacheDimensionsPx(
+      context,
+      imageRect.width * zoomFactor,
+      imageRect.height * zoomFactor,
+      maxPx: 1536,
+    );
+
+    final absX = imageRect.left + clampedFocalPoint.dx;
+    final absY = imageRect.top + clampedFocalPoint.dy;
 
     final mx = absX.clamp(
       diameter / 2 + margin,
@@ -42,8 +72,10 @@ class MagnifierZoom extends StatelessWidget {
       areaSize.height - diameter - margin,
     );
 
-    final fx = (focalPoint.dx / imageRect.width).clamp(0.0, 1.0);
-    final fy = (focalPoint.dy / imageRect.height).clamp(0.0, 1.0);
+    final imageZoomWidth = imageRect.width * zoomFactor;
+    final imageZoomHeight = imageRect.height * zoomFactor;
+    final imageLeft = (diameter / 2) - (clampedFocalPoint.dx * zoomFactor);
+    final imageTop = (diameter / 2) - (clampedFocalPoint.dy * zoomFactor);
 
     return Positioned(
       left: mx - diameter / 2,
@@ -68,11 +100,17 @@ class MagnifierZoom extends StatelessWidget {
               children: [
                 Container(color: Colors.black),
                 Positioned(
-                  left: (diameter / 2) - (fx * imageRect.width * zoomFactor),
-                  top: (diameter / 2) - (fy * imageRect.height * zoomFactor),
-                  width: imageRect.width * zoomFactor,
-                  height: imageRect.height * zoomFactor,
-                  child: Image.file(File(imagePath), fit: BoxFit.contain),
+                  left: imageLeft,
+                  top: imageTop,
+                  width: imageZoomWidth,
+                  height: imageZoomHeight,
+                  child: Image.file(
+                    File(imagePath),
+                    fit: BoxFit.contain,
+                    cacheWidth: cacheWidth,
+                    cacheHeight: cacheHeight,
+                    filterQuality: FilterQuality.low,
+                  ),
                 ),
                 // Crosshair
                 Center(
@@ -96,7 +134,7 @@ class MagnifierZoom extends StatelessWidget {
                     painter: MagnifierTracePainter(
                       points: tracePoints,
                       imageRect: imageRect,
-                      focalPoint: focalPoint,
+                      focalPoint: clampedFocalPoint,
                       zoomFactor: zoomFactor,
                       magnifierSize: diameter,
                     ),

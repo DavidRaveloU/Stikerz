@@ -7,7 +7,7 @@ import 'package:stikerz/ui/features/image_editor/presentation/providers/image_ed
 
 /// Button that triggers sticker generation.
 class GenerateButton extends ConsumerWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const GenerateButton({super.key, required this.onPressed});
 
@@ -33,7 +33,7 @@ class GenerateButton extends ConsumerWidget {
           width: double.infinity,
           height: context.responsiveSize(48, tabletSize: 52),
           child: ElevatedButton(
-            onPressed: canGenerate ? onPressed : null,
+            onPressed: canGenerate && onPressed != null ? onPressed : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
               foregroundColor: AppColors.background,

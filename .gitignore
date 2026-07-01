@@ -59,3 +59,20 @@ app.*.map.json
 /.agents
 **/.last_build_id
 build_release.bat
+
+# Auto-committer ignored files
+*.tmp
+*.temp
+*.cache
+*.dll
+*.exe
+*.env
+.vscode/**
+.idea/**
+.vs/**
+node_modules/**
+.git/**
+dist/**
+build/**
+*.swo
+Thumbs.db

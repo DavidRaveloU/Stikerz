@@ -65,6 +65,7 @@ dependencies:
   uuid: ^4.5.3
   in_app_update: ^4.2.5
   in_app_purchase: ^3.3.0
+  google_mlkit_subject_segmentation: ^0.0.3
   # animated_splash_screen and page_transition were removed per user request
 
 dev_dependencies:

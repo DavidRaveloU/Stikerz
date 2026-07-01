@@ -2,16 +2,19 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image/image.dart' as img;
 import 'package:stikerz/core/constants/app_colors.dart';
 import 'package:stikerz/core/extensions/localization_extension.dart';
 import 'package:stikerz/core/providers/update_provider.dart';
 import 'package:stikerz/core/repositories/pack_repository.dart';
 import 'package:stikerz/core/services/ads_service.dart';
+import 'package:stikerz/core/services/image_processing_isolates.dart';
+import 'package:stikerz/core/services/smart_crop_service.dart';
 import 'package:stikerz/core/services/static_sticker_generation_service.dart';
+import 'package:stikerz/core/utils/image_cache_utils.dart'; // <--- NUEVO IMPORT (1)
 import 'package:stikerz/generated_l10n/app_localizations.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/models/crop_type.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/providers/crop_provider.dart';
@@ -64,10 +67,8 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
       });
 
       final bytes = await File(widget.imagePath).readAsBytes();
-      final decoded = img.decodeImage(bytes);
-      if (decoded == null || !mounted) return;
-
-      final aspect = decoded.width / decoded.height;
+      final aspect = await compute(extractImageAspectInIsolate, bytes);
+      if (!mounted) return;
 
       final currentState = ref.read(imageEditorProvider);
       final normalized = CropProvider.normalizeCrop(
@@ -96,6 +97,13 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
 
   void _openFullscreenEditor() async {
     final state = ref.read(imageEditorProvider);
+
+    // Guard adicional: aunque el botón ya está deshabilitado en la UI
+    // cuando no se puede usar pantalla completa, evitamos abrir la
+    // pantalla completa si por alguna razón se invoca igual (p.ej. taps
+    // en cola mientras el estado cambiaba).
+    if (!state.canUseFullscreen) return;
+
     final result = await Navigator.of(context).push<dynamic>(
       MaterialPageRoute(
         builder: (_) => _FullscreenImageCropPage(
@@ -105,6 +113,7 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
           imageAspect: state.imageAspect,
           cropType: state.selectedCrop,
           freeFormPoints: state.freeFormPoints,
+          smartCropPreviewPath: state.smartCropPreviewPath,
         ),
         fullscreenDialog: true,
       ),
@@ -132,6 +141,7 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
     final state = ref.read(imageEditorProvider);
     final notifier = ref.read(imageEditorProvider.notifier);
 
+    if (!_imageLoaded) return;
     if (state.isGenerating) return;
 
     notifier.setGenerating(
@@ -182,12 +192,64 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
           freeFormPoints = state.freeFormPoints;
           break;
         case CropType.smart:
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.l10n.cropTypeSmartComingSoon)),
-            );
+          if (state.smartCropPreviewPath == null) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('No subject detected. Tap Smart Cutout first.'),
+                ),
+              );
+            }
+            notifier.resetGenerationState();
+            return;
           }
-          notifier.resetGenerationState();
+          // Para smart usamos la imagen pre-procesada con fondo transparente
+          // y pasamos toda la imagen (sin recorte adicional).
+          // Cambiamos inputImagePath al preview y usamos crop completo.
+          final smartResult = await StaticStickerGenerationService.generate(
+            inputImagePath: state.smartCropPreviewPath!,
+            packId: widget.packId,
+            slotIndex: widget.slotIndex,
+            normalizedCropX: 0.0,
+            normalizedCropY: 0.0,
+            normalizedCropWidth: 1.0,
+            normalizedCropHeight: 1.0,
+            useCircularMask: false,
+            freeFormPoints: null,
+            smartSubjectMode: true,
+            rotationDegrees: 0.0,
+            onStatus: (status, progress) {
+              if (mounted) {
+                notifier.setGenerating(
+                  generating: true,
+                  status: status,
+                  progress: progress,
+                );
+              }
+            },
+          );
+
+          if (!mounted) return;
+
+          if (smartResult.success && smartResult.path != null) {
+            await PackRepository.instance.addSticker(
+              packId: widget.packId,
+              slotIndex: widget.slotIndex,
+              webpPath: smartResult.path!,
+              sourceType: 'image_gallery',
+            );
+            if (mounted) await _popWithAd();
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    smartResult.error ?? context.l10n.imageEditorCouldNotCreate,
+                  ),
+                ),
+              );
+            }
+          }
           return;
       }
 
@@ -271,6 +333,8 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
 
   @override
   void dispose() {
+    unawaited(SmartCropService.cancelActiveRequest());
+    ref.read(imageEditorProvider.notifier).setSmartProcessing(false);
     _checkForUpdateAfterAction();
     super.dispose();
   }
@@ -281,11 +345,21 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: _buildAppBar(state),
-        body: _buildBody(state),
-        bottomNavigationBar: GenerateButton(onPressed: _generateSticker),
+      child: PopScope(
+        canPop: !state.isGenerating,
+        child: IgnorePointer(
+          ignoring: state.isGenerating,
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: _buildAppBar(state),
+            body: _buildBody(state),
+            bottomNavigationBar: _imageLoaded
+                ? GenerateButton(
+                    onPressed: state.isGenerating ? null : _generateSticker,
+                  )
+                : null,
+          ),
+        ),
       ),
     );
   }
@@ -295,7 +369,7 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
       backgroundColor: AppColors.background,
       leading: IconButton(
         icon: const Icon(Icons.close_rounded, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
+        onPressed: state.isGenerating ? null : () => Navigator.pop(context),
       ),
       title: Text(
         context.l10n.imageEditorTitle,
@@ -331,7 +405,10 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
 
     return Column(
       children: [
-        CropToolbar(onFullscreenTap: _openFullscreenEditor),
+        CropToolbar(
+          imagePath: widget.imagePath,
+          onFullscreenTap: _openFullscreenEditor,
+        ),
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -369,6 +446,11 @@ class _FullscreenImageCropPage extends StatefulWidget {
   final CropType cropType;
   final List<ui.Offset> freeFormPoints;
 
+  /// Ruta al PNG pre-procesado del smart cutout. Solo relevante cuando
+  /// [cropType] es [CropType.smart]; en ese caso se muestra esta imagen
+  /// en lugar de la original, sin caja de recorte ajustable.
+  final String? smartCropPreviewPath;
+
   const _FullscreenImageCropPage({
     required this.imagePath,
     required this.initialOffset,
@@ -376,6 +458,7 @@ class _FullscreenImageCropPage extends StatefulWidget {
     required this.imageAspect,
     required this.cropType,
     required this.freeFormPoints,
+    this.smartCropPreviewPath,
   });
 
   @override
@@ -435,6 +518,10 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
   void _saveAndClose() {
     if (widget.cropType == CropType.freeForm) {
       Navigator.of(context).pop(_freeFormPoints);
+    } else if (widget.cropType == CropType.smart) {
+      // El recorte smart no tiene ajustes manuales (usa la imagen completa
+      // pre-procesada), así que no hay nada que sincronizar de vuelta.
+      Navigator.of(context).pop();
     } else {
       Navigator.of(context).pop((_cropOffset, _cropWidth));
     }
@@ -443,6 +530,7 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
   @override
   Widget build(BuildContext context) {
     final isFreeForm = widget.cropType == CropType.freeForm;
+    final isSmart = widget.cropType == CropType.smart;
     final l10n = context.l10n;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -452,7 +540,7 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
         body: SafeArea(
           child: Column(
             children: [
-              _buildTopBar(isFreeForm, l10n),
+              _buildTopBar(isFreeForm, isSmart, l10n),
               Expanded(
                 child: LayoutBuilder(
                   builder: (_, constraints) {
@@ -476,6 +564,10 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
                       );
                     }
 
+                    if (isSmart) {
+                      return _buildSmartPreviewArea(imageRect);
+                    }
+
                     return _buildSquareCircleArea(area, imageRect);
                   },
                 ),
@@ -487,7 +579,16 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
     );
   }
 
-  Widget _buildTopBar(bool isFreeForm, AppLocalizations l10n) {
+  Widget _buildTopBar(bool isFreeForm, bool isSmart, AppLocalizations l10n) {
+    final String title;
+    if (isFreeForm) {
+      title = l10n.imageEditorTraceShape;
+    } else if (isSmart) {
+      title = 'Smart Cutout Preview';
+    } else {
+      title = l10n.imageEditorAdjustCrop;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -511,9 +612,7 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
             ),
           ),
           Text(
-            isFreeForm
-                ? l10n.imageEditorTraceShape
-                : l10n.imageEditorAdjustCrop,
+            title,
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -527,6 +626,14 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
   }
 
   Widget _buildSquareCircleArea(Size area, Rect imageRect) {
+    // CAMBIO (2a): antes eran dos líneas con _cacheDimensionPx separado
+    // para width y height. Ahora se calculan juntos para no deformar
+    // el aspect ratio decodificado.
+    final (cacheWidth, cacheHeight) = cacheDimensionsPx(
+      context,
+      imageRect.width,
+      imageRect.height,
+    );
     final left = imageRect.left + (_cropOffset.dx * imageRect.width);
     final top = imageRect.top + (_cropOffset.dy * imageRect.height);
     final w = _cropWidth * imageRect.width;
@@ -536,7 +643,13 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
       children: [
         Positioned.fromRect(
           rect: imageRect,
-          child: Image.file(File(widget.imagePath), fit: BoxFit.contain),
+          child: Image.file(
+            File(widget.imagePath),
+            fit: BoxFit.contain,
+            cacheWidth: cacheWidth,
+            cacheHeight: cacheHeight,
+            filterQuality: FilterQuality.low,
+          ),
         ),
         Positioned.fill(
           child: CustomPaint(
@@ -552,6 +665,37 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
           imageAspect: widget.imageAspect,
           imageRect: imageRect,
           onChanged: _updateCrop,
+        ),
+      ],
+    );
+  }
+
+  /// Vista de solo-lectura del smart cutout: muestra la imagen ya
+  /// pre-procesada (fondo transparente) sin ninguna caja de recorte,
+  /// ya que en este modo no existe un recorte manual que ajustar.
+  Widget _buildSmartPreviewArea(Rect imageRect) {
+    final path = widget.smartCropPreviewPath ?? widget.imagePath;
+    // CAMBIO (2b): mismo patrón que arriba.
+    final (cacheWidth, cacheHeight) = cacheDimensionsPx(
+      context,
+      imageRect.width,
+      imageRect.height,
+    );
+
+    return Stack(
+      children: [
+        Positioned.fromRect(
+          rect: imageRect,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Image.file(
+              File(path),
+              fit: BoxFit.contain,
+              cacheWidth: cacheWidth,
+              cacheHeight: cacheHeight,
+              filterQuality: FilterQuality.low,
+            ),
+          ),
         ),
       ],
     );
@@ -593,25 +737,43 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
   @override
   Widget build(BuildContext context) {
     final imageRect = widget.imageRect;
+    // CAMBIO (2c): mismo patrón, esta es la vista de recorte libre en
+    // pantalla completa — la que realmente usa la lupa, así que este
+    // cambio también importa acá.
+    final (cacheWidth, cacheHeight) = cacheDimensionsPx(
+      context,
+      imageRect.width,
+      imageRect.height,
+    );
     final l10n = context.l10n;
 
     return Stack(
       children: [
         Positioned.fromRect(
           rect: imageRect,
-          child: Image.file(File(widget.imagePath), fit: BoxFit.contain),
+          child: Image.file(
+            File(widget.imagePath),
+            fit: BoxFit.contain,
+            cacheWidth: cacheWidth,
+            cacheHeight: cacheHeight,
+            filterQuality: FilterQuality.low,
+          ),
         ),
         Positioned.fromRect(
           rect: imageRect,
           child: GestureDetector(
             onPanStart: (details) {
               final localPoint = details.localPosition;
+              final clampedPoint = ui.Offset(
+                localPoint.dx.clamp(0.0, imageRect.width),
+                localPoint.dy.clamp(0.0, imageRect.height),
+              );
               setState(() {
-                _magnifierFocalPoint = localPoint;
+                _magnifierFocalPoint = clampedPoint;
                 _points = [
                   ui.Offset(
-                    localPoint.dx / imageRect.width,
-                    localPoint.dy / imageRect.height,
+                    clampedPoint.dx / imageRect.width,
+                    clampedPoint.dy / imageRect.height,
                   ),
                 ];
               });
@@ -682,6 +844,10 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
     );
   }
 }
+
+// CAMBIO (3): se ELIMINÓ la función _cacheDimensionPx que estaba acá
+// (la de una sola dimensión). Ya no se usa en este archivo — ahora se
+// usa cacheDimensionsPx() importada de core/utils/image_cache_utils.dart.
 
 // ═══════════════════ Internal ImageCropBox ═══════════════════
 
@@ -851,8 +1017,9 @@ class _ImageCropBoxState extends State<_ImageCropBox> {
               noy = widget.offset.dy;
               break;
           }
+          final newHeight = (nw * widget.imageAspect).clamp(0.0, 1.0);
           final mx = (1.0 - nw).clamp(0.0, 1.0);
-          final my = (1.0 - _height).clamp(0.0, 1.0);
+          final my = (1.0 - newHeight).clamp(0.0, 1.0);
           widget.onChanged(Offset(nox.clamp(0, mx), noy.clamp(0, my)), nw);
         },
         child: Container(

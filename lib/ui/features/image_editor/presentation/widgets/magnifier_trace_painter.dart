@@ -23,15 +23,10 @@ class MagnifierTracePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (points.length < 2) return;
 
-    final centerX = magnifierSize / 2;
-    final centerY = magnifierSize / 2;
-
-    final imgLeft =
-        centerX -
-        (focalPoint.dx / imageRect.width) * imageRect.width * zoomFactor;
-    final imgTop =
-        centerY -
-        (focalPoint.dy / imageRect.height) * imageRect.height * zoomFactor;
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    final imgLeft = centerX - (focalPoint.dx * zoomFactor);
+    final imgTop = centerY - (focalPoint.dy * zoomFactor);
 
     ui.Offset toMagnifier(ui.Offset p) {
       final px = imgLeft + p.dx * imageRect.width * zoomFactor;

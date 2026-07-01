@@ -3,6 +3,14 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/models/crop_type.dart';
+import 'package:stikerz/ui/features/image_editor/presentation/providers/crop_provider.dart';
+
+/// Sentinel usado por [ImageEditorState.copyWith] para distinguir entre
+/// "parámetro omitido" (mantener valor actual) y "parámetro pasado como
+/// null explícito" (limpiar el valor). Con el patrón `??` normal, ambos
+/// casos son indistinguibles y un `null` explícito nunca sobrescribe
+/// el valor previo — esa era la causa del bug del smart crop.
+const Object _unset = Object();
 
 /// State for the image editor.
 class ImageEditorState {
@@ -18,6 +26,13 @@ class ImageEditorState {
   final double? generationProgress;
   final bool imageLoaded;
 
+  /// Ruta al PNG pre-procesado con fondo transparente (smart cutout).
+  /// Se llena al seleccionar CropType.smart y completar el procesamiento.
+  final String? smartCropPreviewPath;
+
+  /// Indica si el procesamiento smart cutout está en curso.
+  final bool isSmartProcessing;
+
   const ImageEditorState({
     this.selectedCrop = CropType.square,
     this.cropOffset = const Offset(0.08, 0.10),
@@ -30,6 +45,8 @@ class ImageEditorState {
     this.generationStatus = '',
     this.generationProgress,
     this.imageLoaded = false,
+    this.smartCropPreviewPath,
+    this.isSmartProcessing = false,
   });
 
   double get cropHeight => (cropWidth * imageAspect) / 1.0;
@@ -40,7 +57,27 @@ class ImageEditorState {
     if (isGenerating) return false;
     if (!imageLoaded) return false;
     if (selectedCrop == CropType.freeForm && !hasFreeFormPoints) return false;
-    if (selectedCrop == CropType.smart) return false;
+    if (selectedCrop == CropType.smart) {
+      // Bloqueado mientras se está detectando el sujeto, o si no hay
+      // ningún recorte automático completado con éxito.
+      if (isSmartProcessing) return false;
+      if (smartCropPreviewPath == null) return false;
+    }
+    return true;
+  }
+
+  /// Indica si es seguro abrir la pantalla completa de recorte.
+  ///
+  /// Esta restricción SOLO aplica al modo smart (recorte automático):
+  /// mientras se está procesando, o si no hay un recorte automático
+  /// exitoso todavía, la pantalla completa queda deshabilitada. En
+  /// cualquier otro modo de recorte (cuadrado, círculo, forma libre)
+  /// siempre está disponible, sin restricciones adicionales.
+  bool get canUseFullscreen {
+    if (!imageLoaded) return false;
+    if (selectedCrop == CropType.smart) {
+      return !isSmartProcessing && smartCropPreviewPath != null;
+    }
     return true;
   }
 
@@ -51,11 +88,13 @@ class ImageEditorState {
     double? imageAspect,
     List<ui.Offset>? freeFormPoints,
     bool? isDrawing,
-    ui.Offset? magnifierFocalPoint,
+    Object? magnifierFocalPoint = _unset,
     bool? isGenerating,
     String? generationStatus,
-    double? generationProgress,
+    Object? generationProgress = _unset,
     bool? imageLoaded,
+    Object? smartCropPreviewPath = _unset,
+    bool? isSmartProcessing,
   }) {
     return ImageEditorState(
       selectedCrop: selectedCrop ?? this.selectedCrop,
@@ -64,11 +103,19 @@ class ImageEditorState {
       imageAspect: imageAspect ?? this.imageAspect,
       freeFormPoints: freeFormPoints ?? this.freeFormPoints,
       isDrawing: isDrawing ?? this.isDrawing,
-      magnifierFocalPoint: magnifierFocalPoint ?? this.magnifierFocalPoint,
+      magnifierFocalPoint: magnifierFocalPoint == _unset
+          ? this.magnifierFocalPoint
+          : magnifierFocalPoint as ui.Offset?,
       isGenerating: isGenerating ?? this.isGenerating,
       generationStatus: generationStatus ?? this.generationStatus,
-      generationProgress: generationProgress ?? this.generationProgress,
+      generationProgress: generationProgress == _unset
+          ? this.generationProgress
+          : generationProgress as double?,
       imageLoaded: imageLoaded ?? this.imageLoaded,
+      smartCropPreviewPath: smartCropPreviewPath == _unset
+          ? this.smartCropPreviewPath
+          : smartCropPreviewPath as String?,
+      isSmartProcessing: isSmartProcessing ?? this.isSmartProcessing,
     );
   }
 }
@@ -78,6 +125,21 @@ class ImageEditorNotifier extends StateNotifier<ImageEditorState> {
   ImageEditorNotifier() : super(const ImageEditorState());
 
   /// Resets only the crop-related state, keeping imageLoaded intact.
+  void setSmartCropPreviewPath(String? path) {
+    state = state.copyWith(smartCropPreviewPath: path);
+  }
+
+  void clearSmartCrop() {
+    state = state.copyWith(
+      smartCropPreviewPath: null,
+      isSmartProcessing: false,
+    );
+  }
+
+  void setSmartProcessing(bool processing) {
+    state = state.copyWith(isSmartProcessing: processing);
+  }
+
   void resetCropState() {
     state = state.copyWith(
       selectedCrop: CropType.square,
@@ -86,6 +148,8 @@ class ImageEditorNotifier extends StateNotifier<ImageEditorState> {
       freeFormPoints: [],
       isDrawing: false,
       magnifierFocalPoint: null,
+      smartCropPreviewPath: null,
+      isSmartProcessing: false,
       // imageLoaded se mantiene como está
     );
   }
@@ -95,11 +159,23 @@ class ImageEditorNotifier extends StateNotifier<ImageEditorState> {
   }
 
   void setSelectedCrop(CropType crop) {
-    state = state.copyWith(selectedCrop: crop, freeFormPoints: []);
+    state = state.copyWith(
+      selectedCrop: crop,
+      freeFormPoints: [],
+      smartCropPreviewPath: crop != CropType.smart
+          ? null
+          : state.smartCropPreviewPath,
+    );
   }
 
   void updateCrop(Offset offset, double width) {
-    state = state.copyWith(cropOffset: offset, cropWidth: width);
+    final normalized = CropProvider.normalizeCrop(
+      rawOffset: offset,
+      rawWidth: width,
+      imageAspect: state.imageAspect,
+      aspectRatio: 1.0,
+    );
+    state = state.copyWith(cropOffset: normalized.$1, cropWidth: normalized.$2);
   }
 
   void setFreeFormPoints(List<ui.Offset> points) {
@@ -159,7 +235,16 @@ class ImageEditorNotifier extends StateNotifier<ImageEditorState> {
         selectedCrop: CropType.freeForm,
       );
     } else if (cropOffset != null && cropWidth != null) {
-      state = state.copyWith(cropOffset: cropOffset, cropWidth: cropWidth);
+      final normalized = CropProvider.normalizeCrop(
+        rawOffset: cropOffset,
+        rawWidth: cropWidth,
+        imageAspect: state.imageAspect,
+        aspectRatio: 1.0,
+      );
+      state = state.copyWith(
+        cropOffset: normalized.$1,
+        cropWidth: normalized.$2,
+      );
     }
     if (cropType != null) {
       state = state.copyWith(selectedCrop: cropType);
@@ -196,4 +281,11 @@ final freeFormPointsProvider = Provider<List<ui.Offset>>((ref) {
 /// Provider to check if the editor can generate.
 final canGenerateProvider = Provider<bool>((ref) {
   return ref.watch(imageEditorProvider).canGenerate;
+});
+
+/// Provider to check if fullscreen mode can be safely opened.
+/// Solo bloquea en modo smart mientras se procesa o si no hay
+/// un recorte automático completado.
+final canUseFullscreenProvider = Provider<bool>((ref) {
+  return ref.watch(imageEditorProvider).canUseFullscreen;
 });

@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stikerz/core/extensions/localization_extension.dart';
+import 'package:stikerz/core/utils/image_cache_utils.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/providers/image_editor_provider.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/widgets/free_form_crop_painter.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/widgets/magnifier.dart';
@@ -29,6 +30,11 @@ class FreeFormArea extends ConsumerWidget {
     final points = state.freeFormPoints;
     final isDrawing = state.isDrawing;
     final magnifierFocalPoint = state.magnifierFocalPoint;
+    final (cacheWidth, cacheHeight) = cacheDimensionsPx(
+      context,
+      imageRect.width,
+      imageRect.height,
+    );
 
     return Stack(
       clipBehavior: Clip.none,
@@ -38,7 +44,13 @@ class FreeFormArea extends ConsumerWidget {
           rect: imageRect,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: Image.file(File(imagePath), fit: BoxFit.contain),
+            child: Image.file(
+              File(imagePath),
+              fit: BoxFit.contain,
+              cacheWidth: cacheWidth,
+              cacheHeight: cacheHeight,
+              filterQuality: FilterQuality.low,
+            ),
           ),
         ),
         // Drawing overlay
@@ -47,30 +59,33 @@ class FreeFormArea extends ConsumerWidget {
           child: GestureDetector(
             onPanStart: (details) {
               final localPoint = details.localPosition;
-              notifier.startDrawing(localPoint);
+              final clampedPoint = ui.Offset(
+                localPoint.dx.clamp(0.0, imageRect.width),
+                localPoint.dy.clamp(0.0, imageRect.height),
+              );
+              notifier.startDrawing(clampedPoint);
               notifier.addFreeFormPoint(
                 ui.Offset(
-                  (localPoint.dx / imageRect.width).clamp(0.0, 1.0),
-                  (localPoint.dy / imageRect.height).clamp(0.0, 1.0),
+                  (clampedPoint.dx / imageRect.width).clamp(0.0, 1.0),
+                  (clampedPoint.dy / imageRect.height).clamp(0.0, 1.0),
                 ),
               );
             },
             onPanUpdate: (details) {
               final localPoint = details.localPosition;
-              notifier.updateMagnifier(
-                ui.Offset(
-                  localPoint.dx.clamp(0.0, imageRect.width),
-                  localPoint.dy.clamp(0.0, imageRect.height),
-                ),
+              final clampedPoint = ui.Offset(
+                localPoint.dx.clamp(0.0, imageRect.width),
+                localPoint.dy.clamp(0.0, imageRect.height),
               );
               if (isDrawing) {
                 notifier.addFreeFormPoint(
                   ui.Offset(
-                    (localPoint.dx / imageRect.width).clamp(0.0, 1.0),
-                    (localPoint.dy / imageRect.height).clamp(0.0, 1.0),
+                    (clampedPoint.dx / imageRect.width).clamp(0.0, 1.0),
+                    (clampedPoint.dy / imageRect.height).clamp(0.0, 1.0),
                   ),
                 );
               }
+              notifier.updateMagnifier(clampedPoint);
             },
             onPanEnd: (_) {
               notifier.endDrawing();

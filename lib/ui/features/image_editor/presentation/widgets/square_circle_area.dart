@@ -23,6 +23,8 @@ class SquareCircleArea extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(imageEditorProvider);
     final notifier = ref.read(imageEditorProvider.notifier);
+    final cacheWidth = _cacheDimensionPx(context, imageRect.width);
+    final cacheHeight = _cacheDimensionPx(context, imageRect.height);
 
     final left = imageRect.left + (state.cropOffset.dx * imageRect.width);
     final top = imageRect.top + (state.cropOffset.dy * imageRect.height);
@@ -37,7 +39,13 @@ class SquareCircleArea extends ConsumerWidget {
           rect: imageRect,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: Image.file(File(imagePath), fit: BoxFit.contain),
+            child: Image.file(
+              File(imagePath),
+              fit: BoxFit.contain,
+              cacheWidth: cacheWidth,
+              cacheHeight: cacheHeight,
+              filterQuality: FilterQuality.low,
+            ),
           ),
         ),
         // Overlay oscuro + borde del recuadro (dibujado UNA sola vez aquí)
@@ -60,6 +68,11 @@ class SquareCircleArea extends ConsumerWidget {
       ],
     );
   }
+}
+
+int _cacheDimensionPx(BuildContext context, double logicalSize) {
+  final dpr = MediaQuery.of(context).devicePixelRatio;
+  return (logicalSize * dpr).ceil().clamp(256, 2048).toInt();
 }
 
 class _ImageCropBox extends StatefulWidget {
@@ -193,8 +206,9 @@ class _ImageCropBoxState extends State<_ImageCropBox> {
               break;
           }
 
+          final newHeight = (nw * widget.imageAspect).clamp(0.0, 1.0);
           final maxOffsetX = (1.0 - nw).clamp(0.0, 1.0);
-          final maxOffsetY = (1.0 - _height).clamp(0.0, 1.0);
+          final maxOffsetY = (1.0 - newHeight).clamp(0.0, 1.0);
           widget.onChanged(
             Offset(nox.clamp(0.0, maxOffsetX), noy.clamp(0.0, maxOffsetY)),
             nw,
