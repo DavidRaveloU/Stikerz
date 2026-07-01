@@ -838,4 +838,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get premiumDescription => 'Enjoy an ad-free experience';
+
+  @override
+  String get addStickerFromDevice => 'From your device';
+
+  @override
+  String get addStickerFromDeviceSubtitle =>
+      'Choose a video or image from your gallery';
+
+  @override
+  String get addStickerFromSocial => 'From social networks';
+
+  @override
+  String get addStickerFromSocialSubtitle =>
+      'Paste a TikTok or Instagram Reel link';
+
+  @override
+  String get addStickerVideo => 'Video';
+
+  @override
+  String get addStickerVideoSubtitle => 'Choose a video from your gallery';
+
+  @override
+  String get addStickerImage => 'Image';
+
+  @override
+  String get addStickerImageSubtitle => 'Choose an image from your gallery';
+
+  @override
+  String addStickerPasteLinkHint(Object platform) {
+    return 'Paste the $platform Reel or Video link';
+  }
+
+  @override
+  String get imageEditorTraceShapeFirst => 'Trace a shape first.';
+
+  @override
+  String get imageEditorTraceOutline => 'Trace the outline';
+
+  @override
+  String get imageEditorAdjustCrop => 'Adjust crop';
+
+  @override
+  String get imageEditorTraceShape => 'Trace shape';
+
+  @override
+  String get imageEditorCouldNotCreate => 'Could not create sticker.';
+
+  @override
+  String get settingsGeneral => 'General';
+
+  @override
+  String get settingsSupport => 'Support';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String get settingsBuyMeCoffee => 'Buy Me a Coffee';
+
+  @override
+  String get settingsOpenLinkError => 'Could not open link';
+
+  @override
+  String get cropToolbarFullscreen => 'Fullscreen';
+
+  @override
+  String get freeFormTraceInstruction =>
+      'Trace the outline without lifting your finger';
+
+  @override
+  String get editorSlowConnectionRetrying => 'Slow connection — retrying…';
 }

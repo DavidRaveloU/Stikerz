@@ -842,4 +842,75 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get premiumDescription =>
       'Disfruta de la experiencia sin interrupciones';
+
+  @override
+  String get addStickerFromDevice => 'Desde tu dispositivo';
+
+  @override
+  String get addStickerFromDeviceSubtitle =>
+      'Elege un video o imagen de tu galería';
+
+  @override
+  String get addStickerFromSocial => 'Desde redes sociales';
+
+  @override
+  String get addStickerFromSocialSubtitle =>
+      'Pega un enlace de TikTok o Instagram Reel';
+
+  @override
+  String get addStickerVideo => 'Video';
+
+  @override
+  String get addStickerVideoSubtitle => 'Elege un video de tu galería';
+
+  @override
+  String get addStickerImage => 'Imagen';
+
+  @override
+  String get addStickerImageSubtitle => 'Elege una imagen de tu galería';
+
+  @override
+  String addStickerPasteLinkHint(Object platform) {
+    return 'Pega el enlace del $platform Reel o Video';
+  }
+
+  @override
+  String get imageEditorTraceShapeFirst => 'Traza una forma primero.';
+
+  @override
+  String get imageEditorTraceOutline => 'Traza el contorno';
+
+  @override
+  String get imageEditorAdjustCrop => 'Ajustar recorte';
+
+  @override
+  String get imageEditorTraceShape => 'Trazar forma';
+
+  @override
+  String get imageEditorCouldNotCreate => 'No se pudo crear el sticker.';
+
+  @override
+  String get settingsGeneral => 'General';
+
+  @override
+  String get settingsSupport => 'Soporte';
+
+  @override
+  String get settingsAbout => 'Acerca de';
+
+  @override
+  String get settingsBuyMeCoffee => 'Buy Me a Coffee';
+
+  @override
+  String get settingsOpenLinkError => 'No se pudo abrir el enlace';
+
+  @override
+  String get cropToolbarFullscreen => 'Pantalla completa';
+
+  @override
+  String get freeFormTraceInstruction =>
+      'Traza el contorno sin levantar el dedo';
+
+  @override
+  String get editorSlowConnectionRetrying => 'Conexión lenta — reintentando…';
 }

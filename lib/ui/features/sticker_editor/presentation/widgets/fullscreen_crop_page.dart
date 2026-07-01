@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
 import 'package:stikerz/core/utils/responsive_text.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/aspect_ratio_selector.dart';
 import 'package:stikerz/ui/features/sticker_editor/presentation/widgets/crop_box.dart';
@@ -105,6 +106,7 @@ class _FullscreenCropPageState extends State<FullscreenCropPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
@@ -138,7 +140,7 @@ class _FullscreenCropPageState extends State<FullscreenCropPage> {
                       ),
                     ),
                     Text(
-                      'Ajustar recorte',
+                      l10n.imageEditorAdjustCrop,
                       style: context.responsiveTextStyle(
                         mobileSize: 16,
                         tabletSize: 18,

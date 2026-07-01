@@ -73,7 +73,7 @@ class CropToolbar extends ConsumerWidget {
             const SizedBox(width: 6),
             _CropToolButton(
               icon: Icons.fullscreen_rounded,
-              label: 'Full',
+              label: context.l10n.cropToolbarFullscreen,
               isSelected: false,
               onTap: onFullscreenTap,
             ),

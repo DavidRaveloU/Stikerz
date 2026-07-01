@@ -117,7 +117,7 @@ class _EditorVideoAreaState extends State<EditorVideoArea> {
                             ),
                             Text(
                               widget.isBuffering
-                                  ? 'Conexión lenta — reintentando…'
+                                  ? context.l10n.editorSlowConnectionRetrying
                                   : _getLoadingText(context),
                               style: context.responsiveTextStyle(
                                 mobileSize: 16,

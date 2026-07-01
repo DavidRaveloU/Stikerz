@@ -45,8 +45,8 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
   String get _stepTitle {
     return switch (_step) {
       _AddStickerStep.main => context.l10n.newSticker,
-      _AddStickerStep.local => 'Desde tu dispositivo',
-      _AddStickerStep.social => 'Desde redes sociales',
+      _AddStickerStep.local => context.l10n.addStickerFromDevice,
+      _AddStickerStep.social => context.l10n.addStickerFromSocial,
     };
   }
 
@@ -248,14 +248,15 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
   }
 
   Widget _buildMainStep(double horizontal) {
+    final l10n = context.l10n;
     return Column(
       children: [
         _MainOption(
           horizontal: horizontal,
           icon: Icons.devices_rounded,
           iconColor: Colors.blue,
-          title: 'Desde tu dispositivo',
-          subtitle: 'Elegí un video o imagen de tu galería',
+          title: l10n.addStickerFromDevice,
+          subtitle: l10n.addStickerFromDeviceSubtitle,
           onTap: _goToLocal,
         ),
         SizedBox(height: context.responsiveSize(8, tabletSize: 10)),
@@ -263,8 +264,8 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
           horizontal: horizontal,
           icon: Icons.public_rounded,
           iconColor: Colors.purple,
-          title: 'Desde redes sociales',
-          subtitle: 'Pegá un enlace de TikTok o Instagram Reel',
+          title: l10n.addStickerFromSocial,
+          subtitle: l10n.addStickerFromSocialSubtitle,
           onTap: _goToSocial,
         ),
         SizedBox(height: context.responsiveSize(24, tabletSize: 28)),
@@ -273,14 +274,15 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
   }
 
   Widget _buildLocalStep(double horizontal) {
+    final l10n = context.l10n;
     return Column(
       children: [
         _LocalOption(
           horizontal: horizontal,
           icon: Icons.video_library_rounded,
           iconColor: Colors.orange,
-          title: 'Video',
-          subtitle: 'Elegí un video de tu galería',
+          title: l10n.addStickerVideo,
+          subtitle: l10n.addStickerVideoSubtitle,
           onTap: widget.onLocal,
         ),
         SizedBox(height: context.responsiveSize(8, tabletSize: 10)),
@@ -288,8 +290,8 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
           horizontal: horizontal,
           icon: Icons.photo_rounded,
           iconColor: const Color(0xFF34C759),
-          title: 'Imagen',
-          subtitle: 'Elegí una imagen de tu galería',
+          title: l10n.addStickerImage,
+          subtitle: l10n.addStickerImageSubtitle,
           onTap: widget.onImage,
         ),
         SizedBox(height: context.responsiveSize(24, tabletSize: 28)),
@@ -298,6 +300,7 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
   }
 
   Widget _buildSocialStep(double horizontal) {
+    final l10n = context.l10n;
     return Column(
       children: [
         // ── Selector TikTok / Instagram ──
@@ -420,7 +423,7 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Pegá el enlace del $_socialTitle Reel o Video',
+                l10n.addStickerPasteLinkHint(_socialTitle),
                 style: context.responsiveTextStyle(
                   mobileSize: 11,
                   tabletSize: 12,
@@ -599,7 +602,7 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
   }
 }
 
-// ── Reusable Option Widgets ──
+// ── Reusable Option Widgets (sin cambios, solo reciben strings) ──
 
 class _MainOption extends StatelessWidget {
   final double horizontal;

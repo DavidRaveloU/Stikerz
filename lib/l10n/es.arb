@@ -268,5 +268,30 @@
   "premiumActive": "Premium activo",
   "noAdsBadge": "SIN ANUNCIOS",
   "premiumThanks": "¡Gracias por apoyar la app! ",
-  "premiumDescription": "Disfruta de la experiencia sin interrupciones"
+  "premiumDescription": "Disfruta de la experiencia sin interrupciones",
+
+  "addStickerFromDevice": "Desde tu dispositivo",
+  "addStickerFromDeviceSubtitle": "Elege un video o imagen de tu galería",
+  "addStickerFromSocial": "Desde redes sociales",
+  "addStickerFromSocialSubtitle": "Pega un enlace de TikTok o Instagram Reel",
+  "addStickerVideo": "Video",
+  "addStickerVideoSubtitle": "Elege un video de tu galería",
+  "addStickerImage": "Imagen",
+  "addStickerImageSubtitle": "Elege una imagen de tu galería",
+  "addStickerPasteLinkHint": "Pega el enlace del {platform} Reel o Video",
+
+  "imageEditorTraceShapeFirst": "Traza una forma primero.",
+  "imageEditorTraceOutline": "Traza el contorno",
+  "imageEditorAdjustCrop": "Ajustar recorte",
+  "imageEditorTraceShape": "Trazar forma",
+  "imageEditorCouldNotCreate": "No se pudo crear el sticker.",
+
+  "settingsGeneral": "General",
+  "settingsSupport": "Soporte",
+  "settingsAbout": "Acerca de",
+  "settingsBuyMeCoffee": "Buy Me a Coffee",
+  "settingsOpenLinkError": "No se pudo abrir el enlace",
+  "cropToolbarFullscreen": "Pantalla completa",
+  "freeFormTraceInstruction": "Traza el contorno sin levantar el dedo",
+  "editorSlowConnectionRetrying": "Conexión lenta — reintentando…"
 }

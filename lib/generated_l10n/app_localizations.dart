@@ -1605,6 +1605,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enjoy an ad-free experience'**
   String get premiumDescription;
+
+  /// No description provided for @addStickerFromDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'From your device'**
+  String get addStickerFromDevice;
+
+  /// No description provided for @addStickerFromDeviceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a video or image from your gallery'**
+  String get addStickerFromDeviceSubtitle;
+
+  /// No description provided for @addStickerFromSocial.
+  ///
+  /// In en, this message translates to:
+  /// **'From social networks'**
+  String get addStickerFromSocial;
+
+  /// No description provided for @addStickerFromSocialSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a TikTok or Instagram Reel link'**
+  String get addStickerFromSocialSubtitle;
+
+  /// No description provided for @addStickerVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get addStickerVideo;
+
+  /// No description provided for @addStickerVideoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a video from your gallery'**
+  String get addStickerVideoSubtitle;
+
+  /// No description provided for @addStickerImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get addStickerImage;
+
+  /// No description provided for @addStickerImageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an image from your gallery'**
+  String get addStickerImageSubtitle;
+
+  /// No description provided for @addStickerPasteLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the {platform} Reel or Video link'**
+  String addStickerPasteLinkHint(Object platform);
+
+  /// No description provided for @imageEditorTraceShapeFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Trace a shape first.'**
+  String get imageEditorTraceShapeFirst;
+
+  /// No description provided for @imageEditorTraceOutline.
+  ///
+  /// In en, this message translates to:
+  /// **'Trace the outline'**
+  String get imageEditorTraceOutline;
+
+  /// No description provided for @imageEditorAdjustCrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust crop'**
+  String get imageEditorAdjustCrop;
+
+  /// No description provided for @imageEditorTraceShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Trace shape'**
+  String get imageEditorTraceShape;
+
+  /// No description provided for @imageEditorCouldNotCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create sticker.'**
+  String get imageEditorCouldNotCreate;
+
+  /// No description provided for @settingsGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get settingsGeneral;
+
+  /// No description provided for @settingsSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get settingsSupport;
+
+  /// No description provided for @settingsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// No description provided for @settingsBuyMeCoffee.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy Me a Coffee'**
+  String get settingsBuyMeCoffee;
+
+  /// No description provided for @settingsOpenLinkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open link'**
+  String get settingsOpenLinkError;
+
+  /// No description provided for @cropToolbarFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Fullscreen'**
+  String get cropToolbarFullscreen;
+
+  /// No description provided for @freeFormTraceInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Trace the outline without lifting your finger'**
+  String get freeFormTraceInstruction;
+
+  /// No description provided for @editorSlowConnectionRetrying.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow connection — retrying…'**
+  String get editorSlowConnectionRetrying;
 }
 
 class _AppLocalizationsDelegate

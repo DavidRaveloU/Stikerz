@@ -12,6 +12,7 @@ import 'package:stikerz/core/providers/update_provider.dart';
 import 'package:stikerz/core/repositories/pack_repository.dart';
 import 'package:stikerz/core/services/ads_service.dart';
 import 'package:stikerz/core/services/static_sticker_generation_service.dart';
+import 'package:stikerz/generated_l10n/app_localizations.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/models/crop_type.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/providers/crop_provider.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/providers/image_editor_provider.dart';
@@ -56,7 +57,6 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
 
   Future<void> _loadImage() async {
     try {
-      // Reiniciar el estado del crop al cargar una nueva imagen
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           ref.read(imageEditorProvider.notifier).resetCropState();
@@ -69,7 +69,6 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
 
       final aspect = decoded.width / decoded.height;
 
-      // Obtener el estado actual y normalizar el crop con el nuevo aspect ratio
       final currentState = ref.read(imageEditorProvider);
       final normalized = CropProvider.normalizeCrop(
         rawOffset: currentState.cropOffset,
@@ -80,8 +79,6 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
 
       final notifier = ref.read(imageEditorProvider.notifier);
       notifier.setImageAspect(aspect);
-
-      // Actualizar el crop con los valores normalizados
       notifier.updateCrop(normalized.$1, normalized.$2);
 
       setState(() {
@@ -169,7 +166,9 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
           if (state.freeFormPoints.length < 3) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Trace a shape first.')),
+                SnackBar(
+                  content: Text(context.l10n.imageEditorTraceShapeFirst),
+                ),
               );
             }
             notifier.resetGenerationState();
@@ -228,7 +227,9 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.error ?? 'Could not create sticker.'),
+              content: Text(
+                result.error ?? context.l10n.imageEditorCouldNotCreate,
+              ),
             ),
           );
         }
@@ -442,6 +443,7 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
   @override
   Widget build(BuildContext context) {
     final isFreeForm = widget.cropType == CropType.freeForm;
+    final l10n = context.l10n;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -450,7 +452,7 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
         body: SafeArea(
           child: Column(
             children: [
-              _buildTopBar(isFreeForm),
+              _buildTopBar(isFreeForm, l10n),
               Expanded(
                 child: LayoutBuilder(
                   builder: (_, constraints) {
@@ -485,7 +487,7 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
     );
   }
 
-  Widget _buildTopBar(bool isFreeForm) {
+  Widget _buildTopBar(bool isFreeForm, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -509,7 +511,9 @@ class _FullscreenImageCropPageState extends State<_FullscreenImageCropPage> {
             ),
           ),
           Text(
-            isFreeForm ? 'Trace shape' : 'Adjust crop',
+            isFreeForm
+                ? l10n.imageEditorTraceShape
+                : l10n.imageEditorAdjustCrop,
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -589,6 +593,7 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
   @override
   Widget build(BuildContext context) {
     final imageRect = widget.imageRect;
+    final l10n = context.l10n;
 
     return Stack(
       children: [
@@ -658,9 +663,9 @@ class _FullscreenFreeFormAreaState extends State<_FullscreenFreeFormArea> {
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  'Trace the outline',
-                  style: TextStyle(color: Colors.white, fontSize: 13),
+                child: Text(
+                  l10n.imageEditorTraceOutline,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
                 ),
               ),
             ),

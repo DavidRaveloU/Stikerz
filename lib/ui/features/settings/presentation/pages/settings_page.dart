@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stikerz/core/constants/app_colors.dart';
 import 'package:stikerz/core/constants/app_links.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
 import 'package:stikerz/core/providers/settings_provider.dart';
 import 'package:stikerz/generated_l10n/app_localizations.dart';
 import 'package:stikerz/ui/components/about_card.dart';
@@ -40,7 +41,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo abrir el enlace')),
+        SnackBar(content: Text(context.l10n.settingsOpenLinkError)),
       );
     }
   }
@@ -60,7 +61,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 8),
 
           const Divider(color: AppColors.border),
-          const SectionHeader('General'),
+          SectionHeader(l10n.settingsGeneral),
           SettingsTile(
             icon: Icons.language,
             title: l10n.changeLanguage,
@@ -81,7 +82,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
 
           const Divider(color: AppColors.border),
-          const SectionHeader('Support'),
+          SectionHeader(l10n.settingsSupport),
           SettingsTile(
             icon: Icons.article,
             title: l10n.termsAndConditions,
@@ -126,7 +127,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           SettingsTile(
             icon: Icons.local_cafe,
-            title: 'Buy Me a Coffee',
+            title: l10n.settingsBuyMeCoffee,
             subtitle: AppLinks.buyMeACoffee.replaceFirst('https://', ''),
             onTap: () => _openSupportLink(context),
           ),
@@ -141,7 +142,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
 
           const Divider(color: AppColors.border),
-          const SectionHeader('About'),
+          SectionHeader(l10n.settingsAbout),
           FutureBuilder<String>(
             future: _appVersionFuture,
             builder: (context, snapshot) {

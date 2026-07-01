@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stikerz/core/extensions/localization_extension.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/providers/image_editor_provider.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/widgets/free_form_crop_painter.dart';
 import 'package:stikerz/ui/features/image_editor/presentation/widgets/magnifier.dart';
@@ -102,8 +103,8 @@ class FreeFormArea extends ConsumerWidget {
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  'Trace the outline without lifting your finger',
+                child: Text(
+                  context.l10n.freeFormTraceInstruction,
                   style: TextStyle(color: Colors.white, fontSize: 13),
                 ),
               ),

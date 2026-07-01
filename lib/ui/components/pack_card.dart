@@ -42,7 +42,6 @@ class PackCard extends StatelessWidget {
           children: [
             Hero(
               tag: 'pack_cover_${pack.id}',
-              placeholderBuilder: (context, size, child) => child,
               child: Container(
                 width: thumbnailSize,
                 height: thumbnailSize,
