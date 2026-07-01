@@ -124,12 +124,48 @@ class ImageEditorState {
 class ImageEditorNotifier extends StateNotifier<ImageEditorState> {
   ImageEditorNotifier() : super(const ImageEditorState());
 
-  /// Resets only the crop-related state, keeping imageLoaded intact.
+  /// Token de la solicitud de smart crop actualmente "vigente".
+  ///
+  /// El trabajo de ML Kit + procesamiento de imagen no se puede cancelar
+  /// a mitad de camino una vez iniciado. En vez de eso, cada solicitud se
+  /// identifica con un número que se incrementa cada vez que el usuario
+  /// cambia de modo de recorte o sale de la página. Cuando el resultado
+  /// de una solicitud vieja llega, se compara su token contra este valor:
+  /// si no coincide, se descarta en silencio sin tocar el estado.
+  int _smartCropToken = 0;
+
+  /// Inicia una nueva solicitud de smart crop: invalida cualquier
+  /// solicitud anterior en curso, limpia el preview previo, marca
+  /// `isSmartProcessing = true` y devuelve el token de esta solicitud
+  /// para que quien la inició pueda verificar más tarde si sigue vigente.
+  int startSmartCropRequest() {
+    _smartCropToken++;
+    state = state.copyWith(smartCropPreviewPath: null, isSmartProcessing: true);
+    return _smartCropToken;
+  }
+
+  /// Indica si [token] sigue siendo la solicitud de smart crop vigente.
+  bool isCurrentSmartCropRequest(int token) => token == _smartCropToken;
+
+  /// Invalida (sin poder cancelar de verdad) cualquier solicitud de
+  /// smart crop en curso: el resultado que eventualmente llegue será
+  /// ignorado gracias al token. También apaga el indicador de "procesando"
+  /// para que la UI quede libre de inmediato.
+  ///
+  /// Llamar esto cuando el usuario cambia a otro modo de recorte o sale
+  /// de la página mientras el smart crop todavía está trabajando.
+  void cancelActiveSmartCropRequest() {
+    if (!state.isSmartProcessing) return;
+    _smartCropToken++;
+    state = state.copyWith(isSmartProcessing: false);
+  }
+
   void setSmartCropPreviewPath(String? path) {
     state = state.copyWith(smartCropPreviewPath: path);
   }
 
   void clearSmartCrop() {
+    _smartCropToken++; // invalida cualquier resultado pendiente
     state = state.copyWith(
       smartCropPreviewPath: null,
       isSmartProcessing: false,
@@ -141,6 +177,9 @@ class ImageEditorNotifier extends StateNotifier<ImageEditorState> {
   }
 
   void resetCropState() {
+    // Si había un smart crop en curso al resetear (p.ej. al reabrir la
+    // página), invalidamos esa solicitud vieja.
+    cancelActiveSmartCropRequest();
     state = state.copyWith(
       selectedCrop: CropType.square,
       cropOffset: const Offset(0.08, 0.10),
@@ -159,6 +198,12 @@ class ImageEditorNotifier extends StateNotifier<ImageEditorState> {
   }
 
   void setSelectedCrop(CropType crop) {
+    if (crop != CropType.smart) {
+      // El usuario se está yendo del modo smart: si había un
+      // procesamiento en curso, lo invalidamos para que su resultado
+      // tardío se ignore.
+      cancelActiveSmartCropRequest();
+    }
     state = state.copyWith(
       selectedCrop: crop,
       freeFormPoints: [],

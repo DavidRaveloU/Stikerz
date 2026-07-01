@@ -12,7 +12,6 @@ import 'package:stikerz/core/providers/update_provider.dart';
 import 'package:stikerz/core/repositories/pack_repository.dart';
 import 'package:stikerz/core/services/ads_service.dart';
 import 'package:stikerz/core/services/image_processing_isolates.dart';
-import 'package:stikerz/core/services/smart_crop_service.dart';
 import 'package:stikerz/core/services/static_sticker_generation_service.dart';
 import 'package:stikerz/core/utils/image_cache_utils.dart'; // <--- NUEVO IMPORT (1)
 import 'package:stikerz/generated_l10n/app_localizations.dart';
@@ -46,10 +45,12 @@ class ImageEditorPage extends ConsumerStatefulWidget {
 class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
     with TickerProviderStateMixin {
   bool _imageLoaded = false;
+  late final ImageEditorNotifier _editorNotifier;
 
   @override
   void initState() {
     super.initState();
+    _editorNotifier = ref.read(imageEditorProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(imageEditorProvider.notifier).resetCropState();
@@ -333,8 +334,11 @@ class _ImageEditorPageState extends ConsumerState<ImageEditorPage>
 
   @override
   void dispose() {
-    unawaited(SmartCropService.cancelActiveRequest());
-    ref.read(imageEditorProvider.notifier).setSmartProcessing(false);
+    // Si el usuario sale de la página mientras el recorte automático
+    // (ML Kit) sigue procesando en segundo plano, invalidamos esa
+    // solicitud: el resultado tardío se ignorará gracias al token, sin
+    // necesidad (ni posibilidad real) de cancelar el trabajo ya en curso.
+    _editorNotifier.cancelActiveSmartCropRequest();
     _checkForUpdateAfterAction();
     super.dispose();
   }

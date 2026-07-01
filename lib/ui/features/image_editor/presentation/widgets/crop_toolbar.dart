@@ -96,16 +96,22 @@ class CropToolbar extends ConsumerWidget {
   }
 
   /// Procesa la imagen con ML Kit para eliminar el fondo y pre-visualizar.
-  /// Se ejecuta en el hilo principal (ML Kit usa canales de plataforma).
+  ///
+  /// El procesamiento pesado corre en un isolate aparte (ver
+  /// SmartCropService), así que el usuario puede cambiar de modo de
+  /// recorte o salir de la página en cualquier momento sin que la UI se
+  /// congele. Usamos un "token" de solicitud: si al terminar este token
+  /// ya no es el vigente (porque el usuario cambió de modo o se fue),
+  /// el resultado se descarta sin tocar el estado ni mostrar nada.
   Future<void> _performSmartCrop(WidgetRef ref, BuildContext context) async {
     final notifier = ref.read(imageEditorProvider.notifier);
 
-    // 1. Limpiar preview anterior inmediatamente
-    notifier.clearSmartCrop();
-
-    // 2. Seleccionar smart mode y mostrar spinner.
+    // 1. Seleccionar smart mode.
     notifier.setSelectedCrop(CropType.smart);
-    notifier.setSmartProcessing(true);
+
+    // 2. Iniciar una nueva solicitud: invalida cualquier solicitud
+    // anterior en curso, limpia el preview previo y muestra el spinner.
+    final requestToken = notifier.startSmartCropRequest();
 
     try {
       // 3. Pre-procesar la imagen: eliminar el fondo con ML Kit
@@ -118,6 +124,10 @@ class CropToolbar extends ConsumerWidget {
         outputPath: outputPath,
       );
 
+      // Si mientras se procesaba el usuario cambió de modo o salió de la
+      // página, este token ya quedó invalidado: no tocamos el estado.
+      if (!notifier.isCurrentSmartCropRequest(requestToken)) return;
+
       if (result != null) {
         // 4. Guardar ruta del preview
         notifier.setSmartCropPreviewPath(result);
@@ -125,21 +135,25 @@ class CropToolbar extends ConsumerWidget {
         notifier.clearSmartCrop();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Could not detect subject. Try a different photo.'),
             ),
           );
         }
       }
     } catch (e) {
-      notifier.clearSmartCrop();
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Smart cutout error: $e')));
+      if (notifier.isCurrentSmartCropRequest(requestToken)) {
+        notifier.clearSmartCrop();
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Smart cutout error: $e')));
+        }
       }
     } finally {
-      notifier.setSmartProcessing(false);
+      if (notifier.isCurrentSmartCropRequest(requestToken)) {
+        notifier.setSmartProcessing(false);
+      }
     }
   }
 }
